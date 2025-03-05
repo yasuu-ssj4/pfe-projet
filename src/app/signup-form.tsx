@@ -19,14 +19,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen ">
       <div className="bg-white p-6 rounded-2xl shadow-lg w-96">
         <h2 className="text-2xl font-semibold text-center mb-4 text-gray-700">
           Login
         </h2>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4"> 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-600">
+            <label htmlFor="email" className="block  bg-text-sm font-medium text-gray-600">
               Email
             </label>
             <input
