@@ -60,6 +60,7 @@ model utilisateur {
   mot_de_passe   String
   username       String
   est_admin      Boolean
+  active_directory Boolean
   role           String
   branche_id     Int?
   district_id    Int?

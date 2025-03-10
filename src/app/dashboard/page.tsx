@@ -1,32 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-
+import wave from "/wavesOpacity (1).svg";
 export default function UsersPage() {
   const [users, setUsers] = useState<{ User_id: number; Username: string }[]>([]);
 
   const [username, setUsername] = useState("");
 
-  //fetch mn l api 
-  useEffect(() => {
-    fetch("/api/users")
-      .then((res) => res.json())
-      .then((data) => setUsers(data));
-  }, []);
 
-  
-  const addUser = async () => {
-    const res = await fetch("/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username }),
-    });
-
-    if (res.ok) {
-      const newUser = await res.json();
-      setUsers([...users, newUser]); 
-      setUsername(""); 
-    }
-  };
 
   return (
     <div className="p-6">
@@ -40,7 +20,7 @@ export default function UsersPage() {
           placeholder="Enter username"
           className="border p-2 mr-2 items-center justify-center"
         />
-        <button onClick={addUser} className="bg-blue-500 text-white items-center justify-center px-4 py-2 rounded">
+        <button  className="bg-blue-500 text-white items-center justify-center px-4 py-2 rounded">
           Add User
         </button>
       </div>

@@ -7,6 +7,14 @@ import pkg from 'lodash';
 import { NEVER } from "zod";
 const { forEach } = pkg;
 const prisma = new PrismaClient(); 
+enum type {
+    BALKANCAR,
+    BOSS,
+    CAMION 
+
+}
+
+const vehicule_type :type = type.
 
 async function createNiveau() {
     await prisma.niveau.deleteMany()
