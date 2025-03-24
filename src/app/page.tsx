@@ -1,6 +1,6 @@
 "use client";
 import "./globals.css";
-import LoginPage from "./signup-form";
+import LoginPage, { Bienvenue } from "./signup-form";
 import Header from "./header";
 
 import Image from "next/image";
@@ -21,7 +21,7 @@ export default function Home() {
             alt="Industry Buildings"
            className="absolute bottom-0 w-[83%] h-auto z-10 pointer-events-none"
           />
-          
+         
       </div>
       
     </div>

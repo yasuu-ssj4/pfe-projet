@@ -1,8 +1,21 @@
 "use client";
-
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
+import {motion} from "framer-motion";
+export  function Bienvenue() {
+  return (
+    <div className="flex items-center justify-center h-screen ">
+      <motion.h1
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        className="text-black text-5xl md:text-6xl font-extrabold tracking-wide"
+      >
+        Bienvenue
+      </motion.h1>
+    </div>
+  );
+}
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);

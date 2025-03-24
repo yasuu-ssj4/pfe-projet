@@ -8,140 +8,229 @@ datasource db {
 }
 
 model vehicule {
-  id_vehicule       Int                     @id
-  marque            String
-  type              String
-  n_immatriculation String
-  n_serie           String
-  date_acquisition  DateTime
-  prix_acquisition  Float
-  etat              String
-  kilometrage       Int
-  genre             String
-  n_inventaire      String
-  niveau_id         Int
-  niveau            Niveau                  @relation("NiveauVehicule", fields: [niveau_id], references: [code_niveau])
-  panne             demande_interventionT[]
+  code_vehicule                 String                         @id
+  code_marque                   Int
+  FK_vehicule_REF_type          type                           @relation(fields: [code_type], references: [id_type])
+  FK_vehicule_REF_genre         genre                          @relation(fields: [code_genre], references: [code_genre])
+  code_type                     Int
+  code_genre                    String
+  code_status                   String
+  unite_predication             String
+  code_structure                String
+  code_struct                   structure                      @relation(fields: [code_structure], references: [code_structure], onDelete: NoAction, onUpdate: NoAction)
+  n_immatriculation             String
+  n_serie                       String
+  date_acquisition              DateTime?
+  prix_acquisition              Float?
+  n_inventaire                  String?
+  date_debut_assurance          DateTime?
+  date_fin_assurance            DateTime?
+  date_debut_controle_technique DateTime?
+  date_fin_controle_technique   DateTime?
+  date_debut_atmd               DateTime?
+  date_fin_atmd                 DateTime?
+  date_debut_permis_circuler    DateTime?
+  date_fin_permis_circuler      DateTime?
+  date_debut_certificat         DateTime?
+  date_fin_certificat           DateTime?
+  kilo_heure                    historique_kilometrage_heure[]
+  historique_status             historique_status[]
+  immobilisations               immobilisation[]
+  affectations                  affectation[]
+  demande_intervention          demande_intervention[]
 }
 
-model Niveau {
-  code_niveau    Int                     @id
-  designation    String
-  type_hierachie String
-  parent_id      Int?
-  parent         Niveau?                 @relation("Hierarchy", fields: [parent_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
-  enfants        Niveau[]                @relation("Hierarchy")
-  vehicules      vehicule[]              @relation("NiveauVehicule")
-  services       service[]               @relation("NiveauService")
-  utilisateursB  utilisateur[]           @relation("BrancheUtilisateur")
-  utilisateursD  utilisateur[]           @relation("DistrictUtilisateur")
-  utilisateursC  utilisateur[]           @relation("CentreUtilisateur")
-  panneD         demande_interventionT[] @relation("DistrictDemande")
-  panneC         demande_interventionT[] @relation("CentreDemande")
-  panneB         demande_interventionT[] @relation("BrancheDemande")
-  rapportD       rapport_intervention[]  @relation("DistrictRapport")
-  rapportC       rapport_intervention[]  @relation("CentreRapport")
-  rapportB       rapport_intervention[]  @relation("BrancheRapport")
+model marque {
+  id_marque Int @id @default(autoincrement()) 
+  designation String
+  types       type[]
 }
 
-model service {
-  id_service   Int           @id
-  type_service String
-  id_niveau    Int
-  niveau       Niveau        @relation("NiveauService", fields: [id_niveau], references: [code_niveau])
-  utilisateurs utilisateur[] @relation("ServiceUtilisateur")
+model type {
+  id_type           Int          @id @default(autoincrement())
+  designation         String
+  id_marque         Int
+  FK_type_REF_marque  marque               @relation(fields: [id_marque], references: [id_marque])
+  vehicules           vehicule[]
+  progammes_entretien progamme_entretien[]
+}
+
+model genre {
+  code_genre  String     @id
+  designation String
+  vehicules   vehicule[]
+}
+
+model status {
+  code_status       String              @id
+  designation       String
+  historique_status historique_status[]
+}
+
+model historique_status {
+  code_vehicule String
+  code_status   String
+  date          DateTime
+  vehicule      vehicule @relation(fields: [code_vehicule], references: [code_vehicule])
+  status        status   @relation(fields: [code_status], references: [code_status])
+
+  @@id([code_vehicule, code_status, date])
+}
+
+model structure {
+  code_structure   String        @id
+  structure_parent String?
+  designation      String
+  type_hierarchy   String
+  affectations     affectation[]
+  vehicules        vehicule[]
+  parent           structure?    @relation("StructureHierarchy", fields: [structure_parent], references: [code_structure], onDelete: NoAction, onUpdate: NoAction)
+  children         structure[]   @relation("StructureHierarchy")
+  utilisateurs     utilisateur[]
+}
+
+model historique_kilometrage_heure {
+  code_vehicule                      String
+  date                               DateTime
+  kilo_parcouru_heure_fonctionnement Float
+  code_veh                           vehicule @relation(fields: [code_vehicule], references: [code_vehicule])
+
+  @@id([code_vehicule, date])
+}
+
+model immobilisation {
+  code_vehicule        String
+  date_immobilisation  DateTime
+  cause_immobilisation String
+  lieu                 String
+  action               String
+  echeance             DateTime
+  vehicule             vehicule @relation(fields: [code_vehicule], references: [code_vehicule])
+
+  @@id([code_vehicule, date_immobilisation])
+}
+
+model affectation {
+  code_vehicule  String
+  code_structure String
+  date           DateTime
+  vehicule       vehicule  @relation(fields: [code_vehicule], references: [code_vehicule])
+  structure      structure @relation(fields: [code_structure], references: [code_structure], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([code_vehicule, code_structure, date])
 }
 
 model utilisateur {
-  id_utilisateur Int     @id @default(autoincrement())
-  nom            String
-  prenom         String
-  email          String
-  mot_de_passe   String
-  username       String
-  est_admin      Boolean
-  active_directory Boolean
-  role           String
-  branche_id     Int?
-  district_id    Int?
-  centre_id      Int?
-  service_id     Int?
-
-  branche  Niveau?  @relation("BrancheUtilisateur", fields: [branche_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
-  district Niveau?  @relation("DistrictUtilisateur", fields: [district_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
-  centre   Niveau?  @relation("CentreUtilisateur", fields: [centre_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
-  service  service? @relation("ServiceUtilisateur", fields: [service_id], references: [id_service], onDelete: NoAction, onUpdate: NoAction)
+  id_utilisateur     Int       @id @default(autoincrement())
+  nom_utilisateur    String
+  prenom_utilisateur String
+  username           String
+  email              String
+  numero_telephone   String
+  mot_de_passe       String
+  code_structure     String
+  methode_authent    String
+  est_admin          Boolean
+  droit_utilateur    String
+  role               String
+  structure          structure @relation(fields: [code_structure], references: [code_structure], onDelete: Cascade, onUpdate: Cascade)
 }
 
-model demande_interventionT {
-  id_demande_intervention       Int                             @id @default(autoincrement())
-  date_application              DateTime
-  date_heure_panne              DateTime
-  structure_maintenance         String
-  activite                      String                          @default("material roulant")
-  nature_panne                  String
-  nature_travaux                String
-  degre_urgence                 String
-  id_vehicule                   Int
-  vehicule                      vehicule                        @relation(fields: [id_vehicule], references: [id_vehicule])
-  district_id                   Int
-  destrict                      Niveau                          @relation("DistrictDemande", fields: [district_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
-  centre_id                     Int
-  centre                        Niveau                          @relation("CentreDemande", fields: [centre_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
-  branche_id                    Int
-  branche                       Niveau                          @relation("BrancheDemande", fields: [branche_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
-  rapport_intervention          rapport_intervention[]
-  demande_interventionM         demande_interventionM[]
+model gamme {
+  code_gamme   String               @id
+  designation  String
+  unite_mesure String
+  programmes   progamme_entretien[]
+}
+
+model operation {
+  code_operation String               @id
+  designation    String
+  programmes     progamme_entretien[]
+}
+
+model progamme_entretien {
+  code_gamme     String
+  code_operation String
+  code_type      Int
+  type           type      @relation(fields: [code_type], references: [id_type])
+  gamme          gamme     @relation(fields: [code_gamme], references: [code_gamme])
+  operation      operation @relation(fields: [code_operation], references: [code_operation])
+
+  @@id([code_type, code_gamme, code_operation])
+}
+model demande_intervention {
+  id_demande_intervention Int                    @id @default(autoincrement())
+  date_application        DateTime
+  date_heure_panne        DateTime
+  structure_maintenance   String
+  activite                String                 @default("material roulant")
+  nature_panne            String
+  nature_travaux          String
+  degre_urgence           String
+  code_vehicule           String
+  vehicule                vehicule               @relation(fields: [code_vehicule], references: [code_vehicule])                     
+  branche_id              String
+  district_id             String
+  centre_id               String
+  rapport_intervention    rapport_intervention?
+  constat_panne           String
+  diagnostique            String
+  description             String
+  niveaux_prio            Int
+  necess_permis           Boolean
+  routinier               Boolean
+  routinier_ref           String?
+  dangereux               Boolean
+  dangereux_ref           String?
+  id_demandeur           Int
+  date_demandeur         DateTime
+  visa_demandeur         String
+  id_intervevant         Int
+  date_intervevant       DateTime
+  visa_intervevant       String
+  nom_prenom_responsable  String
+  date_responsable        DateTime
+  visa_responsable        String
+  fonction_responsable    String
 }
 
 model rapport_intervention {
-  id_rapport_intervention Int                   @id @default(autoincrement())
-  id_demande_intervention Int
-  demande_interventionT   demande_interventionT @relation(fields: [id_demande_intervention], references: [id_demande_intervention], onDelete: NoAction, onUpdate: NoAction)
+  id_rapport_intervention Int                    @id @default(autoincrement())
+  id_demande_intervention Int                    @unique  
+  demande_intervention    demande_intervention   @relation(fields: [id_demande_intervention], references: [id_demande_intervention])
   date_application        DateTime
   date_debut_travaux      DateTime
   date_fin_travaux        DateTime
   date_panne              DateTime
   date_prise_charge       DateTime
-  district_id             Int
-  district                Niveau                @relation("DistrictRapport", fields: [district_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
-  centre_id               Int
-  centre                  Niveau                @relation("CentreRapport", fields: [centre_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
-  branche_id              Int
-  branche                 Niveau                @relation("BrancheRapport", fields: [branche_id], references: [code_niveau], onDelete: NoAction, onUpdate: NoAction)
   duree_travaux           String
   description_essais      String
   essais                  Boolean
   reservation             String?
   traveaux_interne        traveaux_interne[]
-  total_traveaux_interne  Int
+  cout_total_traveaux_interne  Int
   traveaux_externe        traveaux_externe[]
-  total_traveaux_externe  Int
-  reference_documentée   String
+  cout_total_traveaux_externe  Int
+  reference_documentée    String
   date_fin_permis         DateTime
+  id_utilisateur          Int
+  date_utilisateur        DateTime
+  visa_utilisateur        String
+  nom_prenom_demandeur    String
+  date_demandeur          DateTime
+  visa_demandeur          String
+  nom_prenom_responsable  String
+  date_responsable        DateTime
+  visa_responsable        String
 }
 
-model demande_interventionM {
-  id                   Int                  @id @default(autoincrement())
-  id_demande_intervention Int
-  demande_intervention demande_interventionT @relation(fields: [id_demande_intervention], references: [id_demande_intervention], onDelete: Cascade, onUpdate: Cascade)
-  id_vehicle           Int
-  constat_panne        String
-  diagnostique         String
-  description          String
-  niveaux_prio         Int
-  necess_permis       Boolean
-  routinier            Boolean
-  routinier_ref      String?
-  dangereux           Boolean
-  dangereux_ref      String?
-}
 
 model traveaux_interne {
   id_travaille        Int                  @id @default(autoincrement())
   id_rapport          Int
   rapport             rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade, onUpdate: Cascade)
-  atelier             String
+  atelier_desc             String
   temps_alloue        Int
   PDR_consommee       String
   cout_pdr            Int

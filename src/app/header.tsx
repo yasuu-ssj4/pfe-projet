@@ -1,4 +1,4 @@
-import naftal_logo from './Logo_NAFTAL.svg';
+import naftal_logo from "./lib/Logo_NAFTAL.svg"
 
 export default function Header() {
   return (
