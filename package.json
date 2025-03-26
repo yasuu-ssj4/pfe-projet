@@ -13,6 +13,7 @@
     "@prisma/client": "^6.3.1",
     "bcryptjs": "^3.0.2",
     "bootstrap": "^5.3.2",
+    "crypto-js": "^4.2.0",
     "formik": "^2.4.6",
     "framer-motion": "^12.5.0",
     "jsonwebtoken": "^9.0.2",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/crypto-js": "^4.2.2",
     "@types/mssql": "^9.1.7",
     "@types/node": "^20",
     "@types/react": "^19",
