@@ -124,10 +124,10 @@ model utilisateur {
   id_utilisateur     Int       @id @default(autoincrement())
   nom_utilisateur    String
   prenom_utilisateur String
-  username           String
-  email              String
+  username           String @unique
+  email              String 
   numero_telephone   String
-  mot_de_passe       String
+  mot_de_passe       String 
   code_structure     String
   methode_authent    String
   est_admin          Boolean

@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import CryptoJS from "crypto-js";
 
-import { error, log } from "console";
 import pkg, { constant, unary } from 'lodash';
 import RootLayout from './layout';
 import {
@@ -27,7 +26,7 @@ import {
 const { forEach } = pkg;
 const prisma = new PrismaClient(); 
 
-const SECRET_KEY = "NAFT_1981";
+export const SECRET_KEY = "NAFT_1981";
 
   
 export async function ajouterVehicule(data: Vehicule) {
@@ -118,13 +117,19 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     await prisma.traveaux_externe.create({ data });
   }
   
-  const struct : Structure = {
-    code_structure: "100",
-    designation: "Direction générale",
-    type_hierarchy: "DG"
-  }
-  await prisma.structure.deleteMany()
-  await ajouterStructure(struct)
-  .catch( error)
+  const user : Utilisateur = {
+  nom_utilisateur : "islam",
+  prenom_utilisateur : "mohamed",
+   username : "islam_unique",
+   email : "abcd@naftal.dz",
+   numero_telephone : "0555555555",
+   mot_de_passe : "un mot de passe",
+   code_structure : "300",
+   methode_authent : "BDD",
+   est_admin : true,
+   droit_utilateur : "admin",
+   role : "admin"
 
-  
+  }
+   
+ 
