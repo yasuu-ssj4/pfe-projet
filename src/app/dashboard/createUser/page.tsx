@@ -62,30 +62,7 @@ export default function Compte(){
       }
       const privilegelist = checkedItems.join("/")
       console.log(privilegelist);
-      const user: Utilisateur = {
-   nom_utilisateur : nom,
-   prenom_utilisateur : prenom,
-    username : username,
-    numero_telephone : tel,
-    mot_de_passe : password,
-    email: email,
-    est_admin : true,
-    code_structure : structure,
-    methode_authent : "BDD",
-    role : Role,
-    droit_utilisateur : privilegelist
-      }
       
-      const handleUser = async (e: React.FormEvent) => {
-       e.preventDefault();
-        try{
-         ajouterUtilisateur(user);
-         console.log("Utilisateur ajouté avec succès !");
-        }
-       catch(error){
-          console.log(error);
-        }
-      }
     };
     return(
         <div className="bg-[#dcdfe8] ">
