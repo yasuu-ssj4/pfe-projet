@@ -10,20 +10,19 @@ export async function POST(req: Request) {
 
         const user = await prisma.utilisateur.findUnique({
             where: { username },
-            select: { mot_de_passe: true, methode_authent: true }
+            select: { mot_de_passe: true, methode_authent: true , code_structure : true , id_utilisateur : true}
         });
 
         if (!user) {
             return new Response(JSON.stringify({ error: "Utilisateur non trouvé." }), { status: 404 });
         }
 
-        // Check la methode d'auth
         if (user.methode_authent === "BDD") {
             const decryptedMdp = CryptoJS.AES.decrypt(user.mot_de_passe, SECRET_KEY).toString(CryptoJS.enc.Utf8);
             if (decryptedMdp !== password) {
                 return new Response(JSON.stringify({ error: "Mot de passe incorrect." }), { status: 401 });
             }
-            return new Response(JSON.stringify({ success: true }), { status: 200 });
+            return new Response(JSON.stringify({ success: true , id_utilisateur : user.id_utilisateur , code_structure : user.code_structure  }), { status: 200 });
         }
 
     } catch (error) {

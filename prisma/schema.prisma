@@ -52,7 +52,7 @@ model type {
   id_marque         Int
   FK_type_REF_marque  marque               @relation(fields: [id_marque], references: [id_marque])
   vehicules           vehicule[]
-  progammes_entretien progamme_entretien[]
+  progammes_entretien progamme_entretien?
 }
 
 model genre {
@@ -131,7 +131,7 @@ model utilisateur {
   code_structure     String
   methode_authent    String
   est_admin          Boolean
-  droit_utilateur    String
+  droit_utilisateur    String
   role               String
   structure          structure @relation(fields: [code_structure], references: [code_structure], onDelete: Cascade, onUpdate: Cascade)
 }
@@ -152,7 +152,7 @@ model operation {
 model progamme_entretien {
   code_gamme     String
   code_operation String
-  code_type      Int
+  code_type      Int  @unique
   type           type      @relation(fields: [code_type], references: [id_type])
   gamme          gamme     @relation(fields: [code_gamme], references: [code_gamme])
   operation      operation @relation(fields: [code_operation], references: [code_operation])

@@ -1,3 +1,5 @@
+import { ajouterUtilisateur } from "./prisma";
+
 export interface Vehicule {
     code_vehicule: string;
     code_marque: number;
@@ -86,7 +88,7 @@ export interface Vehicule {
     code_structure: string;
     methode_authent: string;
     est_admin: boolean;
-    droit_utilateur: string;
+    droit_utilisateur: string;
     role: string;
   }
   
@@ -184,3 +186,4 @@ export interface Vehicule {
     reference_facture: string;
     cout_facture: number;
   }
+ 

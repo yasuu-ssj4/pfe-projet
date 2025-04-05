@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, utilisateur } from "@prisma/client";
 import CryptoJS from "crypto-js";
 
 import pkg, { constant, unary } from 'lodash';
@@ -84,7 +84,7 @@ export async function ajouterUtilisateur(user: Utilisateur) {
             code_structure: user.code_structure,
             methode_authent: user.methode_authent,
             est_admin: user.est_admin,
-            droit_utilateur: user.droit_utilateur,
+            droit_utilisateur: user.droit_utilisateur,
             role: user.role
         }
     });
@@ -116,20 +116,18 @@ export async function ajouterUtilisateur(user: Utilisateur) {
   export async function ajouterTravauxExterne(data: TraveauxExterne) {
     await prisma.traveaux_externe.create({ data });
   }
-  
-  const user : Utilisateur = {
-  nom_utilisateur : "islam",
-  prenom_utilisateur : "mohamed",
-   username : "islam_unique",
-   email : "abcd@naftal.dz",
-   numero_telephone : "0555555555",
-   mot_de_passe : "un mot de passe",
-   code_structure : "300",
-   methode_authent : "BDD",
-   est_admin : true,
-   droit_utilateur : "admin",
-   role : "admin"
 
-  }
-   
- 
+const ramy : Utilisateur = {
+   nom_utilisateur : "ramy",
+   prenom_utilisateur : "ramy",
+   username : "ramy",
+   numero_telephone : "00000",
+   mot_de_passe : "un mot de passe",
+   email:"ramy",
+   est_admin : true ,
+   role : " admin",
+   methode_authent :"bdd",
+   droit_utilisateur : "admin",
+   code_structure : "100"
+}
+ajouterUtilisateur(ramy);

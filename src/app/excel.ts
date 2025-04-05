@@ -70,5 +70,5 @@ const insertDataToDB = async (data: { designation: string; desi_marque: string }
 // Run
 const filePath = "C://Users//Haki//Downloads//Données Projet Maintenance Flotte.xlsx"; 
 const excelData = readExcelFile(filePath);
-console.log(excelData); 
+console.log(excelData); // Check if data is parsed correctly
 insertDataToDB(excelData);

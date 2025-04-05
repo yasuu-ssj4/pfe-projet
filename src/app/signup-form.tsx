@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { NextApiRequest, NextApiResponse } from 'next'
 import { ErrorNotification } from "./page";
+import { log } from "node:console";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,10 +23,12 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
+       
       });
-
+       
       const data = await response.json();
-
+      console.log(data);
+      
       if (!response.ok) {
         setErrorMessage(data.error || "Une erreur s'est produite.");
         setLoading(false);
