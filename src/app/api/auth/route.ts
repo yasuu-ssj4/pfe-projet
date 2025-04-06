@@ -1,7 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import CryptoJS from "crypto-js";
 import { SECRET_KEY } from "../../prisma";
-
+import { NextRequest, NextResponse } from "next/server";
+import { createSession } from "@/app/lib/session";
+import { updateSession } from "@/app/lib/session";
 const prisma = new PrismaClient();  
 
 export async function POST(req: Request) {
@@ -22,6 +24,7 @@ export async function POST(req: Request) {
             if (decryptedMdp !== password) {
                 return new Response(JSON.stringify({ error: "Mot de passe incorrect." }), { status: 401 });
             }
+            await createSession({ username, password });
             return new Response(JSON.stringify({ success: true , id_utilisateur : user.id_utilisateur , code_structure : user.code_structure  }), { status: 200 });
         }
 
@@ -29,3 +32,8 @@ export async function POST(req: Request) {
         return new Response(JSON.stringify({ error: "Erreur interne du serveur." }), { status: 500 });
     }
 }
+
+export async function middleware(request: NextRequest) {
+    return await updateSession(request);
+  }
+  

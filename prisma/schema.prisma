@@ -14,7 +14,6 @@ model vehicule {
   FK_vehicule_REF_genre         genre                          @relation(fields: [code_genre], references: [code_genre])
   code_type                     Int
   code_genre                    String
-  code_status                   String
   unite_predication             String
   code_structure                String
   code_struct                   structure                      @relation(fields: [code_structure], references: [code_structure], onDelete: NoAction, onUpdate: NoAction)
@@ -41,16 +40,16 @@ model vehicule {
 }
 
 model marque {
-  id_marque Int @id @default(autoincrement()) 
+  id_marque   Int    @id @default(autoincrement())
   designation String
   types       type[]
 }
 
 model type {
-  id_type           Int          @id @default(autoincrement())
+  id_type             Int                 @id @default(autoincrement())
   designation         String
-  id_marque         Int
-  FK_type_REF_marque  marque               @relation(fields: [id_marque], references: [id_marque])
+  id_marque           Int
+  FK_type_REF_marque  marque              @relation(fields: [id_marque], references: [id_marque])
   vehicules           vehicule[]
   progammes_entretien progamme_entretien?
 }
@@ -124,14 +123,14 @@ model utilisateur {
   id_utilisateur     Int       @id @default(autoincrement())
   nom_utilisateur    String
   prenom_utilisateur String
-  username           String @unique
-  email              String 
+  username           String    @unique
+  email              String
   numero_telephone   String
-  mot_de_passe       String 
+  mot_de_passe       String
   code_structure     String
   methode_authent    String
   est_admin          Boolean
-  droit_utilisateur    String
+  droit_utilisateur  String
   role               String
   structure          structure @relation(fields: [code_structure], references: [code_structure], onDelete: Cascade, onUpdate: Cascade)
 }
@@ -152,24 +151,25 @@ model operation {
 model progamme_entretien {
   code_gamme     String
   code_operation String
-  code_type      Int  @unique
+  code_type      Int       @unique
   type           type      @relation(fields: [code_type], references: [id_type])
   gamme          gamme     @relation(fields: [code_gamme], references: [code_gamme])
   operation      operation @relation(fields: [code_operation], references: [code_operation])
 
   @@id([code_type, code_gamme, code_operation])
 }
+
 model demande_intervention {
-  id_demande_intervention Int                    @id @default(autoincrement())
+  id_demande_intervention Int                   @id @default(autoincrement())
   date_application        DateTime
   date_heure_panne        DateTime
   structure_maintenance   String
-  activite                String                 @default("material roulant")
+  activite                String                @default("material roulant")
   nature_panne            String
   nature_travaux          String
   degre_urgence           String
   code_vehicule           String
-  vehicule                vehicule               @relation(fields: [code_vehicule], references: [code_vehicule])                     
+  vehicule                vehicule              @relation(fields: [code_vehicule], references: [code_vehicule])
   branche_id              String
   district_id             String
   centre_id               String
@@ -183,12 +183,12 @@ model demande_intervention {
   routinier_ref           String?
   dangereux               Boolean
   dangereux_ref           String?
-  id_demandeur           Int
-  date_demandeur         DateTime
-  visa_demandeur         String
-  id_intervevant         Int
-  date_intervevant       DateTime
-  visa_intervevant       String
+  id_demandeur            Int
+  date_demandeur          DateTime
+  visa_demandeur          String
+  id_intervevant          Int
+  date_intervevant        DateTime
+  visa_intervevant        String
   nom_prenom_responsable  String
   date_responsable        DateTime
   visa_responsable        String
@@ -196,45 +196,44 @@ model demande_intervention {
 }
 
 model rapport_intervention {
-  id_rapport_intervention Int                    @id @default(autoincrement())
-  id_demande_intervention Int                    @unique  
-  demande_intervention    demande_intervention   @relation(fields: [id_demande_intervention], references: [id_demande_intervention])
-  date_application        DateTime
-  date_debut_travaux      DateTime
-  date_fin_travaux        DateTime
-  date_panne              DateTime
-  date_prise_charge       DateTime
-  duree_travaux           String
-  description_essais      String
-  essais                  Boolean
-  reservation             String?
-  traveaux_interne        traveaux_interne[]
-  cout_total_traveaux_interne  Int
-  traveaux_externe        traveaux_externe[]
-  cout_total_traveaux_externe  Int
-  reference_documentée    String
-  date_fin_permis         DateTime
-  id_utilisateur          Int
-  date_utilisateur        DateTime
-  visa_utilisateur        String
-  nom_prenom_demandeur    String
-  date_demandeur          DateTime
-  visa_demandeur          String
-  nom_prenom_responsable  String
-  date_responsable        DateTime
-  visa_responsable        String
+  id_rapport_intervention     Int                  @id @default(autoincrement())
+  id_demande_intervention     Int                  @unique
+  demande_intervention        demande_intervention @relation(fields: [id_demande_intervention], references: [id_demande_intervention])
+  date_application            DateTime
+  date_debut_travaux          DateTime
+  date_fin_travaux            DateTime
+  date_panne                  DateTime
+  date_prise_charge           DateTime
+  duree_travaux               String
+  description_essais          String
+  essais                      Boolean
+  reservation                 String?
+  traveaux_interne            traveaux_interne[]
+  cout_total_traveaux_interne Int
+  traveaux_externe            traveaux_externe[]
+  cout_total_traveaux_externe Int
+  reference_documentée       String
+  date_fin_permis             DateTime
+  id_utilisateur              Int
+  date_utilisateur            DateTime
+  visa_utilisateur            String
+  nom_prenom_demandeur        String
+  date_demandeur              DateTime
+  visa_demandeur              String
+  nom_prenom_responsable      String
+  date_responsable            DateTime
+  visa_responsable            String
 }
-
 
 model traveaux_interne {
   id_travaille        Int                  @id @default(autoincrement())
   id_rapport          Int
   rapport             rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade, onUpdate: Cascade)
-  atelier_desc             String
+  atelier_desc        String
   temps_alloue        Int
   PDR_consommee       String
   cout_pdr            Int
-  reference_bc_bm_btm String
+  reference_bc_bm_btm String 
 }
 
 model traveaux_externe {

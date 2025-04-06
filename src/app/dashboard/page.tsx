@@ -1,11 +1,25 @@
 "use client";
 import { useState, useEffect } from "react";
-import wave from "/wavesOpacity (1).svg";
-export default function UsersPage() {
+import { redirect } from 'next/navigation';
+import { cookies } from "next/dist/server/request/cookies";
+import React from "react";
+
+export default  function UsersPage() {
   const [users, setUsers] = useState<{ User_id: number; Username: string }[]>([]);
 
   const [username, setUsername] = useState("");
+  const getSessionId = async () => {
+    const session = (await cookies()).get('session_id');
+    console.log(session); 
+   if (!session) {
+      redirect('../'); 
+    }
+    return session;
+  };
 
+  React.useEffect(() => {
+    getSessionId(); 
+  }, []);
 
 
   return (
