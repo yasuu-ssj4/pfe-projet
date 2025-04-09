@@ -36,7 +36,7 @@ export default function LoginPage() {
       }
 
      
-      router.push("/dashboard");
+      router.push("/dashboard/createUser");
     } catch (error) {
       setErrorMessage("Erreur de connexion au serveur.");
     } finally {

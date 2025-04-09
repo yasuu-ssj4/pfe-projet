@@ -7,8 +7,14 @@ export function middleware(req: NextRequest) {
   const protectedRoutes = ['/dashboard'];
 
   if (protectedRoutes.includes(req.nextUrl.pathname) && !session) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    return NextResponse.redirect(new URL('./', req.url));
   }
 
   return NextResponse.next();
 }
+/*
+select salesman.names , custumer.cust_name , custumer.city
+from salesman join custumer
+on salesman.city = custumer.city
+
+*/

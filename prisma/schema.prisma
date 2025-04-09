@@ -15,8 +15,6 @@ model vehicule {
   code_type                     Int
   code_genre                    String
   unite_predication             String
-  code_structure                String
-  code_struct                   structure                      @relation(fields: [code_structure], references: [code_structure], onDelete: NoAction, onUpdate: NoAction)
   n_immatriculation             String
   n_serie                       String
   date_acquisition              DateTime?
@@ -82,7 +80,6 @@ model structure {
   designation      String
   type_hierarchy   String
   affectations     affectation[]
-  vehicules        vehicule[]
   parent           structure?    @relation("StructureHierarchy", fields: [structure_parent], references: [code_structure], onDelete: NoAction, onUpdate: NoAction)
   children         structure[]   @relation("StructureHierarchy")
   utilisateurs     utilisateur[]

@@ -3,18 +3,18 @@ import CryptoJS from "crypto-js";
 import { SECRET_KEY } from "../../prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { createSession } from "@/app/lib/session";
-import { updateSession } from "@/app/lib/session";
 const prisma = new PrismaClient();  
-
+// la methode POST pour verifier les infos d'utilisateur 
 export async function POST(req: Request) {
     try {
+        // request est composée de le nom utilisateur et password
         const { username, password } = await req.json();
-
+        // on recherche dans la bdd les infos avec l'username l'unique 
         const user = await prisma.utilisateur.findUnique({
             where: { username },
             select: { mot_de_passe: true, methode_authent: true , code_structure : true , id_utilisateur : true}
         });
-
+        //les responses
         if (!user) {
             return new Response(JSON.stringify({ error: "Utilisateur non trouvé." }), { status: 404 });
         }
@@ -33,7 +33,5 @@ export async function POST(req: Request) {
     }
 }
 
-export async function middleware(request: NextRequest) {
-    return await updateSession(request);
-  }
+
   
