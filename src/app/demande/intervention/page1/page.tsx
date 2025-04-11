@@ -20,11 +20,11 @@ export default function Page1() {
     nature_travaux : "corrective",
     degre_urgence : formData.urgence,
     date_application : new Date(),
-    code_vehicule : formData.immatriculation,
     district_id : formData.district,  
     centre_id : formData.cds,
      date_demandeur : new Date(formData.dateDemandeur),
      visa_demandeur : formData.visaDemandeur,
+     code_vehicule : "A0156",
     id_demandeur : 1,
   }
  
@@ -79,9 +79,33 @@ export default function Page1() {
     }
   };
 
-  const handleNavigation = () => {
+  const handleNavigation = async () => {
     if (isFormValid()) {
-      router.push("/vehicule");
+      try {
+        const res = await fetch("/api/ajouterDI", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", 
+          },
+          body: JSON.stringify(demandeTransport),
+        });
+        const data = await res.json();
+      console.log(data);
+      
+      if (!res.ok) {
+        setErrorMessage(data.error || "Une erreur s'est produite.");
+        
+        return;
+      }
+        
+    
+        console.log(res.body);
+        
+      } catch (err) {
+        console.error(err);
+        alert("Erreur inattendue !");
+        
+      }
     } else {
       alert("Veuillez remplir tous les champs obligatoires.");
     }
@@ -293,4 +317,10 @@ function updateField(arg0: string, arg1: any) {
 function getTodayDate(): any {
   throw new Error("Function not implemented.");
 }
+
+function setErrorMessage(arg0: any) {
+  throw new Error("Function not implemented.");
+}
+
+
 

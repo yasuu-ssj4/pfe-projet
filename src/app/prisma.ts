@@ -130,4 +130,23 @@ const ramy : Utilisateur = {
    droit_utilisateur : "admin",
    code_structure : "100"
 }
-ajouterUtilisateur(ramy);
+
+const DI : DemandeIntervention = {
+      etat_demande: 'En cours',
+      date_heure_panne: new Date('2025-04-10T00:00:00.000Z'),
+      structure_maintenance: 'cds',
+      activite: 'Matériel roulant',
+      nature_panne: 'mecanique',
+      nature_travaux: 'corrective',
+      degre_urgence: '3',
+      date_application: new Date('2025-04-10T00:00:00.000Z'),
+      district_id: '',
+      centre_id: '100',
+      date_demandeur: new Date('2025-04-10T00:00:00.000Z'),
+      visa_demandeur: 'brah',
+      id_demandeur: 1,
+      code_vehicule : "A0156"
+    
+}
+ 
+ajouterDemandeIntervention(DI)
