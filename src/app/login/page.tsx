@@ -1,16 +1,16 @@
 "use client";
-import "./globals.css";
+import "../globals.css";
 
-import Header from "./header";
+import Header from "../header";
 
 import Image from "next/image";
 
-import buildings from "../../public/industry.png";
+import buildings from "../../../public/industry.png";
 import { motion } from "framer-motion";
-import LoginPage from "./login/signup-form";
+import LoginPage from "./signup-form";
 
 export function ErrorNotification({ message }: { message: string | null }) {
-  if (!message) return null; 
+  if (!message) return null; // Don't render if no error
 
   return (
     <motion.div 
@@ -26,7 +26,6 @@ export function ErrorNotification({ message }: { message: string | null }) {
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
       <div className="flex flex-row-reverse flex-grow">
         <LoginPage />
         <div className="shapedividers_com-185 relative w-full">

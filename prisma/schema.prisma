@@ -158,6 +158,7 @@ model progamme_entretien {
 
 model demande_intervention {
   id_demande_intervention Int                   @id @default(autoincrement())
+  etat_demande          String
   date_application        DateTime
   date_heure_panne        DateTime
   structure_maintenance   String
@@ -167,29 +168,28 @@ model demande_intervention {
   degre_urgence           String
   code_vehicule           String
   vehicule                vehicule              @relation(fields: [code_vehicule], references: [code_vehicule])
-  branche_id              String
   district_id             String
   centre_id               String
   rapport_intervention    rapport_intervention?
-  constat_panne           String
-  diagnostique            String
-  description             String
-  niveaux_prio            Int
-  necess_permis           Boolean
-  routinier               Boolean
+  constat_panne           String?
+  diagnostique            String?
+  description             String?
+  niveaux_prio            Int?
+  necess_permis           Boolean?
+  routinier               Boolean?
   routinier_ref           String?
-  dangereux               Boolean
+  dangereux               Boolean?
   dangereux_ref           String?
   id_demandeur            Int
   date_demandeur          DateTime
   visa_demandeur          String
-  id_intervevant          Int
-  date_intervevant        DateTime
-  visa_intervevant        String
-  nom_prenom_responsable  String
-  date_responsable        DateTime
-  visa_responsable        String
-  fonction_responsable    String
+  id_intervevant          Int?
+  date_intervevant        DateTime?
+  visa_intervevant        String?
+  nom_prenom_responsable  String?
+  date_responsable        DateTime?
+  visa_responsable        String?
+  fonction_responsable    String?
 }
 
 model rapport_intervention {

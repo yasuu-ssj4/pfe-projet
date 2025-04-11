@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { NextApiRequest, NextApiResponse } from 'next'
 import { ErrorNotification } from "./page";
-import { log } from "node:console";
 
 export default function LoginPage() {
   const router = useRouter();

@@ -4,10 +4,9 @@ import { SECRET_KEY } from "../../prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { createSession } from "@/app/lib/session";
 const prisma = new PrismaClient();  
-// la methode POST pour verifier les infos d'utilisateur 
 export async function POST(req: Request) {
     try {
-        // request est composée de le nom utilisateur et password
+        // request est composee de le nom utilisateur et password
         const { username, password } = await req.json();
         // on recherche dans la bdd les infos avec l'username l'unique 
         const user = await prisma.utilisateur.findUnique({

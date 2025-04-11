@@ -110,6 +110,7 @@ export interface Vehicule {
   }
   
   export interface DemandeIntervention {
+    etat_demande: string;
     date_application: Date;
     date_heure_panne: Date;
     structure_maintenance: string;
@@ -118,28 +119,27 @@ export interface Vehicule {
     nature_travaux: string;
     degre_urgence: string;
     code_vehicule: string;
-    branche_id: string;
     district_id: string;
     centre_id: string;
-    constat_panne: string;
-    diagnostique: string;
-    description: string;
-    niveaux_prio: number;
-    necess_permis: boolean;
-    routinier: boolean;
+    constat_panne?: string;
+    diagnostique?: string;
+    description?: string;
+    niveaux_prio?: number;
+    necess_permis?: boolean;
+    routinier?: boolean;
     routinier_ref?: string;
-    dangereux: boolean;
+    dangereux?: boolean;
     dangereux_ref?: string;
     id_demandeur: number;
     date_demandeur: Date;
     visa_demandeur: string;
-    id_intervevant: number;
-    date_intervevant: Date;
-    visa_intervevant: string;
-    nom_prenom_responsable: string;
-    date_responsable: Date;
-    visa_responsable: string;
-    fonction_responsable: string;
+    id_intervevant?: number;
+    date_intervevant?: Date;
+    visa_intervevant?: string;
+    nom_prenom_responsable?: string;
+    date_responsable?: Date;
+    visa_responsable?: string;
+    fonction_responsable?: string;
   }
   
   export interface RapportIntervention {

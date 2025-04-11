@@ -178,7 +178,6 @@ export default function Compte(){
         );}};
     return(
         <div className="bg-[#dcdfe8] ">
-           <Header/>
          <div className="flex flex-1 pt-[12vh] h-lvh ">
            
            <main className="  w-full h-full flex-1  ">
