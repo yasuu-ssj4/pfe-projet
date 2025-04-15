@@ -65,7 +65,7 @@
  
      if (isValid) {
        setError(false);
-       router.push("/maintenance2");  
+       router.push("./maintenance2");  
      } else {
        setError(true);
      }

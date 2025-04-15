@@ -9,7 +9,6 @@ datasource db {
 
 model vehicule {
   code_vehicule                 String                         @id
-  code_marque                   Int
   FK_vehicule_REF_type          type                           @relation(fields: [code_type], references: [id_type])
   FK_vehicule_REF_genre         genre                          @relation(fields: [code_genre], references: [code_genre])
   code_type                     Int

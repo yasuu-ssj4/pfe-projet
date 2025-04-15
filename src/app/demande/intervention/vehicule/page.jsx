@@ -1,4 +1,3 @@
-// app/(intervention)/vehicule/page.jsx
 "use client";
 
 import React, { useEffect } from "react";
@@ -46,7 +45,7 @@ export default function VehiculePage() {
       );
       return;
     }
-    router.push("/maintenance1");  
+    router.push("./maintenance1");  
   };
 
   
