@@ -151,12 +151,12 @@ const DI : DemandeIntervention = {
 }
  
 async function testApi() {
-   const response = await fetch("http://localhost:3000/api/verifierStructures", {
+   const response = await fetch("http://localhost:3000/api/vehicule/type", {
      method: "POST",
      headers: {
        "Content-Type": "application/json",
      },
-     body: JSON.stringify({ type: "centre" }),
+     body: JSON.stringify({ type: "get" , id_marque : 3 }),
    });
  
    const data = await response.json();

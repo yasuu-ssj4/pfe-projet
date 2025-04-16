@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const validTypes = ["district", "centre"];
+    const validTypes = ["District", "Centre"];
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { error: `'${type}' n'est pas un type d'hierachie` },
