@@ -1,6 +1,7 @@
 import { PrismaClient, utilisateur } from "@prisma/client";
 import CryptoJS from "crypto-js";
-
+import { NextRequest } from "next/server";
+import { POST } from "./api/structure/verifierStructures/route";
 import pkg, { constant, unary } from 'lodash';
 import RootLayout from './layout';
 import {
@@ -149,4 +150,18 @@ const DI : DemandeIntervention = {
     
 }
  
-ajouterDemandeIntervention(DI)
+async function testApi() {
+   const response = await fetch("http://localhost:3000/api/verifierStructures", {
+     method: "POST",
+     headers: {
+       "Content-Type": "application/json",
+     },
+     body: JSON.stringify({ type: "centre" }),
+   });
+ 
+   const data = await response.json();
+   console.log("✅ Result:", data);
+ }
+ 
+ testApi();
+ 

@@ -1,7 +1,6 @@
 "use client";
 import "../globals.css";
 
-import Header from "../header";
 
 import Image from "next/image";
 

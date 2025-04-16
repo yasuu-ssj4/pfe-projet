@@ -1,16 +1,16 @@
-import naftal_logo from "./lib/Logo_NAFTAL.svg"
+import naftal_logo from './lib/Logo_NAFTAL.svg';
 
 export default function Header() {
   return (
-    <div className="flex items-center gap-4 sticky top-0 bg-white p-4 shadow-md font-semibold w-full">
-      
+    <header className="fixed top-0 left-0 w-full h-[12vh] bg-[#D3D31B] flex justify-between items-center">
+
       <div>
       </div>
 
-    
+
       <div className="flex items-center p-1">
         <img src={naftal_logo.src} alt="Naftal Logo" className="h-16 w-auto" />
       </div>
-    </div>
+    </header>
   );
 }
