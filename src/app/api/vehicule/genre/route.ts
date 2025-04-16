@@ -21,3 +21,27 @@ export async function GET() {
     );
   }
 }
+export async function POST(req : NextRequest) {
+  const NvGenre: Genre = await req.json();
+  const { code_genre , designation  } = NvGenre;
+  try {
+    const genreExists = await prisma.genre.findFirst({
+      where: { designation , code_genre },
+    });
+    if (genreExists) {
+      return NextResponse.json(
+        { error: 'genre déjà existant' },
+        { status: 400 }
+      );
+    }
+    await ajouterGenre(NvGenre);
+    return NextResponse.json({ 'genre ajouté avec succès': designation }, { status: 200 });
+
+  } catch (error) {
+    console.error('Error in POST /api/vehicule/genre', error);
+    return NextResponse.json(
+      { error: 'Erreur interne de serveur' },
+      { status: 500 }
+    );
+  }
+}
