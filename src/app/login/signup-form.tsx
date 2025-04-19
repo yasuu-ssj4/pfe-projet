@@ -1,10 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { NextApiRequest, NextApiResponse } from 'next'
 import { ErrorNotification } from "./page";
-
+import { signIn, useSession } from "next-auth/react";
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -34,8 +33,7 @@ export default function LoginPage() {
         return;
       }
 
-     
-      router.push("/dashboard/createUser");
+      router.push("/dashboard");
     } catch (error) {
       setErrorMessage("Erreur de connexion au serveur.");
     } finally {

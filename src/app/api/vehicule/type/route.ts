@@ -4,14 +4,20 @@ import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from "next/server";
 import { ajouterType } from "@/app/prisma";
 
+
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   const body  = await req.json();
   const { designation , id_marque , type  } = body;
+  const parsedId = parseInt(id_marque); // 🛠 convertit en nombre
+
+  if (isNaN(parsedId)) {
+    return NextResponse.json({ error: "id_marque invalide" }, { status: 400 });
+  };
 if(type =="get"){
   const marque = await prisma.marque.findFirst({
-    where: { id_marque }
+    where: { id_marque: parsedId }
   });
 
   if (!marque) {

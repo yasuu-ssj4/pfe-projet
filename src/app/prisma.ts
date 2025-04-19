@@ -102,13 +102,13 @@ export async function ajouterUtilisateur(user: Utilisateur) {
      await prisma.progamme_entretien.create({ data });
   }
   
-  export async function ajouterDemandeIntervention(data: DemandeIntervention) {
-     await prisma.demande_intervention.create({ data });
-  }
+//   export async function ajouterDemandeIntervention(data: DemandeIntervention) {
+//      await prisma.demande_intervention.create({ data });
+//   }
   
-  export async function ajouterRapportIntervention(data: RapportIntervention) {
- await prisma.rapport_intervention.create({ data });
-  }
+//   export async function ajouterRapportIntervention(data: RapportIntervention) {
+//  await prisma.rapport_intervention.create({ data });
+//   }
   
   export async function ajouterTravauxInterne(data: TraveauxInterne) {
      await prisma.traveaux_interne.create({ data });
@@ -151,16 +151,16 @@ const DI : DemandeIntervention = {
 }
  
 async function testApi() {
-   const response = await fetch("http://localhost:3000/api/vehicule/type", {
+   const response = await fetch("http://localhost:3000/api/vehicule/getVehicules", {
      method: "POST",
      headers: {
        "Content-Type": "application/json",
      },
-     body: JSON.stringify({ type: "get" , id_marque : 3 }),
+     body: JSON.stringify({id_utilisateur : 2 }),
    });
  
    const data = await response.json();
-   console.log("✅ Result:", data);
+   console.log("Result:", data);
  }
  
  testApi();

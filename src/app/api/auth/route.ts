@@ -1,36 +1,63 @@
 import { PrismaClient } from "@prisma/client";
 import CryptoJS from "crypto-js";
-import { SECRET_KEY } from "../../prisma";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
+import { SECRET_KEY } from "../../prisma"; 
 import { NextRequest, NextResponse } from "next/server";
-import { createSession } from "@/app/lib/session";
-const prisma = new PrismaClient();  
-export async function POST(req: Request) {
-    try {
-        // request est composee de le nom utilisateur et password
-        const { username, password } = await req.json();
-        // on recherche dans la bdd les infos avec l'username l'unique 
-        const user = await prisma.utilisateur.findUnique({
-            where: { username },
-            select: { mot_de_passe: true, methode_authent: true , code_structure : true , id_utilisateur : true}
-        });
-        //les responses
-        if (!user) {
-            return new Response(JSON.stringify({ error: "Utilisateur non trouvé." }), { status: 404 });
-        }
+import {handleAuth} from "@kinde-oss/kinde-auth-nextjs/server";
 
-        if (user.methode_authent === "BDD") {
-            const decryptedMdp = CryptoJS.AES.decrypt(user.mot_de_passe, SECRET_KEY).toString(CryptoJS.enc.Utf8);
-            if (decryptedMdp !== password) {
-                return new Response(JSON.stringify({ error: "Mot de passe incorrect." }), { status: 401 });
-            }
-            await createSession({ username, password });
-            return new Response(JSON.stringify({ success: true , id_utilisateur : user.id_utilisateur , code_structure : user.code_structure  }), { status: 200 });
-        }
+export const GET = handleAuth();
+const prisma = new PrismaClient();
 
-    } catch (error) {
-        return new Response(JSON.stringify({ error: "Erreur interne du serveur." }), { status: 500 });
+export async function POST(req: NextRequest) {
+  try {
+    const { username, password } = await req.json();
+
+    const user = await prisma.utilisateur.findUnique({
+      where: { username },
+      select: {
+        mot_de_passe: true,
+        methode_authent: true,
+        id_utilisateur: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "Utilisateur non trouvé." }, { status: 404 });
     }
-}
 
+    if (user.methode_authent === "BDD") {
+      const decryptedMdp = CryptoJS.AES.decrypt(user.mot_de_passe, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+      if (decryptedMdp !== password) {
+        return NextResponse.json({ error: "Mot de passe incorrect." }, { status: 401 });
+      }
 
   
+      const token = jwt.sign(
+        {
+          id_utilisateur: user.id_utilisateur,
+        },
+        SECRET_KEY,
+        { expiresIn: "12h" }
+      );
+
+      
+      (await
+          
+            cookies()).set("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 43200, 
+        expires: new Date(Date.now() + 12 * 60 * 60 * 1000),
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json({ error: "Méthode non supportée" }, { status: 400 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}

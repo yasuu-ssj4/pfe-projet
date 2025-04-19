@@ -156,7 +156,7 @@ model progamme_entretien {
 }
 
 model demande_intervention {
-  id_demande_intervention Int                   @id @default(autoincrement())
+  id_demande_intervention Int                   @id 
   etat_demande          String
   date_application        DateTime
   date_heure_panne        DateTime
@@ -192,9 +192,13 @@ model demande_intervention {
 }
 
 model rapport_intervention {
-  id_rapport_intervention     Int                  @id @default(autoincrement())
-  id_demande_intervention     Int                  @unique
-  demande_intervention        demande_intervention @relation(fields: [id_demande_intervention], references: [id_demande_intervention])
+  id_rapport_intervention     Int                  @id 
+id_demande_intervention Int @unique
+demande_intervention demande_intervention @relation(fields: [id_demande_intervention], references: [id_demande_intervention])
+structure_maintenance_en_charge_des_travaux String
+  district_id             String
+  centre_id               String
+  numero_OR                    String
   date_application            DateTime
   date_debut_travaux          DateTime
   date_fin_travaux            DateTime

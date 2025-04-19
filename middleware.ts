@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+export { default } from "next-auth/middleware";
 
+export const config = {
+  matcher: ["/dashboard"],
+};
 export function middleware(req: NextRequest) {
   const session = req.cookies.get('session_id');
 
