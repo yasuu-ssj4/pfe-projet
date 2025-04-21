@@ -76,6 +76,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ FormValue, handleChange, SetStep, Set
                     SetFormValue({ ...FormValue, date_acquisition: e.target.value })
                   }
                    />
+
                </div>
                <div className="flex justify-end mt-10 space-x-4">
                 <button

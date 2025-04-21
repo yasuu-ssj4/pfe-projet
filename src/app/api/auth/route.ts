@@ -4,9 +4,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { SECRET_KEY } from "../../prisma"; 
 import { NextRequest, NextResponse } from "next/server";
-import {handleAuth} from "@kinde-oss/kinde-auth-nextjs/server";
 
-export const GET = handleAuth();
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {

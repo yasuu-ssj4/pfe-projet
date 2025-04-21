@@ -4,12 +4,12 @@ import StepOne from "./stepOne";
 import StepTwo from "./stepTwo";
 import StepThree from "./stepThree";
 import StepFour from "./stepFour";
-import { Vehicule } from "@/app/interfaces";
+import { Affectation, Vehicule } from "@/app/interfaces";
 //NE MODIFIE PAS CETTE INTERFACE ELLE EST IMPORTANTE POUR QUE LE FORM S ENVOIE DANS LE BON TYPE
 export interface VehicleForm {
   code_vehicule: string;
   code_genre: string;
-  code_marque: number;
+  code_marque :number;
   code_type: number;
   unite_predication: string;
   kilo_parcouru_heure_fonctionnement: number | string;
@@ -39,7 +39,7 @@ export default function FormVehicule(){
     const[FormValue,SetFormValue] = useState<VehicleForm>({
       code_vehicule:"",
       code_genre:"",
-      code_marque:1,
+      code_marque :1 ,
       code_type:1,
       unite_predication:"",
       kilo_parcouru_heure_fonctionnement: 0,
@@ -110,8 +110,8 @@ export default function FormVehicule(){
             SetFormValue({
               code_vehicule:"",
               code_genre:"A",
-              code_marque:1,
-              code_type:1,
+              code_marque : FormValue.code_marque ,
+              code_type: FormValue.code_type,
               unite_predication:"Kilometrage",
               kilo_parcouru_heure_fonctionnement: 0,
               code_status: "OPR",
@@ -119,7 +119,7 @@ export default function FormVehicule(){
               n_immatriculation:"",
               n_serie:"",
               date_acquisition: "",
-              prix_acquisition: null,
+              prix_acquisition: 0,
               n_inventaire:"",
               date_debut_assurance: "",
               date_fin_assurance: "",
@@ -158,7 +158,7 @@ export default function FormVehicule(){
         const testVehicule: Vehicule = {
            code_vehicule: FormValue.code_vehicule,
            code_genre: FormValue.code_genre,
-           code_type: FormValue.code_type,
+           code_type: Number(FormValue.code_type),
            unite_predication: FormValue.unite_predication,
            n_immatriculation: FormValue.n_immatriculation,
            n_serie: FormValue.n_serie,
@@ -177,9 +177,19 @@ export default function FormVehicule(){
           date_fin_certificat: cleanedForm.date_fin_certificat instanceof Date ? cleanedForm.date_fin_certificat : cleanedForm.date_fin_certificat ? new Date(cleanedForm.date_fin_certificat) : null,
           
             };
+        const affectation = {
+          code_vehicule: FormValue.code_vehicule,
+          code_structure: FormValue.code_structure,
+        }
+        const affecterstatus = {
+          code_vehicule: FormValue.code_vehicule,
+          code_status: FormValue.code_status,
+        }
         console.log("testVehicule", testVehicule);
-
-        try {
+        console.log("affectation", affectation);
+        console.log("affecterstatus", affecterstatus);
+        
+        
           const response = await fetch("http://localhost:3000/api/vehicule", {
             method: "POST",
             headers: {
@@ -189,18 +199,42 @@ export default function FormVehicule(){
           });
       
           if (!response.ok) {
-            // Server responded but with an error code (like 400, 500, etc)
-            const errorText = await response.text(); // try to read error message
+            const errorText = await response.text(); 
             throw new Error(`Server Error ${response.status}: ${errorText}`);
           }
       
           const data = await response.json();
           console.log("Success:", data);
-          return data;
-        } catch (error) {
-          // This catches both fetch errors (like no internet) AND server errors thrown above
-          console.error("Error occurred while calling API:", error);
+
+          const affectationResponse = await fetch("http://localhost:3000/api/vehicule/affectation", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(affectation),
+          });
+          if (!affectationResponse.ok) {
+            const errorText = await affectationResponse.text(); 
+            throw new Error(`Affectation Error ${affectationResponse.status}: ${errorText}`);
+          }
+          const affectationData = await affectationResponse.json();
+          console.log("Affectation Success:", affectationData);
+          const affecterStatusResponse = await fetch("http://localhost:3000/api/vehicule/status/affecterStatus", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+           body: JSON.stringify(affecterstatus)
+        }) 
+        if(!affecterStatusResponse.ok) {
+          const errorText = await affecterStatusResponse.text(); 
+          throw new Error(`Affectation Status Error ${affecterStatusResponse.status}: ${errorText}`);
         }
+        const affecterStatusData = await affecterStatusResponse.json();
+        console.log(affecterStatusData);
+        
+          return data;
+        
         SetPopup(false);
      };
     return(

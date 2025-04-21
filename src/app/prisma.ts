@@ -110,13 +110,13 @@ export async function ajouterUtilisateur(user: Utilisateur) {
 //  await prisma.rapport_intervention.create({ data });
 //   }
   
-  export async function ajouterTravauxInterne(data: TraveauxInterne) {
-     await prisma.traveaux_interne.create({ data });
-  }
+//   export async function ajouterTravauxInterne(data: TraveauxInterne) {
+//      await prisma.traveaux_interne.create({ data });
+//   }
   
-  export async function ajouterTravauxExterne(data: TraveauxExterne) {
-    await prisma.traveaux_externe.create({ data });
-  }
+//   export async function ajouterTravauxExterne(data: TraveauxExterne) {
+//     await prisma.traveaux_externe.create({ data });
+//   }
 
 const ramy : Utilisateur = {
    nom_utilisateur : "ramy",

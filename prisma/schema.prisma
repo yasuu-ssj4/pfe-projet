@@ -9,8 +9,6 @@ datasource db {
 
 model vehicule {
   code_vehicule                 String                         @id
-  FK_vehicule_REF_type          type                           @relation(fields: [code_type], references: [id_type])
-  FK_vehicule_REF_genre         genre                          @relation(fields: [code_genre], references: [code_genre])
   code_type                     Int
   code_genre                    String
   unite_predication             String
@@ -29,11 +27,13 @@ model vehicule {
   date_fin_permis_circuler      DateTime?
   date_debut_certificat         DateTime?
   date_fin_certificat           DateTime?
+  affectations                  affectation[]
+  demande_intervention          demande_intervention[]
   kilo_heure                    historique_kilometrage_heure[]
   historique_status             historique_status[]
   immobilisations               immobilisation[]
-  affectations                  affectation[]
-  demande_intervention          demande_intervention[]
+  FK_vehicule_REF_genre         genre                          @relation(fields: [code_genre], references: [code_genre])
+  FK_vehicule_REF_type          type                           @relation(fields: [code_type], references: [id_type])
 }
 
 model marque {
@@ -46,9 +46,9 @@ model type {
   id_type             Int                 @id @default(autoincrement())
   designation         String
   id_marque           Int
+  progammes_entretien progamme_entretien?
   FK_type_REF_marque  marque              @relation(fields: [id_marque], references: [id_marque])
   vehicules           vehicule[]
-  progammes_entretien progamme_entretien?
 }
 
 model genre {
@@ -67,8 +67,8 @@ model historique_status {
   code_vehicule String
   code_status   String
   date          DateTime
-  vehicule      vehicule @relation(fields: [code_vehicule], references: [code_vehicule])
   status        status   @relation(fields: [code_status], references: [code_status])
+  vehicule      vehicule @relation(fields: [code_vehicule], references: [code_vehicule])
 
   @@id([code_vehicule, code_status, date])
 }
@@ -109,8 +109,8 @@ model affectation {
   code_vehicule  String
   code_structure String
   date           DateTime
+  structure      structure @relation(fields: [code_structure], references: [code_structure], onUpdate: NoAction)
   vehicule       vehicule  @relation(fields: [code_vehicule], references: [code_vehicule])
-  structure      structure @relation(fields: [code_structure], references: [code_structure], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([code_vehicule, code_structure, date])
 }
@@ -128,7 +128,7 @@ model utilisateur {
   est_admin          Boolean
   droit_utilisateur  String
   role               String
-  structure          structure @relation(fields: [code_structure], references: [code_structure], onDelete: Cascade, onUpdate: Cascade)
+  structure          structure @relation(fields: [code_structure], references: [code_structure], onDelete: Cascade)
 }
 
 model gamme {
@@ -148,100 +148,97 @@ model progamme_entretien {
   code_gamme     String
   code_operation String
   code_type      Int       @unique
-  type           type      @relation(fields: [code_type], references: [id_type])
   gamme          gamme     @relation(fields: [code_gamme], references: [code_gamme])
   operation      operation @relation(fields: [code_operation], references: [code_operation])
+  type           type      @relation(fields: [code_type], references: [id_type])
 
   @@id([code_type, code_gamme, code_operation])
 }
 
 model demande_intervention {
-  id_demande_intervention Int                   @id 
-  etat_demande          String
-  date_application        DateTime
-  date_heure_panne        String
-  structure_maintenance   String
-  activite                String                @default("material roulant")
-  nature_panne            String
-  nature_travaux          String
-  degre_urgence           String
-  code_vehicule           String
-  vehicule                vehicule              @relation(fields: [code_vehicule], references: [code_vehicule])
-  district_id             String
-  centre_id               String
-  rapport_intervention    rapport_intervention?
-  constat_panne           String?
-  diagnostique            String?
-  description             String?
-  niveaux_prio            Int?
-  necess_permis           Boolean?
-  routinier               Boolean?
-  routinier_ref           String?
-  dangereux               Boolean?
-  dangereux_ref           String?
-  id_demandeur            Int
-  date_demandeur          DateTime
-  visa_demandeur          String
-  id_intervevant          Int?
-  date_intervevant        DateTime?
-  visa_intervevant        String?
-  nom_prenom_responsable  String?
-  date_responsable        String?
-  visa_responsable        String?
-  fonction_responsable    String?
+  id_demande_intervention    String                @id
+  etat_demande               String
+  date_application           DateTime
+  date_heure_panne           String
+  structure_maintenance      String
+  activite                   String                @default("material roulant")
+  nature_panne               String
+  nature_travaux             String
+  degre_urgence              String
+  code_vehicule              String
+  district_id                String
+  centre_id                  String
+  constat_panne              String?
+  diagnostique               String?
+  description                String?
+  niveaux_prio               Int?
+  necess_permis              Boolean?
+  routinier                  Boolean?
+  routinier_ref              String?
+  dangereux                  Boolean?
+  dangereux_ref              String?
+  id_demandeur               Int
+  date_demandeur             DateTime
+  id_intervevant             Int?
+  date_intervevant           DateTime?
+  nom_prenom_responsable     String?
+  date_responsable           String?
+  fonction_responsable       String?
+  date_responsable_unm       String?
+  fonction_responsable_unm   String?
+  nom_prenom_responsable_unm String?
+  vehicule                   vehicule              @relation(fields: [code_vehicule], references: [code_vehicule])
+  rapport_intervention       rapport_intervention?
 }
 
 model rapport_intervention {
-  id_rapport_intervention     Int                  @id 
-id_demande_intervention Int @unique
-demande_intervention demande_intervention @relation(fields: [id_demande_intervention], references: [id_demande_intervention])
-structure_maintenance_en_charge_des_travaux String
-  district_id             String
-  centre_id               String
-  numero_OR                    String
-  date_application            DateTime
-  date_debut_travaux          DateTime
-  date_fin_travaux            DateTime
-  date_panne                  DateTime
-  date_prise_charge           DateTime
-  duree_travaux               String
-  description_essais          String
-  essais                      Boolean
-  reservation                 String?
-  traveaux_interne            traveaux_interne[]
-  cout_total_traveaux_interne Int
-  traveaux_externe            traveaux_externe[]
-  cout_total_traveaux_externe Int
-  reference_documentée       String
-  date_fin_permis             DateTime
-  id_utilisateur              Int
-  date_utilisateur            DateTime
-  visa_utilisateur            String
-  nom_prenom_demandeur        String
-  date_demandeur              DateTime
-  visa_demandeur              String
-  nom_prenom_responsable      String
-  date_responsable            DateTime
-  visa_responsable            String
+  id_rapport_intervention                     String               @id
+  id_demande_intervention                     String               @unique
+  structure_maintenance_en_charge_des_travaux String
+  district_id                                 String
+  centre_id                                   String
+  numero_OR                                   String
+  date_application                            DateTime
+  date_debut_travaux                          DateTime
+  date_fin_travaux                            DateTime
+  date_panne                                  DateTime
+  date_prise_charge                           DateTime
+  duree_travaux                               String
+  description_essais                          String
+  essais                                      Boolean
+  reservation                                 String?
+  cout_total_traveaux_interne                 Int
+  cout_total_traveaux_externe                 Int
+  reference_documentée                       String
+  date_fin_permis                             DateTime
+  id_utilisateur                              Int
+  date_utilisateur                            DateTime
+  nom_prenom_demandeur                        String
+  date_demandeur                              DateTime
+  nom_prenom_responsable                      String
+  date_responsable                            String
+  demande_intervention                        demande_intervention @relation(fields: [id_demande_intervention], references: [id_demande_intervention])
+  traveaux_externe                            traveaux_externe[]
+  traveaux_interne                            traveaux_interne[]
 }
 
 model traveaux_interne {
   id_travaille        Int                  @id @default(autoincrement())
-  id_rapport          Int
-  rapport             rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade, onUpdate: Cascade)
+  id_rapport          String
   atelier_desc        String
   temps_alloue        Int
   PDR_consommee       String
   cout_pdr            Int
-  reference_bc_bm_btm String 
+  reference_bc_bm_btm String
+  rapport             rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade)
 }
 
 model traveaux_externe {
   id_travaille       Int                  @id @default(autoincrement())
-  id_rapport         Int
-  rapport            rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade, onUpdate: Cascade)
+  id_rapport         String
   design_prestataire String
   reference_contrat  String
   reference_facture  String
   cout_facture       Int
+  rapport            rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade)
 }

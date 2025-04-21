@@ -84,7 +84,8 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
               }
         
               const data = await response.json();
-             
+              
+              
               setType(data);
         }catch (error) {
             console.error("Erreur dans fetchTypes ⚠️:", error);
@@ -133,7 +134,8 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
                 code_structure: selectedCentre,
             };
             
-
+          console.log(steponeinfos);
+          
              
     return(
         
