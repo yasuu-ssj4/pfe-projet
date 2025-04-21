@@ -7,6 +7,7 @@ type StepThreeProps = {
     SetStep: React.Dispatch<React.SetStateAction<number>>;
     SetFormValue: React.Dispatch<React.SetStateAction<VehicleForm>>;
 }
+
 const StepThree: React.FC<StepThreeProps> = ({ FormValue, handleChange, SetStep, SetFormValue }) => {
     return(
     <div className="bg-[#f2f2f2] p-6  rounded-2xl shadow-xl max-w-4xl mx-auto mt-10">

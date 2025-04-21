@@ -1,11 +1,13 @@
 "use client";
 import React from "react";
 import { VehicleForm } from "./formVehicules";
+import StepOne from "./stepOne";
 type StepTwoProps = {
     FormValue: VehicleForm;
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
     SetStep: React.Dispatch<React.SetStateAction<number>>;
     SetFormValue: React.Dispatch<React.SetStateAction<VehicleForm>>;
+
 }
 const StepTwo: React.FC<StepTwoProps> = ({ FormValue, handleChange, SetStep, SetFormValue }) => {
     return(
@@ -64,7 +66,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ FormValue, handleChange, SetStep, Set
                    placeholder="Prix"
                    className="mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none text-black"
                    />
-                   <label htmlFor="date_acquisition">Date d'acquisition</label>
+                     <label htmlFor="date_acquisition">Date d'acquisition</label>
                    <input
                    id="date_acquisition"
                    name="date_acquisition"

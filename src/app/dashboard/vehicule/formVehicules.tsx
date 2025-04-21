@@ -4,61 +4,62 @@ import StepOne from "./stepOne";
 import StepTwo from "./stepTwo";
 import StepThree from "./stepThree";
 import StepFour from "./stepFour";
+import { Vehicule } from "@/app/interfaces";
 //NE MODIFIE PAS CETTE INTERFACE ELLE EST IMPORTANTE POUR QUE LE FORM S ENVOIE DANS LE BON TYPE
 export interface VehicleForm {
-    code_vehicule: string;
-    code_genre: string;
-    code_marque: number;
-    code_type: number;
-    unite_predication: string;
-    kilo_parcouru_heure_fonctionnement: number | string;
-    code_status: string;
-    code_structure: string;
-    n_immatriculation: string;
-    n_serie: string;
-    date_acquisition: string ;
-    prix_acquisition: number | null ;
-    n_inventaire: string;
-    date_debut_assurance: string | null;
-    date_fin_assurance: string | null;
-    date_debut_controle_technique: string | null;
-    date_fin_controle_technique: string | null;
-    date_debut_atmd: string | null;
-    date_fin_atmd: string | null;
-    date_debut_permis_circuler: string | null;
-    date_fin_permis_circuler: string | null;
-    date_debut_certificat: string | null;
-    date_fin_certificat: string | null;
-  };
+  code_vehicule: string;
+  code_genre: string;
+  code_marque: number;
+  code_type: number;
+  unite_predication: string;
+  kilo_parcouru_heure_fonctionnement: number | string;
+  code_status: string;
+  code_structure: string;
+  n_immatriculation: string;
+  n_serie: string;
+  date_acquisition: string ;
+  prix_acquisition: number | null ;
+  n_inventaire: string;
+  date_debut_assurance: string | null;
+  date_fin_assurance: string | null;
+  date_debut_controle_technique: string | null;
+  date_fin_controle_technique: string | null;
+  date_debut_atmd: string | null;
+  date_fin_atmd: string | null;
+  date_debut_permis_circuler: string | null;
+  date_fin_permis_circuler: string | null;
+  date_debut_certificat: string | null;
+  date_fin_certificat: string | null;
+};
 
 export default function FormVehicule(){
     
     const[Popup,SetPopup] = useState(false);
     const[Step,SetStep] = useState(1);
     const[FormValue,SetFormValue] = useState<VehicleForm>({
-        code_vehicule:"",
-        code_genre:"",
-        code_marque:1,
-        code_type:1,
-        unite_predication:"",
-        kilo_parcouru_heure_fonctionnement: 0,
-        code_status: "",
-        code_structure:"",
-        n_immatriculation:"",
-        n_serie:"",
-        date_acquisition: "",
-        prix_acquisition: null ,
-        n_inventaire:"",
-        date_debut_assurance: "",
-        date_fin_assurance: "",
-        date_debut_controle_technique: "",
-        date_fin_controle_technique: "",
-        date_debut_atmd: "",
-        date_fin_atmd: "",
-        date_debut_permis_circuler: "",
-        date_fin_permis_circuler: "",
-        date_debut_certificat: "",
-        date_fin_certificat: "",
+      code_vehicule:"",
+      code_genre:"",
+      code_marque:1,
+      code_type:1,
+      unite_predication:"",
+      kilo_parcouru_heure_fonctionnement: 0,
+      code_status: "",
+      code_structure:"",
+      n_immatriculation:"",
+      n_serie:"",
+      date_acquisition: "",
+      prix_acquisition: null ,
+      n_inventaire:"",
+      date_debut_assurance: "",
+      date_fin_assurance: "",
+      date_debut_controle_technique: "",
+      date_fin_controle_technique: "",
+      date_debut_atmd: "",
+      date_fin_atmd: "",
+      date_debut_permis_circuler: "",
+      date_fin_permis_circuler: "",
+      date_debut_certificat: "",
+      date_fin_certificat: "",
      });
      //fonction pour rendre les dates en dd/mm/yyyy
      function formatDateDDMMYYYY(date: Date): string {
@@ -107,52 +108,100 @@ export default function FormVehicule(){
       };
       const OpenPopup = (e: React.MouseEvent<HTMLButtonElement>) => {
             SetFormValue({
-               code_vehicule:"",
-               code_genre:"A",
-               code_marque:1,
-               code_type:1,
-               unite_predication:"Kilometrage",
-               kilo_parcouru_heure_fonctionnement: 0,
-               code_status: "OPR",
-               code_structure:"",
-               n_immatriculation:"",
-               n_serie:"",
-               date_acquisition: "",
-               prix_acquisition: null,
-               n_inventaire:"",
-               date_debut_assurance: "",
-               date_fin_assurance: "",
-               date_debut_controle_technique: "",
-               date_fin_controle_technique: "",
-               date_debut_atmd: "",
-               date_fin_atmd: "",
-               date_debut_permis_circuler: "",
-               date_fin_permis_circuler: "",
-               date_debut_certificat: "",
-               date_fin_certificat: "",
+              code_vehicule:"",
+              code_genre:"A",
+              code_marque:1,
+              code_type:1,
+              unite_predication:"Kilometrage",
+              kilo_parcouru_heure_fonctionnement: 0,
+              code_status: "OPR",
+              code_structure:"",
+              n_immatriculation:"",
+              n_serie:"",
+              date_acquisition: "",
+              prix_acquisition: null,
+              n_inventaire:"",
+              date_debut_assurance: "",
+              date_fin_assurance: "",
+              date_debut_controle_technique: "",
+              date_fin_controle_technique: "",
+              date_debut_atmd: "",
+              date_fin_atmd: "",
+              date_debut_permis_circuler: "",
+              date_fin_permis_circuler: "",
+              date_debut_certificat: "",
+              date_fin_certificat: "",
             });
             SetPopup(true);
             SetStep(1);
       };
+      
       //fonction pour rendre tout ces dates de type Date (false:yyyy/mm/dd true:dd/mm/yyyy) a laisse false pour que les dates soit de type Date
-      const cleanedForm = cleanAndConvert(FormValue, [
-        "date_debut_assurance",
-        "date_fin_assurance",
-        "date_debut_permis_circuler",
-        "date_fin_permis_circuler",
-        "date_debut_controle_technique",
-        "date_fin_controle_technique",
-        "date_debut_atmd",
-        "date_fin_atmd",
-        "date_debut_certificat",
-        "date_fin_certificat",
-        "date_acquisition",
-      ], false);
+      
       //fonction pour le submit
       const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log(cleanedForm); // c est elle la form a envoyer utilise cleanedForm.(les attributs)
-        SetPopup(false); //pour fermer le popup
+        const cleanedForm  = cleanAndConvert(FormValue, [
+          "date_debut_assurance",
+          "date_fin_assurance",
+          "date_debut_permis_circuler",
+          "date_fin_permis_circuler",
+          "date_debut_controle_technique",
+          "date_fin_controle_technique",
+          "date_debut_atmd",
+          "date_fin_atmd",
+          "date_debut_certificat",
+          "date_fin_certificat",
+          "date_acquisition",
+        ], false);
+
+        const testVehicule: Vehicule = {
+           code_vehicule: FormValue.code_vehicule,
+           code_genre: FormValue.code_genre,
+           code_type: FormValue.code_type,
+           unite_predication: FormValue.unite_predication,
+           n_immatriculation: FormValue.n_immatriculation,
+           n_serie: FormValue.n_serie,
+          prix_acquisition: FormValue.prix_acquisition,
+           n_inventaire: FormValue.n_inventaire,
+           date_acquisition: cleanedForm.date_acquisition instanceof Date ? cleanedForm.date_acquisition : cleanedForm.date_acquisition ? new Date(cleanedForm.date_acquisition) : null,
+          date_debut_assurance: cleanedForm.date_debut_assurance instanceof Date ? cleanedForm.date_debut_assurance : cleanedForm.date_debut_assurance ? new Date(cleanedForm.date_debut_assurance) : null,
+          date_fin_assurance: cleanedForm.date_fin_assurance instanceof Date ? cleanedForm.date_fin_assurance : cleanedForm.date_fin_assurance ? new Date(cleanedForm.date_fin_assurance) : null,
+          date_debut_controle_technique: cleanedForm.date_debut_controle_technique instanceof Date ? cleanedForm.date_debut_controle_technique : cleanedForm.date_debut_controle_technique ? new Date(cleanedForm.date_debut_controle_technique) : null,
+          date_fin_controle_technique: cleanedForm.date_fin_controle_technique instanceof Date ? cleanedForm.date_fin_controle_technique : cleanedForm.date_fin_controle_technique ? new Date(cleanedForm.date_fin_controle_technique) : null,
+          date_debut_atmd: cleanedForm.date_debut_atmd instanceof Date ? cleanedForm.date_debut_atmd : cleanedForm.date_debut_atmd ? new Date(cleanedForm.date_debut_atmd) : null,
+          date_fin_atmd: cleanedForm.date_fin_atmd instanceof Date ? cleanedForm.date_fin_atmd : cleanedForm.date_fin_atmd ? new Date(cleanedForm.date_fin_atmd) : null,
+          date_debut_permis_circuler: cleanedForm.date_debut_permis_circuler instanceof Date ? cleanedForm.date_debut_permis_circuler : cleanedForm.date_debut_permis_circuler ? new Date(cleanedForm.date_debut_permis_circuler) : null,
+          date_fin_permis_circuler: cleanedForm.date_fin_permis_circuler instanceof Date ? cleanedForm.date_fin_permis_circuler : cleanedForm.date_fin_permis_circuler ? new Date(cleanedForm.date_fin_permis_circuler) : null,
+          date_debut_certificat: cleanedForm.date_debut_certificat instanceof Date ? cleanedForm.date_debut_certificat : cleanedForm.date_debut_certificat ? new Date(cleanedForm.date_debut_certificat) : null,
+          date_fin_certificat: cleanedForm.date_fin_certificat instanceof Date ? cleanedForm.date_fin_certificat : cleanedForm.date_fin_certificat ? new Date(cleanedForm.date_fin_certificat) : null,
+          
+            };
+        console.log("testVehicule", testVehicule);
+
+        try {
+          const response = await fetch("http://localhost:3000/api/vehicule", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(testVehicule),
+          });
+      
+          if (!response.ok) {
+            // Server responded but with an error code (like 400, 500, etc)
+            const errorText = await response.text(); // try to read error message
+            throw new Error(`Server Error ${response.status}: ${errorText}`);
+          }
+      
+          const data = await response.json();
+          console.log("Success:", data);
+          return data;
+        } catch (error) {
+          // This catches both fetch errors (like no internet) AND server errors thrown above
+          console.error("Error occurred while calling API:", error);
+        }
+        SetPopup(false);
      };
     return(
         <div>

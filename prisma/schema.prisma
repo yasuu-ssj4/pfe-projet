@@ -159,7 +159,7 @@ model demande_intervention {
   id_demande_intervention Int                   @id 
   etat_demande          String
   date_application        DateTime
-  date_heure_panne        DateTime
+  date_heure_panne        String
   structure_maintenance   String
   activite                String                @default("material roulant")
   nature_panne            String
@@ -186,7 +186,7 @@ model demande_intervention {
   date_intervevant        DateTime?
   visa_intervevant        String?
   nom_prenom_responsable  String?
-  date_responsable        DateTime?
+  date_responsable        String?
   visa_responsable        String?
   fonction_responsable    String?
 }

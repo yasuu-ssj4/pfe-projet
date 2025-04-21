@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { VehicleForm } from "./formVehicules";
 import { Structure } from "@/app/interfaces";
+
 type StepOneProps = {
     FormValue: VehicleForm;// replace with the correct interface for your form
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
@@ -39,7 +40,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
           });
     
           const data = await response.json();
-          console.log("Genres reçus ✅:", data);
+          
           
           setGenre(data);
         };
@@ -56,7 +57,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
                 },
             });
             const data = await response.json();
-            console.log("Marques reçues ✅:", data);
+            
             
             setMarque(data);
         };
@@ -83,7 +84,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
               }
         
               const data = await response.json();
-              //console.log("Types reçus ✅:", data);
+             
               setType(data);
         }catch (error) {
             console.error("Erreur dans fetchTypes ⚠️:", error);
@@ -121,6 +122,19 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
                 FormValue.code_structure = option.code_structure;
                 setShowOptions(false);
               };;
+              const selectedGenre = FormValue.code_genre;
+              const selectedMarque = FormValue.code_marque;
+              const selectedType = FormValue.code_type;
+            const selectedCentre =  FormValue.code_structure;
+            const steponeinfos = {
+                code_genre: selectedGenre ,
+                code_marque: selectedMarque,
+                code_type: selectedType,
+                code_structure: selectedCentre,
+            };
+            
+
+             
     return(
         
             <div className="bg-[#f2f2f2] p-6  rounded-2xl shadow-xl max-w-4xl mx-auto mt-10">

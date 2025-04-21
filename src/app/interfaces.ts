@@ -1,28 +1,26 @@
 import { ajouterUtilisateur } from "./prisma";
 
 export interface Vehicule {
-    code_vehicule: string;
-    code_marque: number;
-    code_type: number;
-    code_genre: string;
-    code_status: string;
-    unite_predication: string;
-    code_structure: string;
-    n_immatriculation: string;
-    n_serie: string;
-    date_acquisition?: Date;
-    prix_acquisition?: number;
-    n_inventaire?: string;
-    date_debut_assurance?: Date;
-    date_fin_assurance?: Date;
-    date_debut_controle_technique?: Date;
-    date_fin_controle_technique?: Date;
-    date_debut_atmd?: Date;
-    date_fin_atmd?: Date;
-    date_debut_permis_circuler?: Date;
-    date_fin_permis_circuler?: Date;
-    date_debut_certificat?: Date;
-    date_fin_certificat?: Date;
+
+  code_vehicule: string;
+  code_genre: string;
+  code_type: number;
+  unite_predication: string;
+  n_immatriculation: string;
+  n_serie: string;
+  date_acquisition?: Date |null ;
+  prix_acquisition?: number | null ;
+  n_inventaire?: string;
+    date_debut_assurance?: Date | null;
+    date_fin_assurance?: Date | null;
+    date_debut_controle_technique?: Date | null;
+    date_fin_controle_technique?: Date | null;
+    date_debut_atmd?: Date | null;
+    date_fin_atmd?: Date | null;
+    date_debut_permis_circuler?: Date | null;
+    date_fin_permis_circuler?: Date | null;
+    date_debut_certificat?: Date | null;
+    date_fin_certificat?: Date | null;
   }
   
   export interface Marque {

@@ -31,7 +31,7 @@ export const SECRET_KEY = "NAFT_1981";
 
   
 export async function ajouterVehicule(data: Vehicule) {
-     await prisma.vehicule.create({ data });
+   await prisma.vehicule.create({data})
 }
 
 export async function ajouterMarque(data: Marque) {
@@ -132,36 +132,32 @@ const ramy : Utilisateur = {
    code_structure : "100"
 }
 
-const DI : DemandeIntervention = {
-      etat_demande: 'En cours',
-      date_heure_panne: new Date('2025-04-10T00:00:00.000Z'),
-      structure_maintenance: 'cds',
-      activite: 'Matériel roulant',
-      nature_panne: 'mecanique',
-      nature_travaux: 'corrective',
-      degre_urgence: '3',
-      date_application: new Date('2025-04-10T00:00:00.000Z'),
-      district_id: '',
-      centre_id: '100',
-      date_demandeur: new Date('2025-04-10T00:00:00.000Z'),
-      visa_demandeur: 'brah',
-      id_demandeur: 1,
-      code_vehicule : "A0156"
-    
-}
+
+//  async function testApi() {
+//    try {
+//      const response = await fetch("http://localhost:3000/api/vehicule", {
+//        method: "POST",
+//        headers: {
+//          "Content-Type": "application/json",
+//        },
+//        body: JSON.stringify(vehicule2),
+//      });
  
-async function testApi() {
-   const response = await fetch("http://localhost:3000/api/vehicule/getVehicules", {
-     method: "POST",
-     headers: {
-       "Content-Type": "application/json",
-     },
-     body: JSON.stringify({id_utilisateur : 2 }),
-   });
+//      if (!response.ok) {
+//        // Server responded but with an error code (like 400, 500, etc)
+//        const errorText = await response.text(); // try to read error message
+//        throw new Error(`Server Error ${response.status}: ${errorText}`);
+//      }
  
-   const data = await response.json();
-   console.log("Result:", data);
- }
+//      const data = await response.json();
+//      console.log("Success:", data);
+//      return data;
+//    } catch (error) {
+//      // This catches both fetch errors (like no internet) AND server errors thrown above
+//      console.error("Error occurred while calling API:", error);
+//    }
+//  }
  
- testApi();
+ 
+//  testApi();
  
