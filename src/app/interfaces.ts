@@ -50,9 +50,9 @@ export interface Vehicule {
   
   export interface Structure {
     code_structure: string;
-    structure_parent?: string;
+    code_struture_hierachique?: string;
     designation: string;
-    type_hierarchy: string;
+    type_structure_hierachique: string;
   }
   
   export interface HistoriqueKilometrageHeure {

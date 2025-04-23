@@ -55,7 +55,12 @@ export async function ajouterMarque(data: Marque) {
   }
   
   export async function ajouterStructure(data: Structure) {
-     await prisma.structure.create({ data });
+     await prisma.structure.create({ data : {
+      code_structure: data.code_structure,
+      code_structure_hierachique: data.code_struture_hierachique,
+      type_structure_hierachique: data.type_structure_hierachique,
+      designation : data.designation,
+     } });
   }
   
   export async function ajouterHistoriqueKilometrageHeure(data: HistoriqueKilometrageHeure) {

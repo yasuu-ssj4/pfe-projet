@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         designation: true,
       },
       where: {
-        type_hierarchy: type
+        type_structure_hierachique: type
       },
     });
 

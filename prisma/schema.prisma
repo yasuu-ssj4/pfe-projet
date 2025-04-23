@@ -74,14 +74,14 @@ model historique_status {
 }
 
 model structure {
-  code_structure   String        @id
-  structure_parent String?
-  designation      String
-  type_hierarchy   String
-  affectations     affectation[]
-  parent           structure?    @relation("StructureHierarchy", fields: [structure_parent], references: [code_structure], onDelete: NoAction, onUpdate: NoAction)
-  children         structure[]   @relation("StructureHierarchy")
-  utilisateurs     utilisateur[]
+  code_structure             String        @id
+  code_structure_hierachique String?
+  designation                String
+  type_structure_hierachique String
+  affectations               affectation[]
+  parent                     structure?    @relation("StructureHierarchy", fields: [code_structure_hierachique], references: [code_structure], onDelete: NoAction, onUpdate: NoAction, map: "structure_structure_parent_fkey")
+  children                   structure[]   @relation("StructureHierarchy")
+  utilisateurs               utilisateur[]
 }
 
 model historique_kilometrage_heure {
