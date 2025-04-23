@@ -199,22 +199,22 @@ model rapport_intervention {
   centre_id                                   String
   numero_OR                                   String
   date_application                            DateTime
-  date_debut_travaux                          DateTime
-  date_fin_travaux                            DateTime
+  date_debut_travaux                          String
+  date_fin_travaux                            String
   date_panne                                  DateTime
-  date_prise_charge                           DateTime
+  date_prise_charge                           String
   duree_travaux                               String
   description_essais                          String
-  essais                                      Boolean
+  essais                                      String
   reservation                                 String?
   cout_total_traveaux_interne                 Int
   cout_total_traveaux_externe                 Int
   reference_documentée                       String
-  date_fin_permis                             DateTime
-  id_utilisateur                              Int
+  date_fin_permis                             String
+  nom_prenom_utilisateur                      String
   date_utilisateur                            DateTime
   nom_prenom_demandeur                        String
-  date_demandeur                              DateTime
+  date_demandeur                              String
   nom_prenom_responsable                      String
   date_responsable                            String
   demande_intervention                        demande_intervention @relation(fields: [id_demande_intervention], references: [id_demande_intervention])

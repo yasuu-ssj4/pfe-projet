@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { RapportIntervention } from "@/app/interfaces";
+import { rapport_intervention } from "@prisma/client";
+import { Form } from "formik";
 
 export default function FormRapport(){
   type infos= {
@@ -19,8 +21,8 @@ export default function FormRapport(){
     centre_id: '',
   });
 const[FormValue,SetFormValue] = useState<RapportIntervention>({
-    id_demande_intervention: "",
-    numero_rapport: "",
+    id_demande_intervention: "2",
+    id_rapport_intervention: "",
     structure_maintenance_charge:"",
     date_application: new Date(),
     date_debut_travaux: "",
@@ -48,8 +50,8 @@ const[FormValue,SetFormValue] = useState<RapportIntervention>({
 
 const OpenPopup = (e: React.MouseEvent<HTMLButtonElement>) => {
     SetFormValue({
-    id_demande_intervention: "",
-    numero_rapport: "",
+    id_demande_intervention: "2",
+    id_rapport_intervention: "",
     structure_maintenance_charge:"",
     date_application: new Date(),
     date_debut_travaux: "",
@@ -89,6 +91,20 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     if (FormValue.essais === "oui") FormValue.reservation = "";
     console.log(FormValue); 
     //SetPopup(false); 
+    try{
+      const response = await fetch("/api/rapport/ajouterRapport", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(rapportInfos),
+      });
+      const data =  response.json();
+      console.log(data);
+    }catch (error) {
+      console.error("Error in FormRapport:", error);
+    }
+  
  };
  function formatHeureToInputValue(date: Date | string | null) {
   if (!date) return "";
@@ -155,7 +171,37 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
         setData(data);
       }; fetchData();
   },[]);
-console.log(Data);
+  const rapportInfos : RapportIntervention = {
+    id_demande_intervention : FormValue.id_demande_intervention ,
+    id_rapport_intervention : FormValue.id_rapport_intervention,
+    structure_maintenance_charge : Data.structure_maintenance ,
+    date_application : FormValue.date_application , 
+    date_debut_travaux : FormValue.date_debut_travaux ,
+    date_fin_travaux : FormValue.date_fin_travaux ,
+    date_panne : Data.date_heure_panne,
+    date_prise_charge : FormValue.date_prise_charge ,
+    duree_travaux: FormValue.duree_travaux,
+    district : Data.district_id ,
+    centre : Data.centre_id , 
+    numero_OR : FormValue.numero_OR,
+    description_essais : FormValue.description_essais , 
+    essais : FormValue.essais , 
+    reservation : FormValue.reservation , 
+    cout_total_traveaux_externe : FormValue.cout_total_traveaux_externe ,
+    cout_total_traveaux_interne : FormValue.cout_total_traveaux_interne ,
+    reference_documentée : FormValue.reference_documentée , 
+    date_fin_permis : FormValue.date_fin_permis ,
+    nom_utilisateur : FormValue.nom_utilisateur ,
+    date_utilisateur : FormValue.date_utilisateur ,
+    nom_prenom_demandeur : FormValue.nom_prenom_demandeur ,
+    date_demandeur : FormValue.date_demandeur ,
+    nom_prenom_responsable : FormValue.nom_prenom_responsable ,
+    date_responsable : FormValue.date_responsable ,
+  };
+  console.log(Data);
+  console.log(rapportInfos);
+ 
+  
   return(
     <div>
         <button onClick = {OpenPopup} className="bg-black dark:bg-dark-2 border-dark dark:border-dark-2 border rounded-md inline-flex items-center justify-center py-3 px-7 text-center text-base font-medium text-white hover:bg-gray-900 hover:border-body-color disabled:bg-gray-3 disabled:border-gray-3 disabled:text-dark-5">ajouter rapport</button>
@@ -193,12 +239,12 @@ console.log(Data);
             <thead>
                 <tr className='border-2 border-black   '>
                 <th className='border-2 border-black  '>
-                    <label htmlFor="numero_rapport" className='mt-[2px]'>N° :</label>
+                    <label htmlFor="id_rapport_intervention" className='mt-[2px]'>N° :</label>
                     <input 
-                    id='numero_rapport'
-                    name="numero_rapport"
+                    id='id_rapport_intervention'
+                    name="id_rapport_intervention"
                     onChange={handleChange}
-                    value={FormValue.numero_rapport}
+                    value={FormValue.id_rapport_intervention}
                     className='px-4'
                     placeholder='...................................................' />        
                     <h4>Structure Maintenance en charge des travaux :</h4>

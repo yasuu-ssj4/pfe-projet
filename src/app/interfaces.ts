@@ -141,30 +141,32 @@ export interface Vehicule {
   }
   
   export interface RapportIntervention {
-    
-    id_demande_intervention: number;
+
+    id_demande_intervention: string;
+    id_rapport_intervention: string;
+    structure_maintenance_charge: string;
     date_application: Date;
-    date_debut_travaux: Date;
-    date_fin_travaux: Date;
-    date_panne: Date;
-    date_prise_charge: Date;
+    date_debut_travaux: string ;
+    date_fin_travaux: string ;
+    date_panne: string | Date;
+    date_prise_charge: string ;
     duree_travaux: string;
+    district: string;
+    centre: string;
+    numero_OR: string;
     description_essais: string;
-    essais: boolean;
-    reservation?: string;
+    essais: string;
+    reservation: string | null;
     cout_total_traveaux_interne: number;
     cout_total_traveaux_externe: number;
     reference_documentée: string;
-    date_fin_permis: Date;
-    id_utilisateur: number;
+    date_fin_permis: string ;
+    nom_utilisateur: string;
     date_utilisateur: Date;
-    visa_utilisateur: string;
     nom_prenom_demandeur: string;
-    date_demandeur: Date;
-    visa_demandeur: string;
+    date_demandeur: string ;
     nom_prenom_responsable: string;
-    date_responsable: Date;
-    visa_responsable: string;
+    date_responsable: string ;
   }
   
   export interface TraveauxInterne {

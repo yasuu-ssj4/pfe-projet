@@ -111,9 +111,39 @@ export async function ajouterUtilisateur(user: Utilisateur) {
 //      await prisma.demande_intervention.create({ data });
 //   }
   
-//   export async function ajouterRapportIntervention(data: RapportIntervention) {
-//  await prisma.rapport_intervention.create({ data });
-//   }
+
+   export async function ajouterRapportIntervention(data: RapportIntervention) {
+      await prisma.rapport_intervention.create({
+        data: {
+          id_rapport_intervention: data.id_rapport_intervention,
+          id_demande_intervention: data.id_demande_intervention,
+          structure_maintenance_en_charge_des_travaux: data.structure_maintenance_charge,
+          date_application: data.date_application,
+          date_debut_travaux: data.date_debut_travaux,
+          date_fin_travaux: data.date_fin_travaux,
+          date_panne: data.date_panne,
+          date_prise_charge: data.date_prise_charge,
+          duree_travaux: data.duree_travaux,
+          district_id: data.district,
+          centre_id: data.centre,
+          numero_OR: data.numero_OR,
+          description_essais: data.description_essais,
+          essais: data.essais , 
+          reservation: data.reservation,
+          cout_total_traveaux_interne: data.cout_total_traveaux_interne,
+          cout_total_traveaux_externe: data.cout_total_traveaux_externe,
+          reference_documentée: data.reference_documentée,
+          date_fin_permis: data.date_fin_permis,
+          nom_prenom_utilisateur: data.nom_utilisateur, 
+          date_utilisateur: data.date_utilisateur,
+          nom_prenom_demandeur: data.nom_prenom_demandeur,
+          date_demandeur: data.date_demandeur,
+          nom_prenom_responsable: data.nom_prenom_responsable,
+          date_responsable: data.date_responsable, 
+        }
+      });
+    }
+    
   
 //   export async function ajouterTravauxInterne(data: TraveauxInterne) {
 //      await prisma.traveaux_interne.create({ data });
