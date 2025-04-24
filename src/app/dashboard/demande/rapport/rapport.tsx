@@ -178,7 +178,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     date_application : FormValue.date_application , 
     date_debut_travaux : FormValue.date_debut_travaux ,
     date_fin_travaux : FormValue.date_fin_travaux ,
-    date_panne : Data.date_heure_panne,
+    date_panne : new Date(Data.date_heure_panne),
     date_prise_charge : FormValue.date_prise_charge ,
     duree_travaux: FormValue.duree_travaux,
     district : Data.district_id ,
@@ -199,6 +199,9 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     date_responsable : FormValue.date_responsable ,
   };
   console.log(Data);
+  console.log(typeof(Data.date_heure_panne));
+  console.log(typeof(FormValue.date_application));
+  
   console.log(rapportInfos);
  
   

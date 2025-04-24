@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { RapportIntervention } from "@/app/interfaces";
 const prisma = new PrismaClient();
 import { ajouterRapportIntervention } from "@/app/prisma";
-import { select } from "framer-motion/client";
+
 export async function POST(req: NextRequest) {
 try{
     const body  = await req.json();
@@ -26,8 +26,8 @@ try{
     
 
 
-        const newRapport = await ajouterRapportIntervention(RapportBody);
-        return NextResponse.json(newRapport, { status: 201 });
+         await ajouterRapportIntervention(RapportBody);
+        return NextResponse.json({ succes: true }, { status: 201 });
 }catch (error) {
     console.error("Error in POST /api/...", error);
     return NextResponse.json(
