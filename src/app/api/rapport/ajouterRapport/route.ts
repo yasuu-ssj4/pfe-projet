@@ -26,7 +26,7 @@ try{
     
 
 
-         await ajouterRapportIntervention(RapportBody);
+         const rapport = await ajouterRapportIntervention(RapportBody);
         return NextResponse.json({ succes: true }, { status: 201 });
 }catch (error) {
     console.error("Error in POST /api/...", error);

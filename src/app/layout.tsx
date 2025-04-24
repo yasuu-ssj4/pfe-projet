@@ -1,21 +1,16 @@
-import './globals.css';
-import { ReactNode } from 'react';
-import { Inter } from 'next/font/google';
-import Header from './header';
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata = {
-  title: 'GESTION MAINTENANCE',
-  description: '',
-};
+import type { ReactNode } from "react"
+import Sidebar from "./dashboard/sideBar"
+import "./globals.css"
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Header />
-        {children}
+    <html lang="fr">
+      <body>
+        <div className="flex min-h-screen bg-gray-50">
+          <Sidebar />
+          <div className="flex-1 ml-64">{children}</div>
+        </div>
       </body>
     </html>
-  );
+  )
 }

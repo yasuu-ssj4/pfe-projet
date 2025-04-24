@@ -1,16 +1,24 @@
 "use client"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
-  AlertCircleIcon,
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  FilterIcon,
-  LoaderIcon,
-  RefreshCwIcon,
-  SearchIcon,
-  XIcon,
+  AlertCircle,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Loader2,
+  MoreVertical,
+  RefreshCw,
+  Search,
+  X,
 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu"
 
 type Vehiculetype = {
   code_vehicule: string
@@ -22,6 +30,7 @@ type Vehiculetype = {
 }
 
 export default function AfficheVehicule({ userId }: { userId: number }) {
+  const router = useRouter()
   const [vehicules, setVehicules] = useState<Vehiculetype[]>([])
   const [filteredVehicules, setFilteredVehicules] = useState<Vehiculetype[]>([])
   const [currentPage, setCurrentPage] = useState(1)
@@ -114,6 +123,11 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
     setStructureFilter("")
   }
 
+  // Navigate to intervention page with vehicle code
+  const navigateToIntervention = (code_vehicule: string) => {
+    router.push(`/vehicule/intervention?code_vehicule=${code_vehicule}`)
+  }
+
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pageNumbers = []
@@ -182,7 +196,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <SearchIcon className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-gray-400" />
               </div>
             </div>
 
@@ -201,7 +215,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 ))}
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                <ChevronDown className="h-5 w-5 text-gray-400" />
               </div>
             </div>
 
@@ -220,7 +234,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 ))}
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                <ChevronDown className="h-5 w-5 text-gray-400" />
               </div>
             </div>
 
@@ -230,7 +244,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 onClick={clearFilters}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                <XIcon className="h-4 w-4 mr-1" />
+                <X className="h-4 w-4 mr-1" />
                 Effacer
               </button>
             )}
@@ -241,11 +255,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
               disabled={isLoading}
               className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {isLoading ? (
-                <LoaderIcon className="h-4 w-4 mr-1 animate-spin" />
-              ) : (
-                <RefreshCwIcon className="h-4 w-4 mr-1" />
-              )}
+              {isLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
               Actualiser
             </button>
           </div>
@@ -254,7 +264,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
         {/* Filter Status */}
         {(searchTerm || statusFilter || structureFilter) && (
           <div className="mt-3 flex items-center text-sm text-gray-500">
-            <FilterIcon className="h-4 w-4 mr-2" />
+            <Filter className="h-4 w-4 mr-2" />
             <span className="mr-2">Filtres actifs:</span>
             {searchTerm && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
@@ -328,7 +338,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
-                    <LoaderIcon className="w-12 h-12 text-indigo-500 mb-4 animate-spin" />
+                    <Loader2 className="w-12 h-12 text-indigo-500 mb-4 animate-spin" />
                     <p className="text-lg font-medium">Chargement des véhicules...</p>
                   </div>
                 </td>
@@ -337,14 +347,14 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
-                    <AlertCircleIcon className="w-12 h-12 text-red-500 mb-4" />
+                    <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
                     <p className="text-lg font-medium text-red-500">Erreur lors du chargement des véhicules</p>
                     <p className="text-sm text-gray-500 mt-1">{error}</p>
                     <button
                       onClick={fetchVehicules}
                       className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
-                      <RefreshCwIcon className="h-4 w-4 mr-2" />
+                      <RefreshCw className="h-4 w-4 mr-2" />
                       Réessayer
                     </button>
                   </div>
@@ -377,13 +387,37 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 </td>
               </tr>
             ) : (
-              currentItems.map((vehicule, index) => (
+              currentItems.map((vehicule) => (
                 <tr key={vehicule.code_vehicule} className={`hover:bg-gray-50 transition-colors`}>
                   <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="text-indigo-600 hover:text-indigo-900 font-medium text-sm">Détails</button>
-                      <button className="text-indigo-600 hover:text-indigo-900 font-medium text-sm">Modifier</button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 py-2">
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Options</span>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/vehicule/details?code=${vehicule.code_vehicule}`)}
+                        >
+                          Détails
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/vehicule/modifier?code=${vehicule.code_vehicule}`)}
+                        >
+                          Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push(`/vehicule/intervention/demande?code_vehicule=${vehicule.code_vehicule}`)
+                          }
+                        >
+                          Ajouter Demande
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigateToIntervention(vehicule.code_vehicule)}>
+                          Constater Demande
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {vehicule.code_vehicule}
@@ -427,7 +461,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 disabled={currentPage === 1}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                <ChevronLeftIcon className="h-4 w-4 mr-1" />
+                <ChevronLeft className="h-4 w-4 mr-1" />
                 Précédent
               </button>
 
@@ -459,7 +493,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
                 Suivant
-                <ChevronRightIcon className="h-4 w-4 ml-1" />
+                <ChevronRight className="h-4 w-4 ml-1" />
               </button>
             </div>
           </div>

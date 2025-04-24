@@ -18,7 +18,7 @@ export default function UsersPage({ userId }: Props) {
 
   return (
     <div className="p-6">
-      <div className="flex flex-1 pt-[12vh] h-lvh ">
+      <div className="flex flex-1 pt h-lvh ">
            <Sidebar/>
 </div>
       <h1 className="text-2xl font-bold">Welcome, user #{userId}</h1>

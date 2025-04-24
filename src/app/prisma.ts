@@ -118,7 +118,7 @@ export async function ajouterUtilisateur(user: Utilisateur) {
           id_rapport_intervention: data.id_rapport_intervention,
           id_demande_intervention: data.id_demande_intervention,
           structure_maintenance_en_charge_des_travaux: data.structure_maintenance_charge,
-          date_application: data.date_application,
+          date_application: new Date(data.date_application),
           date_debut_travaux: data.date_debut_travaux,
           date_fin_travaux: data.date_fin_travaux,
           date_panne: data.date_panne,

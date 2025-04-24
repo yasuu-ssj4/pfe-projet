@@ -7,7 +7,7 @@ import Image from "next/image";
 import buildings from "../../../public/industry.png";
 import { motion } from "framer-motion";
 import LoginPage from "./signup-form";
-
+import Header from '../header';
 export function ErrorNotification({ message }: { message: string | null }) {
   if (!message) return null; // Don't render if no error
 
@@ -25,6 +25,7 @@ export function ErrorNotification({ message }: { message: string | null }) {
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
+      <Header/>
       <div className="flex flex-row-reverse flex-grow">
         <LoginPage />
         <div className="shapedividers_com-185 relative w-full">

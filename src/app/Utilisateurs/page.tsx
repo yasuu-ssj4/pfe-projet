@@ -3,8 +3,8 @@
 
 
 import Compte from "./afficherAjouterUtilisateur";
-import { getUserFromToken } from "../auth";
 import { redirect } from "next/navigation";
+import { getUserFromToken } from '@/app/dashboard/auth';
 
 
 export default async function Vehicule(){
@@ -16,7 +16,7 @@ export default async function Vehicule(){
     return (
         <div className="bg-[#dcdfe8] ">
                    {/*<Header/>*/}
-                   <div className="flex flex-1 pt-[12vh] h-lvh ">
+                   <div className="flex flex-1 pt h-lvh ">
                    
                    <main className="w-full h-full flex-1  ">
                     

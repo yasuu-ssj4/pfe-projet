@@ -377,7 +377,7 @@ export default function Compte({ userId }: { userId: number }) {
         </div>
       )}
 
-      <div className="flex flex-1 pt-[12vh] min-h-screen">
+      <div className="flex flex-1 pt min-h-screen">
         <main className="w-full h-full flex-1 px-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-8">

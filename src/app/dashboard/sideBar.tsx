@@ -1,23 +1,20 @@
 "use client"
-
 import { usePathname, useRouter } from "next/navigation"
-import { Home, Users, Car, FileText, LogOut } from "lucide-react"
+import { Home, Users, Car, FileText, LogOut } from 'lucide-react'
 import naftal_logo from '../lib/Logo_NAFTAL.svg';
+
 export default function Sidebar() {
   const router = useRouter()
   const pathname = usePathname()
 
-  // Check if current route is active
   const isActive = (path: string) => {
     return pathname === path
   }
 
-  // Navigate to a route
   const navigateTo: (path: string) => void = (path: string) => {
     router.push(path)
   }
 
-  // Menu items configuration
   const menuItems = [
     {
       path: "./Dashboard",
@@ -25,12 +22,12 @@ export default function Sidebar() {
       icon: <Home size={20} />,
     },
     {
-      path: "./createUser",
+      path: "../Utilisateurs",
       label: "Utilisateurs",
       icon: <Users size={20} />,
     },
     {
-      path: "./vehicule",
+      path: "../vehicule",
       label: "Véhicules",
       icon: <Car size={20} />,
     },
@@ -43,12 +40,11 @@ export default function Sidebar() {
 
   return (
     <div className="fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-10">
-      {/* Logo and company name */}
-      <div className="flex items-center justify-center h-[12vh] border-b border-gray-200 bg-indigo-600 text-white">
-      <img src={naftal_logo.src} alt="Naftal Logo" className="h-16 w-auto" />
+      {/*logo*/}
+      <div className="flex items-center justify-center h-[12vh] border-b border-gray-200 text-white">
+        <img src={naftal_logo.src || "/placeholder.svg"} alt="Naftal Logo" className="h-16 w-auto" />
       </div>
 
-      {/* Navigation menu */}
       <nav className="flex flex-col h-[calc(100%-4rem)]">
         <div className="flex-1 py-4">
           {menuItems.map((item) => (
@@ -67,7 +63,6 @@ export default function Sidebar() {
           ))}
         </div>
 
-        {/* Logout button */}
         <div className="border-t border-gray-200 py-4">
           <button
             onClick={() => navigateTo("/")}

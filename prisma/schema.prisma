@@ -187,6 +187,9 @@ model demande_intervention {
   date_responsable_unm       String?
   fonction_responsable_unm   String?
   nom_prenom_responsable_unm String?
+  nom_prenom_hse             String?
+  fonction_hse               String?
+  date_hse                   String?
   vehicule                   vehicule              @relation(fields: [code_vehicule], references: [code_vehicule])
   rapport_intervention       rapport_intervention?
 }
