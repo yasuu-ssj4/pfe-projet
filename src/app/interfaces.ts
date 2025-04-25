@@ -108,6 +108,7 @@ export interface Vehicule {
   }
   
   export interface DemandeIntervention {
+    id_demande_intervention : string;
     etat_demande: string;
     date_application: Date;
     date_heure_panne: Date;

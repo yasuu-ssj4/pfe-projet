@@ -5,9 +5,7 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-module.exports = {
-  middleware: true,
-};
+
 module.exports = {
   async redirects() {
     return [

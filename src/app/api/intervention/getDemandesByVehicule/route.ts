@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const { code_vehicule } = await req.json()
 
     if (!code_vehicule) {
-      return NextResponse.json({ error: "Le code du véhicule est requis" }, { status: 400 })
+      return NextResponse.json({ error: "Code véhicule requis" }, { status: 400 })
     }
 
     const demandes = await prisma.demande_intervention.findMany({
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(demandes, { status: 200 })
   } catch (error) {
-    console.error("Error in POST /api/intervention/getDemandes", error)
-    return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
+    console.error("Error in POST /api/intervention/getDemandesByVehicule", error)
+    return NextResponse.json({ error: "Erreur interne de serveur" }, { status: 500 })
   }
 }

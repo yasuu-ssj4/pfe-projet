@@ -107,9 +107,14 @@ export async function ajouterUtilisateur(user: Utilisateur) {
      await prisma.progamme_entretien.create({ data });
   }
   
-//   export async function ajouterDemandeIntervention(data: DemandeIntervention) {
-//      await prisma.demande_intervention.create({ data });
-//   }
+  export async function ajouterDemandeIntervention(data: DemandeIntervention) {
+     await prisma.demande_intervention.create({ 
+         data: {
+             ...data,
+             date_responsable: data.date_responsable ? data.date_responsable.toISOString() : null
+         } 
+     });
+  }
   
 
    export async function ajouterRapportIntervention(data: RapportIntervention) {
@@ -153,46 +158,7 @@ export async function ajouterUtilisateur(user: Utilisateur) {
 //     await prisma.traveaux_externe.create({ data });
 //   }
 
-const ramy : Utilisateur = {
-   nom_utilisateur : "ramy",
-   prenom_utilisateur : "ramy",
-   username : "ramy",
-   numero_telephone : "00000",
-   mot_de_passe : "un mot de passe",
-   email:"ramy",
-   est_admin : true ,
-   role : " admin",
-   methode_authent :"bdd",
-   droit_utilisateur : "admin",
-   code_structure : "100"
-}
 
 
-//  async function testApi() {
-//    try {
-//      const response = await fetch("http://localhost:3000/api/vehicule", {
-//        method: "POST",
-//        headers: {
-//          "Content-Type": "application/json",
-//        },
-//        body: JSON.stringify(vehicule2),
-//      });
- 
-//      if (!response.ok) {
-//        // Server responded but with an error code (like 400, 500, etc)
-//        const errorText = await response.text(); // try to read error message
-//        throw new Error(`Server Error ${response.status}: ${errorText}`);
-//      }
- 
-//      const data = await response.json();
-//      console.log("Success:", data);
-//      return data;
-//    } catch (error) {
-//      // This catches both fetch errors (like no internet) AND server errors thrown above
-//      console.error("Error occurred while calling API:", error);
-//    }
-//  }
- 
- 
-//  testApi();
- 
+const demandes = prisma.demande_intervention.findMany() ; 
+console.log(demandes);

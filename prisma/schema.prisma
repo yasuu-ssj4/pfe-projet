@@ -116,10 +116,10 @@ model affectation {
 }
 
 model utilisateur {
-  id_utilisateur     Int       @id @default(autoincrement())
+  id_utilisateur     Int             @id @default(autoincrement())
   nom_utilisateur    String
   prenom_utilisateur String
-  username           String    @unique
+  username           String          @unique
   email              String
   numero_telephone   String
   mot_de_passe       String
@@ -128,7 +128,8 @@ model utilisateur {
   est_admin          Boolean
   droit_utilisateur  String
   role               String
-  structure          structure @relation(fields: [code_structure], references: [code_structure], onDelete: Cascade)
+  notifications      notifications[]
+  structure          structure       @relation(fields: [code_structure], references: [code_structure], onDelete: Cascade)
 }
 
 model gamme {
@@ -187,9 +188,9 @@ model demande_intervention {
   date_responsable_unm       String?
   fonction_responsable_unm   String?
   nom_prenom_responsable_unm String?
-  nom_prenom_hse             String?
-  fonction_hse               String?
   date_hse                   String?
+  fonction_hse               String?
+  nom_prenom_hse             String?
   vehicule                   vehicule              @relation(fields: [code_vehicule], references: [code_vehicule])
   rapport_intervention       rapport_intervention?
 }
@@ -214,12 +215,12 @@ model rapport_intervention {
   cout_total_traveaux_externe                 Int
   reference_documentée                       String
   date_fin_permis                             String
-  nom_prenom_utilisateur                      String
   date_utilisateur                            DateTime
   nom_prenom_demandeur                        String
   date_demandeur                              String
   nom_prenom_responsable                      String
   date_responsable                            String
+  nom_prenom_utilisateur                      String
   demande_intervention                        demande_intervention @relation(fields: [id_demande_intervention], references: [id_demande_intervention])
   traveaux_externe                            traveaux_externe[]
   traveaux_interne                            traveaux_interne[]
@@ -244,4 +245,14 @@ model traveaux_externe {
   reference_facture  String
   cout_facture       Int
   rapport            rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade)
+}
+
+model notifications {
+  id             Int         @id(map: "PK__notifica__3213E83F004D14C1") @default(autoincrement())
+  id_utilisateur Int
+  message        String      @db.NVarChar(255)
+  link           String      @db.NVarChar(255)
+  is_read        Boolean     @default(false, map: "DF__notificat__is_re__68D28DBC")
+  created_at     DateTime    @db.DateTime
+  utilisateur    utilisateur @relation(fields: [id_utilisateur], references: [id_utilisateur], onUpdate: NoAction, map: "FK__notificat__id_ut__69C6B1F5")
 }

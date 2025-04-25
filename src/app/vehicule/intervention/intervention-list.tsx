@@ -15,44 +15,58 @@ import {
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu"
 
-type Vehiculetype = {
+type DemandeIntervention = {
+  id_demande_intervention: string
+  etat_demande: string
+  date_application: string
+  date_heure_panne: string
+  structure_maintenance: string
+  activite: string
+  nature_panne: string
+  nature_travaux: string
+  degre_urgence: string
   code_vehicule: string
-  code_structure: string
-  type_designation: string
-  marque_designation: string
-  status_designation: string | null
-  total_kilometrage: number
+  district_id: string
+  centre_id: string
+  constat_panne: string | null
+  diagnostique: string | null
+  description: string | null
 }
 
-export default function AfficheVehicule({ userId }: { userId: number }) {
+export default function InterventionList({
+  code_vehicule,
+  userId,
+}: {
+  code_vehicule: string
+  userId: number
+}) {
   const router = useRouter()
-  const [vehicules, setVehicules] = useState<Vehiculetype[]>([])
-  const [filteredVehicules, setFilteredVehicules] = useState<Vehiculetype[]>([])
+  const [demandes, setDemandes] = useState<DemandeIntervention[]>([])
+  const [filteredDemandes, setFilteredDemandes] = useState<DemandeIntervention[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
-  const [structureFilter, setStructureFilter] = useState("")
   const itemsPerPage = 10
 
-  const fetchVehicules = async () => {
+  const fetchDemandes = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/vehicule/getVehicules", {
+      const res = await fetch("/api/intervention/getDemandesByVehicule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_utilisateur: userId }),
+        body: JSON.stringify({ code_vehicule }),
       })
 
       if (!res.ok) {
-        throw new Error("Erreur lors de la récupération des véhicules")
+        throw new Error("Erreur lors de la récupération des demandes d'intervention")
       }
 
-      const data: Vehiculetype[] = await res.json()
-      setVehicules(data)
-      setFilteredVehicules(data)
+      const data: DemandeIntervention[] = await res.json()
+      setDemandes(data)
+      setFilteredDemandes(data)
     } catch (err) {
       console.error("Erreur:", err)
       setError(err instanceof Error ? err.message : "Une erreur est survenue")
@@ -62,50 +76,41 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
   }
 
   useEffect(() => {
-    fetchVehicules()
-  }, [userId])
+    fetchDemandes()
+  }, [code_vehicule])
 
   useEffect(() => {
     // Apply filters
-    let results = [...vehicules]
+    let results = [...demandes]
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       results = results.filter(
-        (vehicule) =>
-          vehicule.code_vehicule.toLowerCase().includes(term) ||
-          vehicule.marque_designation.toLowerCase().includes(term) ||
-          vehicule.type_designation.toLowerCase().includes(term),
+        (demande) =>
+          demande.id_demande_intervention.toLowerCase().includes(term) ||
+          demande.nature_panne.toLowerCase().includes(term) ||
+          demande.nature_travaux.toLowerCase().includes(term),
       )
     }
 
     if (statusFilter) {
-      results = results.filter((vehicule) => vehicule.status_designation === statusFilter)
+      results = results.filter((demande) => demande.etat_demande === statusFilter)
     }
 
-    if (structureFilter) {
-      results = results.filter((vehicule) => vehicule.code_structure === structureFilter)
-    }
-
-    setFilteredVehicules(results)
+    setFilteredDemandes(results)
     setCurrentPage(1) // Reset to first page when filters change
-  }, [searchTerm, statusFilter, structureFilter, vehicules])
+  }, [searchTerm, statusFilter, demandes])
 
   // Get unique statuses for filter dropdown
-  const uniqueStatuses = Array.from(new Set(vehicules.map((vehicule) => vehicule.status_designation))).filter(
+  const uniqueStatuses = Array.from(new Set(demandes.map((demande) => demande.etat_demande))).filter(
     Boolean,
   ) as string[]
 
-  // Get unique structures for filter dropdown
-  const uniqueStructures = Array.from(new Set(vehicules.map((vehicule) => vehicule.code_structure))).filter(
-    Boolean,
-  ) as string[]
-
-  const totalPages = Math.ceil(filteredVehicules.length / itemsPerPage)
+  const totalPages = Math.ceil(filteredDemandes.length / itemsPerPage)
 
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentItems = filteredVehicules.slice(startIndex, endIndex)
+  const currentItems = filteredDemandes.slice(startIndex, endIndex)
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber)
@@ -115,17 +120,11 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
   const clearFilters = () => {
     setSearchTerm("")
     setStatusFilter("")
-    setStructureFilter("")
   }
 
-  // Navigate to intervention page with vehicle code
-  const navigateToIntervention = (code_vehicule: string) => {
-    router.push(`/vehicule/intervention?code_vehicule=${code_vehicule}`)
-  }
-
-  // Navigate to add demande page with vehicle code
-  const navigateToAddDemande = (code_vehicule: string) => {
-    router.push(`/vehicule/intervention/demande?code_vehicule=${code_vehicule}`)
+  // Navigate to rapport page with demande id
+  const navigateToRapport = (id_demande_intervention: string) => {
+    router.push(`/vehicule/intervention/rapport?id_demande=${id_demande_intervention}`)
   }
 
   // Generate page numbers to display
@@ -179,10 +178,10 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h2 className="text-lg font-semibold text-gray-800">Liste des Véhicules</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Liste des Demandes d'Intervention</h2>
 
           {/* Search and Filter Controls */}
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
@@ -219,27 +218,8 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
               </div>
             </div>
 
-            {/* Structure Filter */}
-            <div className="relative">
-              <select
-                value={structureFilter}
-                onChange={(e) => setStructureFilter(e.target.value)}
-                className="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="">Toutes les structures</option>
-                {uniqueStructures.map((structure) => (
-                  <option key={structure} value={structure}>
-                    {structure}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDownIcon className="h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-
             {/* Clear Filters Button */}
-            {(searchTerm || statusFilter || structureFilter) && (
+            {(searchTerm || statusFilter) && (
               <button
                 onClick={clearFilters}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -251,7 +231,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
 
             {/* Refresh Button */}
             <button
-              onClick={fetchVehicules}
+              onClick={fetchDemandes}
               disabled={isLoading}
               className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
@@ -266,7 +246,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
         </div>
 
         {/* Filter Status */}
-        {(searchTerm || statusFilter || structureFilter) && (
+        {(searchTerm || statusFilter) && (
           <div className="mt-3 flex items-center text-sm text-gray-500">
             <FilterIcon className="h-4 w-4 mr-2" />
             <span className="mr-2">Filtres actifs:</span>
@@ -278,11 +258,6 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
             {statusFilter && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
                 Statut: {statusFilter}
-              </span>
-            )}
-            {structureFilter && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                Structure: {structureFilter}
               </span>
             )}
           </div>
@@ -303,19 +278,25 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Code
+                ID Demande
               </th>
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Marque
+                Date
               </th>
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Type
+                Nature Panne
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Nature Travaux
               </th>
               <th
                 scope="col"
@@ -327,13 +308,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Structure
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Km total
+                Urgence
               </th>
             </tr>
           </thead>
@@ -343,7 +318,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
                     <LoaderIcon className="w-12 h-12 text-indigo-500 mb-4 animate-spin" />
-                    <p className="text-lg font-medium">Chargement des véhicules...</p>
+                    <p className="text-lg font-medium">Chargement des demandes...</p>
                   </div>
                 </td>
               </tr>
@@ -352,10 +327,10 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
                     <AlertCircleIcon className="w-12 h-12 text-red-500 mb-4" />
-                    <p className="text-lg font-medium text-red-500">Erreur lors du chargement des véhicules</p>
+                    <p className="text-lg font-medium text-red-500">Erreur lors du chargement des demandes</p>
                     <p className="text-sm text-gray-500 mt-1">{error}</p>
                     <button
-                      onClick={fetchVehicules}
+                      onClick={fetchDemandes}
                       className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       <RefreshCwIcon className="h-4 w-4 mr-2" />
@@ -364,7 +339,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                   </div>
                 </td>
               </tr>
-            ) : filteredVehicules.length === 0 ? (
+            ) : filteredDemandes.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
@@ -373,13 +348,13 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                     </div>
-                    <p className="text-lg font-medium">Aucun véhicule trouvé</p>
+                    <p className="text-lg font-medium">Aucune demande trouvée</p>
                     <p className="text-sm text-gray-400 mt-1">
-                      {searchTerm || statusFilter || structureFilter
+                      {searchTerm || statusFilter
                         ? "Essayez de modifier vos filtres"
-                        : "Ajoutez des véhicules pour les voir apparaître ici"}
+                        : "Ajoutez des demandes pour les voir apparaître ici"}
                     </p>
-                    {(searchTerm || statusFilter || structureFilter) && (
+                    {(searchTerm || statusFilter) && (
                       <button
                         onClick={clearFilters}
                         className="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -391,8 +366,8 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 </td>
               </tr>
             ) : (
-              currentItems.map((vehicule) => (
-                <tr key={vehicule.code_vehicule} className={`hover:bg-gray-50 transition-colors`}>
+              currentItems.map((demande) => (
+                <tr key={demande.id_demande_intervention} className={`hover:bg-gray-50 transition-colors`}>
                   <td className="px-6 py-4">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -403,35 +378,53 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[200px]">
                         <DropdownMenuItem onClick={() => {}}>Détails</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {}}>Modifier</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigateToAddDemande(vehicule.code_vehicule)}>
-                          Ajouter Demande
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigateToIntervention(vehicule.code_vehicule)}>
-                          Constater Demande
-                        </DropdownMenuItem>
+                        {demande.etat_demande === "qualification" && (
+                          <DropdownMenuItem onClick={() => {}}>Compléter Demande</DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => {}}>Constater Demande</DropdownMenuItem>
+                        {demande.etat_demande === "rapport" && (
+                          <DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
+                            Ajouter Rapport
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {vehicule.code_vehicule}
+                    {demande.id_demande_intervention}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicule.marque_designation}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicule.type_designation}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(demande.date_application).toLocaleDateString("fr-FR")}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{demande.nature_panne}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{demande.nature_travaux}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {vehicule.status_designation ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {vehicule.status_designation}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        Non défini
-                      </span>
-                    )}
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                      ${
+                        demande.etat_demande === "qualification"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : demande.etat_demande === "rapport"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-green-100 text-green-800"
+                      }`}
+                    >
+                      {demande.etat_demande}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicule.code_structure}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {vehicule.total_kilometrage.toLocaleString()} km
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                      ${
+                        demande.degre_urgence === "Urgent"
+                          ? "bg-red-100 text-red-800"
+                          : demande.degre_urgence === "Normal"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {demande.degre_urgence}
+                    </span>
                   </td>
                 </tr>
               ))
@@ -441,12 +434,12 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
       </div>
 
       {/* Pagination */}
-      {!isLoading && !error && filteredVehicules.length > 0 && (
+      {!isLoading && !error && filteredDemandes.length > 0 && (
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-500">
-              Affichage de {startIndex + 1}-{Math.min(endIndex, filteredVehicules.length)} sur{" "}
-              {filteredVehicules.length} véhicules
+              Affichage de {startIndex + 1}-{Math.min(endIndex, filteredDemandes.length)} sur {filteredDemandes.length}{" "}
+              demandes
             </div>
 
             <div className="flex space-x-2">
