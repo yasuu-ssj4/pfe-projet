@@ -89,7 +89,20 @@ export interface Vehicule {
     droit_utilisateur: string;
     role: string;
   }
-  
+  export interface Utilisateurid {
+    id_utilisateur: number | null;
+    nom_utilisateur: string;
+    prenom_utilisateur: string;
+    username: string;
+    email: string;
+    numero_telephone: string;
+    mot_de_passe: string;
+    code_structure: string;
+    methode_authent: string;
+    est_admin: boolean;
+    droit_utilisateur: string;
+    role: string;
+  }
   export interface Gamme {
     code_gamme: string;
     designation: string;

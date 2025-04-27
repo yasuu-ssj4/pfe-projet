@@ -68,7 +68,7 @@ export async function POST(req: NextRequest){
 
         type infos= {
             structure_maintenance : string ,
-            date_heure_panne: Date ,
+            date_heure_panne: string ,
             district_id: string ,
             centre_id: string ,
         }

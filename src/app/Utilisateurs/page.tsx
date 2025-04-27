@@ -1,7 +1,3 @@
-
-
-
-
 import Compte from "./afficherAjouterUtilisateur";
 import { redirect } from "next/navigation";
 import { getUserFromToken } from '@/app/dashboard/auth';

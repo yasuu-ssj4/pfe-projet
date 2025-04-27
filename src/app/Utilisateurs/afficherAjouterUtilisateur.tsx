@@ -2,24 +2,28 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import type { Utilisateur } from "@/app/interfaces"
+import type { Utilisateurid } from "@/app/interfaces"
 import {
-  AlertCircleIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  LoaderIcon,
-  PlusIcon,
-  RefreshCwIcon,
-  UserPlusIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  XIcon as XMarkIcon,
+  AlertCircle,
+  Check,
+  ChevronDown,
+  Loader2,
+  Plus,
+  RefreshCw,
+  UserPlus,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Edit,
+  Trash2,
 } from "lucide-react"
 
 export default function Compte({ userId }: { userId: number }) {
   const [popup, setPopup] = useState(false)
   const [struct, setStruct] = useState(false)
   const [step, setStep] = useState(1)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editUserId, setEditUserId] = useState<number | null>(null)
 
   const [formValue, setFormValue] = useState({
     nom: "",
@@ -44,8 +48,8 @@ export default function Compte({ userId }: { userId: number }) {
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("")
   const [structureFilter, setStructureFilter] = useState("")
-  const [users, setUsers] = useState<Utilisateur[]>([])
-  const [filteredUsers, setFilteredUsers] = useState<Utilisateur[]>([])
+  const [users, setUsers] = useState<Utilisateurid[]>([])
+  const [filteredUsers, setFilteredUsers] = useState<Utilisateurid[]>([])
 
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
@@ -55,11 +59,11 @@ export default function Compte({ userId }: { userId: number }) {
     setError(null)
 
     try {
-      const response = await fetch("/api/utilisateur/getUsers" , {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id_utilisateur: userId }),
-      });
+      const response = await fetch("/api/utilisateur/getUsers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_utilisateur: userId }),
+      })
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || "Erreur lors de la récupération des utilisateurs")
@@ -138,8 +142,67 @@ export default function Compte({ userId }: { userId: number }) {
       authType: "BDD",
       est_admin: false,
     })
+    setIsEditMode(false)
+    setEditUserId(null)
     setPopup(true)
     setStep(1)
+  }
+
+  const handleEditUser = async (user: Utilisateurid) => {
+    setIsEditMode(true)
+    setEditUserId(user.id_utilisateur)
+
+    // Parse the droit_utilisateur string into an array of privileges
+    const privileges = user.droit_utilisateur ? user.droit_utilisateur.split("/") : []
+    setCheckedItems(privileges)
+
+    setFormValue({
+      nom: user.nom_utilisateur || "",
+      prenom: user.prenom_utilisateur || "",
+      email: user.email || "",
+      tel: user.numero_telephone || "",
+      username: user.username || "",
+      password: "", // Don't set the password for security reasons
+      structure: user.code_structure || "",
+      droit_acces: user.droit_utilisateur || "",
+      role: user.role || "DG",
+      authType: user.methode_authent || "BDD",
+      est_admin: user.est_admin || false,
+    })
+
+    setPopup(true)
+    setStep(1)
+  }
+
+  const handleDeleteUser = async (userId: number) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/utilisateur/deleteUser", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_utilisateur: userId }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Erreur lors de la suppression de l'utilisateur")
+      }
+
+      showAlert("success", "Utilisateur supprimé avec succès")
+      fetchUsers() // Refresh the user list
+    } catch (err) {
+      console.error("Erreur lors de la suppression de l'utilisateur:", err)
+      setError(err instanceof Error ? err.message : "Erreur lors de la suppression de l'utilisateur")
+      showAlert("error", err instanceof Error ? err.message : "Erreur lors de la suppression de l'utilisateur")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleNext = async () => {
@@ -147,6 +210,13 @@ export default function Compte({ userId }: { userId: number }) {
     setError(null)
 
     try {
+      // Skip validation if we're in edit mode
+      if (isEditMode) {
+        setStep(2)
+        setIsLoading(false)
+        return
+      }
+
       const res = await fetch("/api/validerUser", {
         method: "POST",
         body: JSON.stringify({
@@ -188,7 +258,8 @@ export default function Compte({ userId }: { userId: number }) {
     const privs = selectedPrivileges.join("/")
     formValue.droit_acces = privs
 
-    const user: Utilisateur = {
+    const user: Utilisateurid = {
+      id_utilisateur: isEditMode && editUserId ? editUserId : null,
       nom_utilisateur: formValue.nom,
       prenom_utilisateur: formValue.prenom,
       username: formValue.username,
@@ -203,8 +274,9 @@ export default function Compte({ userId }: { userId: number }) {
     }
 
     try {
-      const res2 = await fetch("/api/ajouterUser", {
-        method: "POST",
+      const endpoint = isEditMode ? "/api/utilisateur/updateUser" : "/api/utilisateur/ajouterUser"
+      const res2 = await fetch(endpoint, {
+        method: isEditMode ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -213,20 +285,32 @@ export default function Compte({ userId }: { userId: number }) {
 
       if (!res2.ok) {
         const error = await res2.json()
-        throw new Error(error.error || "Erreur lors de l'ajout de l'utilisateur")
+        throw new Error(error.error || `Erreur lors de ${isEditMode ? "la modification" : "l'ajout"} de l'utilisateur`)
       }
 
       const data = await res2.json()
-      console.log("Utilisateur ajouté avec succès:", data)
-      showAlert("success", "Utilisateur ajouté avec succès!")
-      setPopup(false)
+      console.log(`Utilisateur ${isEditMode ? "modifié" : "ajouté"} avec succès:`, data)
+      showAlert("success", `Utilisateur ${isEditMode ? "modifié" : "ajouté"} avec succès!`)
+      if (!isEditMode) {
+        setPopup(false)
+      }
+      // Only close popup automatically when adding a new user, not when editing
 
       // Refresh the user list
       fetchUsers()
     } catch (err) {
-      console.error("Erreur lors de l'ajout de l'utilisateur:", err)
-      setError(err instanceof Error ? err.message : "Erreur lors de l'ajout de l'utilisateur")
-      showAlert("error", err instanceof Error ? err.message : "Erreur lors de l'ajout de l'utilisateur")
+      console.error(`Erreur lors de ${isEditMode ? "la modification" : "l'ajout"} de l'utilisateur:`, err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Erreur lors de ${isEditMode ? "la modification" : "l'ajout"} de l'utilisateur`,
+      )
+      showAlert(
+        "error",
+        err instanceof Error
+          ? err.message
+          : `Erreur lors de ${isEditMode ? "la modification" : "l'ajout"} de l'utilisateur`,
+      )
     } finally {
       setIsLoading(false)
     }
@@ -291,6 +375,13 @@ export default function Compte({ userId }: { userId: number }) {
     { id: "modifier_QI", label: "Modifier la qualification d'intervention" },
     { id: "modifier_DI", label: "Modifier la Demande d'intervention" },
     { id: "supprimer_DI", label: "Supprimer la Demande d'intervention" },
+    { id: "demande", label: "Demande" },
+    { id: "rapport", label: "Rapport" },
+    { id: "ajouter_rapport", label: "Ajouter Rapport" },
+    { id: "supprimer_rapport", label: "Supprimer Rapport" },
+    { id: "programme_entretien", label: "Programme Entretien" },
+    { id: "ajouter_programme_entretien", label: "Ajouter Programme Entretien" },
+    { id: "supprimer_programme_entretien", label: "Supprimer Programme Entretien" },
   ]
 
   const handleItems = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -363,16 +454,16 @@ export default function Compte({ userId }: { userId: number }) {
                   : "bg-blue-500 text-white"
           }`}
         >
-          {alert.type === "success" && <CheckIcon className="w-5 h-5 mr-2" />}
-          {alert.type === "error" && <AlertCircleIcon className="w-5 h-5 mr-2" />}
-          {alert.type === "warning" && <AlertCircleIcon className="w-5 h-5 mr-2" />}
-          {alert.type === "info" && <AlertCircleIcon className="w-5 h-5 mr-2" />}
+          {alert.type === "success" && <Check className="w-5 h-5 mr-2" />}
+          {alert.type === "error" && <AlertCircle className="w-5 h-5 mr-2" />}
+          {alert.type === "warning" && <AlertCircle className="w-5 h-5 mr-2" />}
+          {alert.type === "info" && <AlertCircle className="w-5 h-5 mr-2" />}
           <span>{alert.message}</span>
           <button
             onClick={() => setAlert({ ...alert, visible: false })}
             className="ml-3 text-white hover:text-gray-200"
           >
-            <XMarkIcon className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
       )}
@@ -387,14 +478,14 @@ export default function Compte({ userId }: { userId: number }) {
                   onClick={() => setStruct(true)}
                   className="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
                 >
-                  <PlusIcon className="w-5 h-5" />
+                  <Plus className="w-5 h-5" />
                   <span>Ajouter une structure</span>
                 </button>
                 <button
                   onClick={handlePopup}
                   className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
                 >
-                  <UserPlusIcon className="w-5 h-5" />
+                  <UserPlus className="w-5 h-5" />
                   <span>Ajouter un compte</span>
                 </button>
               </div>
@@ -444,7 +535,7 @@ export default function Compte({ userId }: { userId: number }) {
                         ))}
                       </select>
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
                       </div>
                     </div>
 
@@ -463,7 +554,7 @@ export default function Compte({ userId }: { userId: number }) {
                         ))}
                       </select>
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
                       </div>
                     </div>
 
@@ -473,7 +564,7 @@ export default function Compte({ userId }: { userId: number }) {
                         onClick={clearFilters}
                         className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
-                        <XMarkIcon className="h-4 w-4 mr-1" />
+                        <X className="h-4 w-4 mr-1" />
                         Effacer
                       </button>
                     )}
@@ -485,9 +576,9 @@ export default function Compte({ userId }: { userId: number }) {
                       className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                     >
                       {isTableLoading ? (
-                        <LoaderIcon className="h-4 w-4 mr-1 animate-spin" />
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                       ) : (
-                        <RefreshCwIcon className="h-4 w-4 mr-1" />
+                        <RefreshCw className="h-4 w-4 mr-1" />
                       )}
                       Actualiser
                     </button>
@@ -564,7 +655,7 @@ export default function Compte({ userId }: { userId: number }) {
                       <tr>
                         <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                           <div className="flex flex-col items-center">
-                            <LoaderIcon className="w-12 h-12 text-indigo-500 mb-4 animate-spin" />
+                            <Loader2 className="w-12 h-12 text-indigo-500 mb-4 animate-spin" />
                             <p className="text-lg font-medium">Chargement des utilisateurs...</p>
                           </div>
                         </td>
@@ -573,7 +664,7 @@ export default function Compte({ userId }: { userId: number }) {
                       <tr>
                         <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                           <div className="flex flex-col items-center">
-                            <AlertCircleIcon className="w-12 h-12 text-red-500 mb-4" />
+                            <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
                             <p className="text-lg font-medium text-red-500">
                               Erreur lors du chargement des utilisateurs
                             </p>
@@ -582,7 +673,7 @@ export default function Compte({ userId }: { userId: number }) {
                               onClick={fetchUsers}
                               className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                             >
-                              <RefreshCwIcon className="h-4 w-4 mr-2" />
+                              <RefreshCw className="h-4 w-4 mr-2" />
                               Réessayer
                             </button>
                           </div>
@@ -592,7 +683,7 @@ export default function Compte({ userId }: { userId: number }) {
                       <tr>
                         <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                           <div className="flex flex-col items-center">
-                            <UserPlusIcon className="w-12 h-12 text-gray-300 mb-4" />
+                            <UserPlus className="w-12 h-12 text-gray-300 mb-4" />
                             <p className="text-lg font-medium">Aucun utilisateur trouvé</p>
                             <p className="text-sm text-gray-400 mt-1">
                               {searchTerm || roleFilter || structureFilter
@@ -625,8 +716,20 @@ export default function Compte({ userId }: { userId: number }) {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.code_structure}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <button className="text-indigo-600 hover:text-indigo-900 mr-3">Modifier</button>
-                            <button className="text-red-600 hover:text-red-900">Supprimer</button>
+                            <button
+                              className="text-indigo-600 hover:text-indigo-900 mr-3 inline-flex items-center"
+                              onClick={() => handleEditUser(user)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Modifier
+                            </button>
+                            <button
+                              className="text-red-600 hover:text-red-900 inline-flex items-center"
+                              onClick={() => handleDeleteUser(user.id_utilisateur!)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Supprimer
+                            </button>
                           </td>
                         </tr>
                       ))
@@ -655,7 +758,7 @@ export default function Compte({ userId }: { userId: number }) {
                           className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <span className="sr-only">Précédent</span>
-                          <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                          <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                         </button>
 
                         {/* Page numbers */}
@@ -693,7 +796,7 @@ export default function Compte({ userId }: { userId: number }) {
                           className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <span className="sr-only">Suivant</span>
-                          <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                          <ChevronRight className="h-5 w-5" aria-hidden="true" />
                         </button>
                       </nav>
                     </div>
@@ -720,14 +823,20 @@ export default function Compte({ userId }: { userId: number }) {
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      {step === 1 ? "Créer un utilisateur" : "Sélectionner les privilèges"}
+                      {isEditMode
+                        ? step === 1
+                          ? "Modifier un utilisateur"
+                          : "Modifier les privilèges"
+                        : step === 1
+                          ? "Créer un utilisateur"
+                          : "Sélectionner les privilèges"}
                     </h3>
                     <button
                       type="button"
                       onClick={() => setPopup(false)}
                       className="text-gray-400 hover:text-gray-500 focus:outline-none"
                     >
-                      <XMarkIcon className="h-6 w-6" />
+                      <X className="h-6 w-6" />
                     </button>
                   </div>
 
@@ -736,7 +845,7 @@ export default function Compte({ userId }: { userId: number }) {
                     <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
                       <div className="flex">
                         <div className="flex-shrink-0">
-                          <AlertCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+                          <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
                         </div>
                         <div className="ml-3">
                           <h3 className="text-sm font-medium text-red-800">Erreur</h3>
@@ -821,12 +930,13 @@ export default function Compte({ userId }: { userId: number }) {
                           onChange={handleForm}
                           placeholder="Nom d'utilisateur"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          readOnly={isEditMode} // Username cannot be changed in edit mode
                         />
                       </div>
 
                       <div>
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                          Mot de passe
+                          {isEditMode ? "Nouveau mot de passe (laisser vide pour ne pas changer)" : "Mot de passe"}
                         </label>
                         <input
                           id="password"
@@ -834,7 +944,7 @@ export default function Compte({ userId }: { userId: number }) {
                           value={formValue.password}
                           onChange={handleForm}
                           type="password"
-                          placeholder="Mot de passe"
+                          placeholder={isEditMode ? "Nouveau mot de passe" : "Mot de passe"}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         />
                       </div>
@@ -873,7 +983,7 @@ export default function Compte({ userId }: { userId: number }) {
                             <option value="ST">Service transport</option>
                             <option value="SM">Service maintenance</option>
                           </select>
-                          <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         </div>
                       </div>
 
@@ -951,7 +1061,7 @@ export default function Compte({ userId }: { userId: number }) {
                       >
                         {isLoading ? (
                           <>
-                            <LoaderIcon className="h-5 w-5 mr-2 animate-spin" />
+                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                             Chargement...
                           </>
                         ) : (
@@ -975,7 +1085,7 @@ export default function Compte({ userId }: { userId: number }) {
                       >
                         {isLoading ? (
                           <>
-                            <LoaderIcon className="h-5 w-5 mr-2 animate-spin" />
+                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                             Chargement...
                           </>
                         ) : (
@@ -1018,7 +1128,7 @@ export default function Compte({ userId }: { userId: number }) {
                       onClick={() => setStruct(false)}
                       className="text-gray-400 hover:text-gray-500 focus:outline-none"
                     >
-                      <XMarkIcon className="h-6 w-6" />
+                      <X className="h-6 w-6" />
                     </button>
                   </div>
 
@@ -1027,7 +1137,7 @@ export default function Compte({ userId }: { userId: number }) {
                     <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
                       <div className="flex">
                         <div className="flex-shrink-0">
-                          <AlertCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+                          <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
                         </div>
                         <div className="ml-3">
                           <h3 className="text-sm font-medium text-red-800">Erreur</h3>
@@ -1098,7 +1208,7 @@ export default function Compte({ userId }: { userId: number }) {
                           <option value="ST">Service transport</option>
                           <option value="SM">Service maintenance</option>
                         </select>
-                        <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       </div>
                     </div>
                   </div>
@@ -1112,7 +1222,7 @@ export default function Compte({ userId }: { userId: number }) {
                   >
                     {isLoading ? (
                       <>
-                        <LoaderIcon className="h-5 w-5 mr-2 animate-spin" />
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                         Chargement...
                       </>
                     ) : (

@@ -1,9 +1,6 @@
 import { PrismaClient, utilisateur } from "@prisma/client";
 import CryptoJS from "crypto-js";
-import { NextRequest } from "next/server";
-import { POST } from "./api/structure/verifierStructures/route";
-import pkg, { constant, unary } from 'lodash';
-import RootLayout from './layout';
+
 import {
     Vehicule,
     Marque,
@@ -24,7 +21,7 @@ import {
     TraveauxInterne,
     TraveauxExterne,
   } from "./interfaces";
-const { forEach } = pkg;
+
 const prisma = new PrismaClient(); 
 
 export const SECRET_KEY = "NAFT_1981";
@@ -159,6 +156,10 @@ export async function ajouterUtilisateur(user: Utilisateur) {
 //   }
 
 
+const encryptedText = "U2FsdGVkX190baXc2rr2OsuW+/UWFe7uoXTt0h89RGE=";
 
-const demandes = prisma.demande_intervention.findMany() ; 
-console.log(demandes);
+const bytes = CryptoJS.AES.decrypt(encryptedText, SECRET_KEY);
+const originalText = bytes.toString(CryptoJS.enc.Utf8);
+
+console.log(originalText);
+
