@@ -104,14 +104,14 @@ export async function ajouterUtilisateur(user: Utilisateur) {
      await prisma.progamme_entretien.create({ data });
   }
   
-  export async function ajouterDemandeIntervention(data: DemandeIntervention) {
-     await prisma.demande_intervention.create({ 
-         data: {
-             ...data,
-             date_responsable: data.date_responsable ? data.date_responsable.toISOString() : null
-         } 
-     });
-  }
+//   export async function ajouterDemandeIntervention(data: DemandeIntervention) {
+//      await prisma.demande_intervention.create({ 
+//          data: {
+//              ...data,
+//              date_responsable: data.date_responsable ? data.date_responsable.toISOString() : null
+//          } 
+//      });
+//   }
   
 
    export async function ajouterRapportIntervention(data: RapportIntervention) {
@@ -155,11 +155,4 @@ export async function ajouterUtilisateur(user: Utilisateur) {
 //     await prisma.traveaux_externe.create({ data });
 //   }
 
-
-const encryptedText = "U2FsdGVkX190baXc2rr2OsuW+/UWFe7uoXTt0h89RGE=";
-
-const bytes = CryptoJS.AES.decrypt(encryptedText, SECRET_KEY);
-const originalText = bytes.toString(CryptoJS.enc.Utf8);
-
-console.log(originalText);
 

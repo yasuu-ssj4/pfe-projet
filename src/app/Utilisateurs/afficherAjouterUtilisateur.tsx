@@ -217,7 +217,7 @@ export default function Compte({ userId }: { userId: number }) {
         return
       }
 
-      const res = await fetch("/api/validerUser", {
+      const res = await fetch("/api/utilisateur/validerUser", {
         method: "POST",
         body: JSON.stringify({
           username: formValue.username,
@@ -332,7 +332,7 @@ export default function Compte({ userId }: { userId: number }) {
 
     try {
       // Structure handling logic would go here
-      const response = await fetch("/api/ajouterStructure", {
+      const response = await fetch("/api/structure/ajouterStructure", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
