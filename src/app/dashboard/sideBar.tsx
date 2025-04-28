@@ -56,7 +56,7 @@ export default function Sidebar() {
       icon: <Car size={20} />,
     },
     {
-      path: "/rapport",
+      path: "/documents",
       label: "Documents",
       icon: <FileText size={20} />,
     },
