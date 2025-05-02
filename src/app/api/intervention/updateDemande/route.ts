@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import { log } from "console"
 import { type NextRequest, NextResponse } from "next/server"
 
 const prisma = new PrismaClient()
@@ -6,6 +7,7 @@ const prisma = new PrismaClient()
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    console.log("Received body:", body)
     const {
       id_demande_intervention,
       etat_demande,
@@ -19,7 +21,7 @@ export async function POST(req: NextRequest) {
       dangereux,
       dangereux_ref,
       id_intervevant,
-      date_intervevant,
+      date_intervevant = new Date(),
       nom_prenom_responsable,
       date_responsable,
       fonction_responsable,
@@ -31,28 +33,29 @@ export async function POST(req: NextRequest) {
       nom_prenom_hse,
     } = body
 
-    console.log("Updating demande:", id_demande_intervention)
-
+    console.log("Updating demande:",body)
+    console.log(typeof(date_intervevant));
+    
     if (!id_demande_intervention) {
       return NextResponse.json({ error: "L'ID de la demande d'intervention est requis" }, { status: 400 })
     }
 
-    // Update only the nullable fields in the demande_intervention record
-    const updatedDemande = await prisma.demande_intervention.update({
-      where: { id_demande_intervention },
+
+     await prisma.demande_intervention.update({
+      where: { id_demande_intervention : id_demande_intervention },
       data: {
         etat_demande, 
         constat_panne,
         diagnostique,
         description,
-        niveaux_prio,
+        niveaux_prio  : parseInt(niveaux_prio) ,
         necess_permis,
         routinier,
         routinier_ref,
         dangereux,
         dangereux_ref,
         id_intervevant,
-        date_intervevant: date_intervevant ? new Date(date_intervevant) : null,
+        date_intervevant : date_intervevant ? new Date(date_intervevant) : null,
         nom_prenom_responsable,
         date_responsable,
         fonction_responsable,
@@ -65,9 +68,15 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    return NextResponse.json({ message: "Demande mise à jour avec succès", demande: updatedDemande }, { status: 200 })
+    return NextResponse.json({ message: "Demande mise à jour avec succès",  }, { status: 200 })
   } catch (error) {
-    console.error("Error in POST /api/intervention/updateDemande", error)
+    console.error("❌ Error in updateDemande:", {
+      message: (error as any).message,
+      stack: (error as any).stack,
+      code: (error as any).code,
+      meta: (error as any).meta,
+    })
+    
     return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
   }
 }

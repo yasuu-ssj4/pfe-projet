@@ -239,65 +239,48 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
       }))
     }
   }
+   // Create updated demande object
+   const selectedPanne = selectedItems.join("/")
 
+   // Combine structure_maintenance_type and structure_maintenance_detail
+   const structureMaintenance = formValues.structure_maintenance_type
+     ? `${formValues.structure_maintenance_type}${formValues.structure_maintenance_detail ? `,${formValues.structure_maintenance_detail}` : ""}`
+     : ""
+  const nvValeur = {
+    id_demande_intervention: id_demande,
+    diagnostique : formValues.diagnostique ,
+description : formValues.description,
+niveaux_prio : formValues.niveaux_prio,
+necess_permis : formValues.necess_permis,
+etat_demande : formValues.etat_demande ,
+constat_panne : formValues.constat_panne,
+routinier : formValues.routinier,
+routinier_ref : formValues.routinier_ref,
+dangereux : formValues.dangereux,
+dangereux_ref : formValues.dangereux_ref  ,
+id_intervevant : 5,
+date_intervevant: new Date(),
+nom_prenom_responsable : formValues.nom_prenom_responsable,
+date_responsable : formValues.date_responsable,
+fonction_responsable : formValues.fonction_responsable,
+date_responsable_unm : formValues.date_responsable_QI ,
+fonction_responsable_unm  : formValues.fonction_responsable_QI,
+nom_prenom_responsable_unm : formValues.nom_prenom_responsable_QI,
+date_hse : formValues.date_HSE , 
+fonction_hse : formValues.fonction_HSE ,
+nom_prenom_hse : formValues.nom_prenom_HSE
+  }
+  console.log("values" ,nvValeur);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSaving(true)
     setError(null)
 
-    try {
-      // Create updated demande object
-      const selectedPanne = selectedItems.join("/")
-
-      // Combine structure_maintenance_type and structure_maintenance_detail
-      const structureMaintenance = formValues.structure_maintenance_type
-        ? `${formValues.structure_maintenance_type}${formValues.structure_maintenance_detail ? `,${formValues.structure_maintenance_detail}` : ""}`
-        : ""
-
-      const updatedDemande = {
-        id_demande_intervention: formValues.id_demande_intervention,
-        etat_demande: formValues.etat_demande,
-        date_application: formValues.date_application,
-        date_heure_panne: formValues.date_heure_panne,
-        structure_maintenance: structureMaintenance,
-        activite: formValues.activite,
-        nature_panne: selectedPanne,
-        nature_travaux: formValues.nature_travaux,
-        degre_urgence: formValues.degre_urgence,
-        code_vehicule: formValues.code_vehicule,
-        district_id: formValues.district_id,
-        centre_id: formValues.centre_id,
-        constat_panne: formValues.constat_panne,
-        diagnostique: formValues.diagnostique,
-        description: formValues.description,
-        niveaux_prio: formValues.niveaux_prio ? Number(formValues.niveaux_prio) : undefined,
-        necess_permis: formValues.necess_permis,
-        type_permis: formValues.type_permis,
-        type_permis_ref: formValues.type_permis_ref,
-        routinier: formValues.routinier,
-        routinier_ref: formValues.routinier_ref,
-        dangereux: formValues.dangereux,
-        dangereux_ref: formValues.dangereux_ref,
-        nom_prenom_HSE: formValues.nom_prenom_HSE,
-        fonction_HSE: formValues.fonction_HSE,
-        date_HSE: formValues.date_HSE,
-        nom_prenom_intervenant: formValues.nom_prenom_intervenant,
-        fonction_intervenant: formValues.fonction_intervenant,
-        date_intervevant: formValues.date_intervevant,
-        nom_prenom_responsable_QI: formValues.nom_prenom_responsable_QI,
-        fonction_responsable_QI: formValues.fonction_responsable_QI,
-        date_responsable_QI: formValues.date_responsable_QI,
-        nom_prenom_responsable: formValues.nom_prenom_responsable,
-        fonction_responsable: formValues.fonction_responsable,
-        date_responsable: formValues.date_responsable,
-      }
-
-      console.log("Submitting updated demande:", updatedDemande)
-
+    try { 
       const response = await fetch("/api/intervention/updateDemande", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedDemande),
+        body: JSON.stringify( nvValeur),
       })
 
       if (!response.ok) {

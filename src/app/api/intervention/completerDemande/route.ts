@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       nom_prenom_responsable,
       fonction_responsable,
     } = await req.json()
-
+    
     if (!id_demande_intervention) {
       return NextResponse.json({ error: "L'ID de la demande d'intervention est requis" }, { status: 400 })
     }
