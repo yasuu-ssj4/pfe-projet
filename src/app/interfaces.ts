@@ -119,12 +119,11 @@ export interface Vehicule {
     code_operation: string;
     code_type: number;
   }
-  
   export interface DemandeIntervention {
-    id_demande_intervention : string;
+    id_demande_intervention: string;
     etat_demande: string;
     date_application: Date;
-    date_heure_panne: Date;
+    date_heure_panne: string;
     structure_maintenance: string;
     activite: string;
     nature_panne: string;
@@ -144,14 +143,17 @@ export interface Vehicule {
     dangereux_ref?: string;
     id_demandeur: number;
     date_demandeur: Date;
-    visa_demandeur: string;
     id_intervevant?: number;
     date_intervevant?: Date;
-    visa_intervevant?: string;
     nom_prenom_responsable?: string;
-    date_responsable?: Date;
-    visa_responsable?: string;
+    date_responsable?: string;
     fonction_responsable?: string;
+    date_responsable_unm?: string;
+    fonction_responsable_unm?: string;
+    nom_prenom_responsable_unm?: string;
+    date_hse?: string;
+    fonction_hse?: string;
+    nom_prenom_hse?: string;
   }
   
   export interface RapportIntervention {

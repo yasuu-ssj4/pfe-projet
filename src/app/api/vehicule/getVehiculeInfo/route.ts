@@ -30,16 +30,23 @@ export async function POST(req: NextRequest) {
         },
       },
     })
-
+     
     if (!vehicule) {
       return NextResponse.json({ error: "Véhicule non trouvé" }, { status: 404 })
-    }
+    } 
+   type desigs = {
+    designation_centre : string ;
+    designation_district : string
+   }
+   const result: any[] = await prisma.$queryRawUnsafe(`EXEC PS_GET_DESIGNATION_STRUCT_STRUCT_HIERACHIQUE '${code_vehicule}'`)
+   const { structure_designation, parent_designation } = result[0]
 
-    // Format the response
     const vehiculeInfo = {
       code_vehicule: vehicule.code_vehicule,
       type_designation: vehicule.FK_vehicule_REF_type.designation,
       marque_designation: vehicule.FK_vehicule_REF_type.FK_type_REF_marque.designation,
+      designation_centre : structure_designation ,
+      designation_district : parent_designation
     }
 
     return NextResponse.json(vehiculeInfo, { status: 200 })

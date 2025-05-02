@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Demande from "./intervention/demande/demande"
 import {
   AlertCircleIcon,
   ChevronDownIcon,
@@ -34,6 +35,17 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [structureFilter, setStructureFilter] = useState("")
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedVehiculeCode, setSelectedVehiculeCode] = useState<string>("")
+
+  const handleAjouterDemande = (code_vehicule: string) => {
+    setSelectedVehiculeCode(code_vehicule)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
   const itemsPerPage = 10
 
   const fetchVehicules = async () => {
@@ -404,9 +416,10 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                       <DropdownMenuContent align="end" className="w-[200px]">
                         <DropdownMenuItem onClick={() => {}}>Détails</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {}}>Modifier</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigateToAddDemande(vehicule.code_vehicule)}>
+                        <DropdownMenuItem onClick={() => handleAjouterDemande(vehicule.code_vehicule)}>
                           Ajouter Demande
                         </DropdownMenuItem>
+                        
                         <DropdownMenuItem onClick={() => navigateToIntervention(vehicule.code_vehicule)}>
                           Constater Demande
                         </DropdownMenuItem>
@@ -490,6 +503,14 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 <ChevronRightIcon className="h-4 w-4 ml-1" />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Modal for Demande */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="relative w-full max-w-4xl">
+            <Demande visible={isModalOpen} handleCloseModal={handleCloseModal} code_vehicule={selectedVehiculeCode} />
           </div>
         </div>
       )}

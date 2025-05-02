@@ -100,18 +100,15 @@ export async function ajouterUtilisateur(user: Utilisateur) {
  await prisma.operation.create({ data });
   }
   
-  export async function ajouterProgrammeEntretien(data: ProgrammeEntretien) {
-     await prisma.progamme_entretien.create({ data });
-  }
-  
-//   export async function ajouterDemandeIntervention(data: DemandeIntervention) {
-//      await prisma.demande_intervention.create({ 
-//          data: {
-//              ...data,
-//              date_responsable: data.date_responsable ? data.date_responsable.toISOString() : null
-//          } 
-//      });
+//   export async function ajouterProgrammeEntretien(data: ProgrammeEntretien) {
+//      await prisma.programme_entretien.create({ data });
 //   }
+  
+  export async function ajouterDemandeIntervention(data: DemandeIntervention) {
+     await prisma.demande_intervention.create({ 
+         data
+     });
+  }
   
 
    export async function ajouterRapportIntervention(data: RapportIntervention) {

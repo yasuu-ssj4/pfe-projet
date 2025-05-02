@@ -13,7 +13,12 @@ import {
   SearchIcon,
   XIcon,
 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu"
 
 type DemandeIntervention = {
   id_demande_intervention: string
@@ -125,6 +130,11 @@ export default function InterventionList({
   // Navigate to rapport page with demande id
   const navigateToRapport = (id_demande_intervention: string) => {
     router.push(`/vehicule/intervention/rapport?id_demande=${id_demande_intervention}`)
+  }
+
+  // Navigate to completer form with demande id
+  const navigateToCompleterForm = (id_demande_intervention: string) => {
+    router.push(`/vehicule/intervention/completer/${id_demande_intervention}`)
   }
 
   // Generate page numbers to display
@@ -378,8 +388,10 @@ export default function InterventionList({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[200px]">
                         <DropdownMenuItem onClick={() => {}}>Détails</DropdownMenuItem>
-                        {demande.etat_demande === "qualification" && (
-                          <DropdownMenuItem onClick={() => {}}>Compléter Demande</DropdownMenuItem>
+                        {demande.etat_demande === "En cours" && (
+                          <DropdownMenuItem onClick={() => navigateToCompleterForm(demande.id_demande_intervention)}>
+                            Compléter Demande
+                          </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={() => {}}>Constater Demande</DropdownMenuItem>
                         {demande.etat_demande === "rapport" && (

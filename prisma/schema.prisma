@@ -46,7 +46,7 @@ model type {
   id_type             Int                 @id @default(autoincrement())
   designation         String
   id_marque           Int
-  progammes_entretien progamme_entretien?
+  progammes_entretien programme_entretien[]
   FK_type_REF_marque  marque              @relation(fields: [id_marque], references: [id_marque])
   vehicules           vehicule[]
 }
@@ -133,22 +133,23 @@ model utilisateur {
 }
 
 model gamme {
-  code_gamme   String               @id
+  code_gamme   String               @id 
   designation  String
   unite_mesure String
-  programmes   progamme_entretien[]
+  programmes   programme_entretien[]
 }
 
 model operation {
   code_operation String               @id
   designation    String
-  programmes     progamme_entretien[]
+  programmes     programme_entretien[]
 }
 
-model progamme_entretien {
+model programme_entretien {
   code_gamme     String
   code_operation String
-  code_type      Int       @unique
+  code_type      Int       
+  periode        Int
   gamme          gamme     @relation(fields: [code_gamme], references: [code_gamme])
   operation      operation @relation(fields: [code_operation], references: [code_operation])
   type           type      @relation(fields: [code_type], references: [id_type])
