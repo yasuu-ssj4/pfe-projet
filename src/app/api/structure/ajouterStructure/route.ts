@@ -5,14 +5,11 @@ const prisma = new PrismaClient();
 import { ajouterStructure } from '@/app/prisma';
 export async function POST(req: NextRequest) {
   const Struct :Structure = await req.json();
+  console.log('Struct', Struct);
+  
     try {
         const { code_structure, designation, type_structure_hierachique } = Struct;
-        if (!code_structure || !designation || !type_structure_hierachique) {
-        return NextResponse.json(
-            { error: 'body sans code_structure ou designation ou type_hierarchy' },
-            { status: 400 }
-        );
-        }
+       
         const structureExists = await prisma.structure.findUnique({
         where: { code_structure },
         });

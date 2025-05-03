@@ -442,7 +442,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
             </table>
           </div>
 
-          {/* Section 2: Activity and Breakdown */}
+
           <div className="border-2 border-gray-800 mb-6">
             <table className="w-full border-collapse">
               <tbody>

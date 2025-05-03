@@ -27,6 +27,10 @@ try{
 
 
          const rapport = await ajouterRapportIntervention(RapportBody);
+         await prisma.demande_intervention.update({
+          where : {id_demande_intervention : RapportBody.id_demande_intervention},
+          data : {etat_demande : "complété"}
+         })
         return NextResponse.json({ succes: true }, { status: 201 });
 }catch (error) {
     console.error("Error in POST /api/...", error);

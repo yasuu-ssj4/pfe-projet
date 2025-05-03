@@ -9,7 +9,8 @@ const prisma = new PrismaClient()
 export async function PUT(req: NextRequest) {
   try {
     const userData = await req.json()
-
+    console.log("userData", userData);
+    
     if (!userData.id_utilisateur) {
       return NextResponse.json({ error: "L'ID de l'utilisateur est requis" }, { status: 400 })
     }

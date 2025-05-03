@@ -17,6 +17,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react"
+import FormStruct from "./form-struct"
 
 export default function Compte({ userId }: { userId: number }) {
   const [popup, setPopup] = useState(false)
@@ -53,6 +54,12 @@ export default function Compte({ userId }: { userId: number }) {
 
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
+
+  // Add this debugging function at the top of the component, right after the useState declarations
+  const debugLog = (message: string, data: any) => {
+    console.log(`DEBUG - ${message}:`, data)
+  }
+
   // Fetch users de L'API
   const fetchUsers = async () => {
     setIsTableLoading(true)
@@ -148,7 +155,9 @@ export default function Compte({ userId }: { userId: number }) {
     setStep(1)
   }
 
+  // Replace the handleEditUser function with this enhanced version
   const handleEditUser = async (user: Utilisateurid) => {
+    debugLog("Original user data from API", user)
     setIsEditMode(true)
     setEditUserId(user.id_utilisateur)
 
@@ -156,11 +165,15 @@ export default function Compte({ userId }: { userId: number }) {
     const privileges = user.droit_utilisateur ? user.droit_utilisateur.split("/") : []
     setCheckedItems(privileges)
 
-    setFormValue({
+    // Explicitly handle the phone number, ensuring it's not null or undefined
+    const phoneNumber = user.numero_telephone 
+    debugLog("Phone number extracted", phoneNumber)
+
+    const formData = {
       nom: user.nom_utilisateur || "",
       prenom: user.prenom_utilisateur || "",
       email: user.email || "",
-      tel: user.numero_telephone || "",
+      tel: phoneNumber, 
       username: user.username || "",
       password: "", // Don't set the password for security reasons
       structure: user.code_structure || "",
@@ -168,7 +181,10 @@ export default function Compte({ userId }: { userId: number }) {
       role: user.role || "DG",
       authType: user.methode_authent || "BDD",
       est_admin: user.est_admin || false,
-    })
+    }
+
+    debugLog("Form data being set", formData)
+    setFormValue(formData)
 
     setPopup(true)
     setStep(1)
@@ -217,6 +233,10 @@ export default function Compte({ userId }: { userId: number }) {
         return
       }
 
+      setStep(2)
+      setIsLoading(false)
+      return
+
       const res = await fetch("/api/utilisateur/validerUser", {
         method: "POST",
         body: JSON.stringify({
@@ -249,6 +269,7 @@ export default function Compte({ userId }: { userId: number }) {
     setRole(event.target.value)
   }
 
+  // Replace the handleUser function with this enhanced version
   const handleUser = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
@@ -258,13 +279,17 @@ export default function Compte({ userId }: { userId: number }) {
     const privs = selectedPrivileges.join("/")
     formValue.droit_acces = privs
 
+    // Ensure phone number is properly handled
+    const phoneNumber = formValue.tel || null
+    debugLog("Phone number being sent", phoneNumber)
+
     const user: Utilisateurid = {
       id_utilisateur: isEditMode && editUserId ? editUserId : null,
       nom_utilisateur: formValue.nom,
       prenom_utilisateur: formValue.prenom,
       username: formValue.username,
       email: formValue.email,
-      numero_telephone: formValue.tel,
+      numero_telephone : phoneNumber || formValue.tel , 
       mot_de_passe: formValue.password,
       code_structure: formValue.structure,
       methode_authent: formValue.authType,
@@ -273,8 +298,12 @@ export default function Compte({ userId }: { userId: number }) {
       role: formValue.role,
     }
 
+    debugLog("Complete user data being sent to API", user)
+
     try {
       const endpoint = isEditMode ? "/api/utilisateur/updateUser" : "/api/utilisateur/ajouterUser"
+      debugLog("Sending request to endpoint", endpoint)
+
       const res2 = await fetch(endpoint, {
         method: isEditMode ? "PUT" : "POST",
         headers: {
@@ -289,14 +318,13 @@ export default function Compte({ userId }: { userId: number }) {
       }
 
       const data = await res2.json()
+      debugLog("Response from API", data)
+
       console.log(`Utilisateur ${isEditMode ? "modifié" : "ajouté"} avec succès:`, data)
       showAlert("success", `Utilisateur ${isEditMode ? "modifié" : "ajouté"} avec succès!`)
-      if (!isEditMode) {
-        setPopup(false)
-      }
-      // Only close popup automatically when adding a new user, not when editing
 
-      // Refresh the user list
+      // Close popup and refresh user list
+      setPopup(false)
       fetchUsers()
     } catch (err) {
       console.error(`Erreur lors de ${isEditMode ? "la modification" : "l'ajout"} de l'utilisateur:`, err)
@@ -315,74 +343,6 @@ export default function Compte({ userId }: { userId: number }) {
       setIsLoading(false)
     }
   }
-
-  const handleStruct = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-
-    // Get form data
-    const formData = new FormData(e.currentTarget)
-    const structureData = {
-      nom: formData.get("structure_name") as string,
-      code: formData.get("code") as string,
-      parent: formData.get("structure_parent") as string,
-      type: formData.get("type_hierarchie") as string,
-    }
-
-    try {
-      // Structure handling logic would go here
-      const response = await fetch("/api/structure/ajouterStructure", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(structureData),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Erreur lors de l'ajout de la structure")
-      }
-
-      showAlert("success", "Structure ajoutée avec succès!")
-      setStruct(false)
-    } catch (err) {
-      console.error("Erreur lors de l'ajout de la structure:", err)
-      setError(err instanceof Error ? err.message : "Erreur lors de l'ajout de la structure")
-      showAlert("error", err instanceof Error ? err.message : "Erreur lors de l'ajout de la structure")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const privilege = [
-    { id: "admin", label: "Admin" },
-    { id: "user", label: "Compte Utilisateur" },
-    { id: "ajouter_user", label: "Ajouter Un Utilisateur" },
-    { id: "modifier_user", label: "Modifier Un Utilisateur" },
-    { id: "supprimer_user", label: "Supprimer Un Utilisateur" },
-    { id: "struct", label: "Structure" },
-    { id: "ajouter_structure", label: "Ajouter Une Structure" },
-    { id: "modifier_structure", label: "Modifier Une Structure" },
-    { id: "supprimer_structure", label: "Supprimer Une Structure" },
-    { id: "vehicule", label: "Véhicule" },
-    { id: "ajout_vehicule", label: "Ajouter Un Véhicule" },
-    { id: "modifier_vehicule", label: "Modifier Un Véhicule" },
-    { id: "supprimer_vehicule", label: "Supprimer Un Véhicule" },
-    { id: "ajouter_DI", label: "Ajouter la Demande d'intervention" },
-    { id: "ajouter_QI", label: "Ajouter la qualification d'intervention " },
-    { id: "modifier_QI", label: "Modifier la qualification d'intervention" },
-    { id: "modifier_DI", label: "Modifier la Demande d'intervention" },
-    { id: "supprimer_DI", label: "Supprimer la Demande d'intervention" },
-    { id: "demande", label: "Demande" },
-    { id: "rapport", label: "Rapport" },
-    { id: "ajouter_rapport", label: "Ajouter Rapport" },
-    { id: "supprimer_rapport", label: "Supprimer Rapport" },
-    { id: "programme_entretien", label: "Programme Entretien" },
-    { id: "ajouter_programme_entretien", label: "Ajouter Programme Entretien" },
-    { id: "supprimer_programme_entretien", label: "Supprimer Programme Entretien" },
-  ]
 
   const handleItems = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { id, checked } = event.target
@@ -438,6 +398,34 @@ export default function Compte({ userId }: { userId: number }) {
   const indexOfFirstUser = indexOfLastUser - itemsPerPage
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser)
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
+
+  const privilege = [
+    { id: "admin", label: "Admin" },
+    { id: "user", label: "Compte Utilisateur" },
+    { id: "ajouter_user", label: "Ajouter Un Utilisateur" },
+    { id: "modifier_user", label: "Modifier Un Utilisateur" },
+    { id: "supprimer_user", label: "Supprimer Un Utilisateur" },
+    { id: "struct", label: "Structure" },
+    { id: "ajouter_structure", label: "Ajouter Une Structure" },
+    { id: "modifier_structure", label: "Modifier Une Structure" },
+    { id: "supprimer_structure", label: "Supprimer Une Structure" },
+    { id: "vehicule", label: "Véhicule" },
+    { id: "ajout_vehicule", label: "Ajouter Un Véhicule" },
+    { id: "modifier_vehicule", label: "Modifier Un Véhicule" },
+    { id: "supprimer_vehicule", label: "Supprimer Un Véhicule" },
+    { id: "ajouter_DI", label: "Ajouter la Demande d'intervention" },
+    { id: "ajouter_QI", label: "Ajouter la qualification d'intervention " },
+    { id: "modifier_QI", label: "Modifier la qualification d'intervention" },
+    { id: "modifier_DI", label: "Modifier la Demande d'intervention" },
+    { id: "supprimer_DI", label: "Supprimer la Demande d'intervention" },
+    { id: "demande", label: "Demande" },
+    { id: "rapport", label: "Rapport" },
+    { id: "ajouter_rapport", label: "Ajouter Rapport" },
+    { id: "supprimer_rapport", label: "Supprimer Rapport" },
+    { id: "programme_entretien", label: "Programme Entretien" },
+    { id: "ajouter_programme_entretien", label: "Ajouter Programme Entretien" },
+    { id: "supprimer_programme_entretien", label: "Supprimer Programme Entretien" },
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -755,7 +743,7 @@ export default function Compte({ userId }: { userId: number }) {
                         <button
                           onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                           disabled={currentPage === 1}
-                          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                         >
                           <span className="sr-only">Précédent</span>
                           <ChevronLeft className="h-5 w-5" aria-hidden="true" />
@@ -1057,7 +1045,7 @@ export default function Compte({ userId }: { userId: number }) {
                         type="button"
                         onClick={handleNext}
                         disabled={isLoading}
-                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
                       >
                         {isLoading ? (
                           <>
@@ -1081,7 +1069,7 @@ export default function Compte({ userId }: { userId: number }) {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
                       >
                         {isLoading ? (
                           <>
@@ -1108,140 +1096,8 @@ export default function Compte({ userId }: { userId: number }) {
         </div>
       )}
 
-      {/* Add Structure Modal */}
-      {struct && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-              &#8203;
-            </span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <form onSubmit={handleStruct}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">Ajouter une structure</h3>
-                    <button
-                      type="button"
-                      onClick={() => setStruct(false)}
-                      className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                    >
-                      <X className="h-6 w-6" />
-                    </button>
-                  </div>
-
-                  {/* Error message in form */}
-                  {error && (
-                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                      <div className="flex">
-                        <div className="flex-shrink-0">
-                          <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
-                        </div>
-                        <div className="ml-3">
-                          <h3 className="text-sm font-medium text-red-800">Erreur</h3>
-                          <div className="mt-2 text-sm text-red-700">
-                            <p>{error}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="structure_name" className="block text-sm font-medium text-gray-700 mb-1">
-                        Nom de la structure
-                      </label>
-                      <input
-                        id="structure_name"
-                        name="structure_name"
-                        type="text"
-                        placeholder="Nom de la structure"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
-                        Code de la structure
-                      </label>
-                      <input
-                        id="code"
-                        name="code"
-                        type="text"
-                        placeholder="Code"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="structure_parent" className="block text-sm font-medium text-gray-700 mb-1">
-                        Structure parent
-                      </label>
-                      <input
-                        id="structure_parent"
-                        name="structure_parent"
-                        type="text"
-                        placeholder="Nom de la structure parent"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="type_hierarchie" className="block text-sm font-medium text-gray-700 mb-1">
-                        Type de hiérarchie
-                      </label>
-                      <div className="relative">
-                        <select
-                          id="type_hierarchie"
-                          name="type_hierarchie"
-                          value={role}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black appearance-none"
-                        >
-                          <option value="DG">Direction générale</option>
-                          <option value="branche">Branche</option>
-                          <option value="district">District</option>
-                          <option value="centre">Centre</option>
-                          <option value="ST">Service transport</option>
-                          <option value="SM">Service maintenance</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                        Chargement...
-                      </>
-                    ) : (
-                      "Confirmer"
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStruct(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Annuler
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Add Structure Modal - Using the FormStruct component */}
+      {struct && <FormStruct onClose={() => setStruct(false)} />}
     </div>
   )
 }

@@ -35,37 +35,6 @@ export async function POST(req: NextRequest){
             }
         
             
-        const designationmaintenance = await prisma.structure.findFirst(
-            {
-                where : {
-                    code_structure : demandeentites?.structure_maintenance,
-                },
-                select : {
-                    designation : true,
-                }
-            }
-        )
-        const designationcentre = await prisma.structure.findFirst(
-            {
-                where : {
-                    code_structure : demandeentites?.centre_id,
-                },
-                select : {
-                    designation : true,
-                }
-            }
-        )
-        const designationdistrict = await prisma.structure.findFirst(
-            {
-                where : {
-                    code_structure : demandeentites?.district_id,
-                },
-                select : {
-                    designation : true,
-                }
-            }
-        )
-
         type infos= {
             structure_maintenance : string ,
             date_heure_panne: string ,
@@ -73,12 +42,13 @@ export async function POST(req: NextRequest){
             centre_id: string ,
         }
          const demandeInfos: infos = {
-            structure_maintenance : designationmaintenance?.designation ?? "",
-            date_heure_panne : demandeentites?.date_heure_panne,
-            district_id : designationdistrict?.designation ?? "",
-            centre_id : designationcentre?.designation ?? "",
+            structure_maintenance : demandeentites.structure_maintenance,
+            date_heure_panne : demandeentites.date_heure_panne,
+            district_id : demandeentites.district_id,
+            centre_id : demandeentites.centre_id,
            
          };
+            console.log("Infos Demande:", demandeInfos);
         return NextResponse.json(demandeInfos, { status: 200 });
     } catch (error) {
         console.error("Error fetching ", error);

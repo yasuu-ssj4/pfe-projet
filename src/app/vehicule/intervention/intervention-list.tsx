@@ -394,7 +394,7 @@ export default function InterventionList({
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={() => {}}>Constater Demande</DropdownMenuItem>
-                        {demande.etat_demande === "rapport" && (
+                        {demande.etat_demande.toLowerCase() === "qualification" && (
                           <DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
                             Ajouter Rapport
                           </DropdownMenuItem>

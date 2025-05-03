@@ -95,7 +95,7 @@ export interface Vehicule {
     prenom_utilisateur: string;
     username: string;
     email: string;
-    numero_telephone: string;
+    numero_telephone : string;
     mot_de_passe: string;
     code_structure: string;
     methode_authent: string;
@@ -187,7 +187,7 @@ export interface Vehicule {
   
   export interface TraveauxInterne {
     
-    id_rapport: number;
+    id_rapport: string;
     atelier_desc: string;
     temps_alloue: number;
     PDR_consommee: string;
@@ -196,7 +196,7 @@ export interface Vehicule {
   }
   
   export interface TraveauxExterne {
-    id_rapport: number;
+    id_rapport: string;
     design_prestataire: string;
     reference_contrat: string;
     reference_facture: string;
