@@ -42,3 +42,17 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+export async function GET() {
+  try {
+      // Fetch all operations
+      const centres = await prisma.structure.findMany({
+        where : { type_structure_hierachique : { in: ["centre", "Centre"] } }
+      })
+      return NextResponse.json(centres)
+    } catch (error) {
+      console.error("Error fetching operations:", error)
+      return NextResponse.json({ error: "Failed to fetch operations" }, { status: 500 })
+    } finally {
+      await prisma.$disconnect()
+    }
+}

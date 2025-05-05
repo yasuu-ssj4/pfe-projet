@@ -298,7 +298,7 @@ export default function FormVehicule() {
       console.log("Succès de l'affectation:", affectationData)
 
       // 3. Add status
-      const affecterStatusResponse = await fetch("http://localhost:3000/api/vehicule/status/affecterStatus", {
+      const affecterStatusResponse = await fetch("/api/vehicule/status/affecterStatus", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -311,16 +311,34 @@ export default function FormVehicule() {
         throw new Error(`Erreur d'affectation de statut ${affecterStatusResponse.status}: ${errorText}`)
       }
 
-      const affecterStatusData = await affecterStatusResponse.json()
-      console.log("Succès de l'affectation de statut:", affecterStatusData)
-
+ 
+      //ajouter l'historique de kilometrage 
+      const historiqueKilometrage = {
+        code_vehicule: formValue.code_vehicule,
+        kilo_parcouru_heure_fonctionnement: formValue.kilo_parcouru_heure_fonctionnement,
+      }
+      const historiqueResponse = await fetch("/api/vehicule/kilometrage-heure", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(historiqueKilometrage),
+      }) 
+      
+      if (!historiqueResponse.ok) {
+        const errorText = await historiqueResponse.text()
+        throw new Error(`Erreur d'historique de kilométrage ${historiqueResponse.status}: ${errorText}`)
+      }
+   
+       
       setSuccess("Véhicule ajouté avec succès!")
       setTimeout(() => {
         setPopup(false)
         setSuccess(null)
       }, 2000)
-
+ 
       return data
+
     } catch (err) {
       console.error("Erreur:", err)
       setError(err instanceof Error ? err.message : "Une erreur est survenue")

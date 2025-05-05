@@ -36,13 +36,7 @@ export default function LoginPage() {
       }
       
       
-      const encryptedText = "U2FsdGVkX190baXc2rr2OsuW+/UWFe7uoXTt0h89RGE=";
-      
-      const bytes = CryptoJS.AES.decrypt(encryptedText, SECRET_KEY);
-      const originalText = bytes.toString(CryptoJS.enc.Utf8);
-      
-      console.log(originalText);
-      
+     
       
       router.push("/dashboard")
     } catch (error) {

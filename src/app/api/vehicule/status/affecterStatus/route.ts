@@ -3,6 +3,7 @@ import { NextResponse , NextRequest } from "next/server";
 import { HistoriqueStatus } from "@/app/interfaces";
 const prisma = new PrismaClient();
 import { ajouterHistoriqueStatus } from "@/app/prisma";
+import { Status } from '../../../../interfaces';
 
 export async function POST(request: NextRequest) {
   
@@ -22,4 +23,16 @@ export async function POST(request: NextRequest) {
         console.error(error);
         return NextResponse.json({ error: "erreur interne de serveur" }, { status: 500 });
      }
+}
+export async function GET () {
+  try {
+    
+    const historiqueStatus = await prisma.status.findMany({
+    
+    });
+    return NextResponse.json(historiqueStatus, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "erreur interne de serveur" }, { status: 500 });
+  }
 }

@@ -6,7 +6,7 @@ import { SECRET_KEY } from "../../prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
-
+const bcrypt = require('bcrypt');
 export async function POST(req: NextRequest) {
   try {
     const { username, password } = await req.json();
@@ -25,8 +25,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (user.methode_authent === "BDD") {
-      const decryptedMdp = CryptoJS.AES.decrypt(user.mot_de_passe, SECRET_KEY).toString(CryptoJS.enc.Utf8);
-      if (decryptedMdp !== password) {
+      const isPasswordValid = await bcrypt.compare(password, user.mot_de_passe);
+    
+      if (!isPasswordValid) {
         return NextResponse.json({ error: "Mot de passe incorrect." }, { status: 401 });
       }
 

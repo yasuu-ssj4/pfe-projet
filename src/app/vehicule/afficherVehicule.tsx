@@ -14,7 +14,16 @@ import {
   SearchIcon,
   XIcon,
 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu"
+
+import KilometrageUpdatePopup from "./popups/kilometrage-update-popup"
+import AffectationUpdatePopup from "./popups/affectation-update-popup"
+import StatusUpdatePopup from './popups/status-update-popup';
 
 type Vehiculetype = {
   code_vehicule: string
@@ -38,14 +47,117 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedVehiculeCode, setSelectedVehiculeCode] = useState<string>("")
 
+  // Popup states
+  const [isStatusPopupOpen, setIsStatusPopupOpen] = useState(false)
+  const [isKilometragePopupOpen, setIsKilometragePopupOpen] = useState(false)
+  const [isAffectationPopupOpen, setIsAffectationPopupOpen] = useState(false)
+  const [selectedVehicleForPopup, setSelectedVehicleForPopup] = useState<string>("")
+
   const handleAjouterDemande = (code_vehicule: string) => {
     setSelectedVehiculeCode(code_vehicule)
     setIsModalOpen(true)
   }
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
+    setIsModalOpen(false)
+  }
+
+  // Popup handlers
+  const openStatusPopup = (code_vehicule: string) => {
+    setSelectedVehicleForPopup(code_vehicule)
+    setIsStatusPopupOpen(true)
+  }
+
+  const openKilometragePopup = (code_vehicule: string) => {
+    setSelectedVehicleForPopup(code_vehicule)
+    setIsKilometragePopupOpen(true)
+  }
+
+  const openAffectationPopup = (code_vehicule: string) => {
+    setSelectedVehicleForPopup(code_vehicule)
+    setIsAffectationPopupOpen(true)
+  }
+
+  // Update handlers
+  const handleStatusUpdate = async ({ code_vehicule, code_status }: { code_vehicule: string; code_status: string }) => {
+    try {
+      // Replace with your actual API endpoint
+      const response = await fetch("/api/vehicule/status/affecterStatus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({code_vehicule, code_status}),
+      })
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la mise à jour du statut")
+      }
+
+      // Refresh the vehicle list after successful update
+      fetchVehicules()
+      return Promise.resolve()
+    } catch (error) {
+      console.error("Error updating status:", error)
+      return Promise.reject(error)
+    }
+  }
+
+  const handleKilometrageUpdate = async ({
+    code_vehicule,
+    kilo_parcouru_heure_fonctionnement
+  }: {
+    code_vehicule: string
+    kilo_parcouru_heure_fonctionnement: number
+  }) => {
+    try {
+      // Replace with your actual API endpoint
+      const response = await fetch("/api/vehicule/kilometrage-heure", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code_vehicule,
+          kilo_parcouru_heure_fonctionnement,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la mise à jour du kilométrage")
+      }
+
+      // Refresh the vehicle list after successful update
+      fetchVehicules()
+      return Promise.resolve()
+    } catch (error) {
+      console.error("Error updating kilometrage:", error)
+      return Promise.reject(error)
+    }
+  }
+
+  const handleAffectationUpdate = async (
+    code_vehicule: string ,
+    code_structure: string
+  ) => {
+
+    try {
+      // Replace with your actual API endpoint
+      const response = await fetch("/api/vehicule/affectation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code_vehicule, code_structure }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la mise à jour de l'affectation")
+      }
+
+      // Refresh the vehicle list after successful update
+      fetchVehicules()
+      return Promise.resolve()
+    } catch (error) {
+      console.error("Error updating affectation:", error)
+      return Promise.reject(error)
+    }
+  }
+
   const itemsPerPage = 10
 
   const fetchVehicules = async () => {
@@ -413,15 +525,56 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                           <span className="sr-only">Options</span>
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[200px]">
-                        <DropdownMenuItem onClick={() => {}}>Détails</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {}}>Modifier</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAjouterDemande(vehicule.code_vehicule)}>
-                          Ajouter Demande
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-[200px] bg-white border border-gray-200 shadow-lg rounded-md py-1"
+                      >
+                        <DropdownMenuItem
+                          onClick={() => {}}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                        >
+                          <span className="mr-2">📋</span> Détails
                         </DropdownMenuItem>
-                        
-                        <DropdownMenuItem onClick={() => navigateToIntervention(vehicule.code_vehicule)}>
-                          Constater Demande
+                        <DropdownMenuItem
+                          onClick={() => {}}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                        >
+                          <span className="mr-2">✏️</span> Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleAjouterDemande(vehicule.code_vehicule)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                        >
+                          <span className="mr-2">➕</span> Ajouter Demande
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => navigateToIntervention(vehicule.code_vehicule)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                        >
+                          <span className="mr-2">🔍</span> Constater Demande
+                        </DropdownMenuItem>
+
+                        {/* Separator */}
+                        <div className="h-px bg-gray-200 my-1"></div>
+
+                        {/* New options for popups */}
+                        <DropdownMenuItem
+                          onClick={() => openStatusPopup(vehicule.code_vehicule)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                        >
+                          <span className="mr-2">🔄</span> Changer le statut
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => openKilometragePopup(vehicule.code_vehicule)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                        >
+                          <span className="mr-2">🚗</span> Mettre à jour kilométrage
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => openAffectationPopup(vehicule.code_vehicule)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                        >
+                          <span className="mr-2">🏢</span> Changer l'affectation
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -506,6 +659,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
           </div>
         </div>
       )}
+
       {/* Modal for Demande */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center">
@@ -514,6 +668,30 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
           </div>
         </div>
       )}
+
+      {/* Popups */}
+      <StatusUpdatePopup
+        isOpen={isStatusPopupOpen}
+        onClose={() => setIsStatusPopupOpen(false)}
+        code_vehicule={selectedVehicleForPopup}
+        onUpdate={handleStatusUpdate}
+      />
+
+      <KilometrageUpdatePopup
+        isOpen={isKilometragePopupOpen}
+        onClose={() => setIsKilometragePopupOpen(false)}
+        code_vehicule={selectedVehicleForPopup}
+        onUpdate={handleKilometrageUpdate}
+      />
+
+      <AffectationUpdatePopup
+        isOpen={isAffectationPopupOpen}
+        onClose={() => setIsAffectationPopupOpen(false)}
+        code_vehicule={selectedVehicleForPopup}
+        onUpdate={({ code_vehicule, code_structure }) =>
+          handleAffectationUpdate(code_vehicule, code_structure)
+        }
+      />
     </div>
   )
 }
