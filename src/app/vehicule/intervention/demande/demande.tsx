@@ -15,10 +15,10 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
   type Vehicule = {
     marque_designation: string
     type_designation: string
-    genre?: string
+    genre_designation: string
     designation_centre: string
     designation_district: string
-    kilometrage?: string
+    totalKilo: string
     id_district?: string
     id_centre?: string
   }
@@ -27,6 +27,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
   const [vehiculeInfo, setVehiculeInfo] = useState<Vehicule>({
     marque_designation: "",
     type_designation: "",
+    genre_designation: "",
+    totalKilo: "",
     designation_centre: "",
     designation_district: "",
   })
@@ -475,7 +477,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-bold">Genre:</div>
-                    <div className="pl-2 mt-1">{vehiculeInfo.genre || "Non spécifié"}</div>
+                    <div className="pl-2 mt-1">{vehiculeInfo.genre_designation || "Non spécifié"}</div>
                   </td>
                 </tr>
                 <tr>
@@ -485,7 +487,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-bold">Km et/ou Heures de fonctionnement:</div>
-                    <div className="pl-2 mt-1">{vehiculeInfo.kilometrage || "Non spécifié"}</div>
+                    <div className="pl-2 mt-1">{vehiculeInfo.totalKilo || "0"}</div>
                   </td>
                 </tr>
                 <tr>

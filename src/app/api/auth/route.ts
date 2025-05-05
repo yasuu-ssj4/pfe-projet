@@ -4,9 +4,12 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { SECRET_KEY } from "../../prisma"; 
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from 'bcrypt';
+
 
 const prisma = new PrismaClient();
-const bcrypt = require('bcrypt');
+
+
 export async function POST(req: NextRequest) {
   try {
     const { username, password } = await req.json();

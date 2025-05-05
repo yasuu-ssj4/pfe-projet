@@ -13,6 +13,7 @@ import {
   RefreshCwIcon,
   SearchIcon,
   XIcon,
+  AlertTriangleIcon,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -23,15 +24,18 @@ import {
 
 import KilometrageUpdatePopup from "./popups/kilometrage-update-popup"
 import AffectationUpdatePopup from "./popups/affectation-update-popup"
-import StatusUpdatePopup from './popups/status-update-popup';
+import StatusUpdatePopup from "./popups/status-update-popup"
 
 type Vehiculetype = {
   code_vehicule: string
+  n_immatriculation: string
   code_structure: string
   type_designation: string
   marque_designation: string
   status_designation: string | null
   total_kilometrage: number
+  derniere_mise_a_jour?: string
+  besoin_mise_a_jour?: boolean
 }
 
 export default function AfficheVehicule({ userId }: { userId: number }) {
@@ -46,6 +50,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
   const [structureFilter, setStructureFilter] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedVehiculeCode, setSelectedVehiculeCode] = useState<string>("")
+  const [vehiculesNeedingUpdate, setVehiculesNeedingUpdate] = useState<string[]>([])
 
   // Popup states
   const [isStatusPopupOpen, setIsStatusPopupOpen] = useState(false)
@@ -78,21 +83,19 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
     setIsAffectationPopupOpen(true)
   }
 
-  // Update handlers
   const handleStatusUpdate = async ({ code_vehicule, code_status }: { code_vehicule: string; code_status: string }) => {
     try {
       // Replace with your actual API endpoint
       const response = await fetch("/api/vehicule/status/affecterStatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({code_vehicule, code_status}),
+        body: JSON.stringify({ code_vehicule, code_status }),
       })
 
       if (!response.ok) {
         throw new Error("Erreur lors de la mise à jour du statut")
       }
 
-      // Refresh the vehicle list after successful update
       fetchVehicules()
       return Promise.resolve()
     } catch (error) {
@@ -103,7 +106,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
 
   const handleKilometrageUpdate = async ({
     code_vehicule,
-    kilo_parcouru_heure_fonctionnement
+    kilo_parcouru_heure_fonctionnement,
   }: {
     code_vehicule: string
     kilo_parcouru_heure_fonctionnement: number
@@ -122,8 +125,6 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
       if (!response.ok) {
         throw new Error("Erreur lors de la mise à jour du kilométrage")
       }
-
-      // Refresh the vehicle list after successful update
       fetchVehicules()
       return Promise.resolve()
     } catch (error) {
@@ -132,11 +133,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
     }
   }
 
-  const handleAffectationUpdate = async (
-    code_vehicule: string ,
-    code_structure: string
-  ) => {
-
+  const handleAffectationUpdate = async (code_vehicule: string, code_structure: string) => {
     try {
       // Replace with your actual API endpoint
       const response = await fetch("/api/vehicule/affectation", {
@@ -155,6 +152,56 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
     } catch (error) {
       console.error("Error updating affectation:", error)
       return Promise.reject(error)
+    }
+  }
+type dateMaj = {
+  code_vehicule : string 
+  date : Date
+}
+  // Check if a vehicle needs a kilometrage update
+  const checkKilometrageUpdateNeeded = async (vehicules: Vehiculetype[]) => {
+    try {
+      const updatedVehicules = [...vehicules]
+      const needsUpdate: string[] = []
+
+      // Process each vehicle
+      for (const vehicule of updatedVehicules) {
+        const response = await fetch("/api/vehicule/kilometrage-heure/GetDerniereDate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code_vehicule: vehicule.code_vehicule }),
+        })
+
+        if (response.ok) {
+          const responseData: dateMaj[] = await response.json()
+          const data = responseData[0]
+          console.log("Response data:", data);
+         
+   
+          if (data && data.date !== null) {
+        
+            vehicule.derniere_mise_a_jour = new Date(data.date).toISOString().split("T")[0]
+            console.log("Dernière mise à jour:", vehicule.derniere_mise_a_jour);
+
+            const lastUpdateDate = new Date(data.date)
+            const currentDate = new Date()
+            const diffTime = Math.abs(currentDate.getTime() - lastUpdateDate.getTime())
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+            if (diffDays > 3) {
+              vehicule.besoin_mise_a_jour = true
+              needsUpdate.push(vehicule.code_vehicule)
+            } else {
+              vehicule.besoin_mise_a_jour = false
+            }
+          }
+        }
+      }
+
+      setVehicules(updatedVehicules)
+      setVehiculesNeedingUpdate(needsUpdate)
+    } catch (error) {
+      console.error("Error checking kilometrage updates:", error)
     }
   }
 
@@ -177,6 +224,9 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
       const data: Vehiculetype[] = await res.json()
       setVehicules(data)
       setFilteredVehicules(data)
+
+      // Check for vehicles needing kilometrage updates
+      checkKilometrageUpdateNeeded(data)
     } catch (err) {
       console.error("Erreur:", err)
       setError(err instanceof Error ? err.message : "Une erreur est survenue")
@@ -187,6 +237,35 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
 
   useEffect(() => {
     fetchVehicules()
+
+    // Set up daily check at midnight
+    const now = new Date()
+    const night = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1, // tomorrow
+      0,
+      0,
+      0, // at 00:00:00
+    )
+    const timeToMidnight = night.getTime() - now.getTime()
+
+    // Set timeout for first check at midnight
+    const midnightTimeout = setTimeout(() => {
+      checkKilometrageUpdateNeeded(vehicules)
+
+      // Then set interval for daily checks
+      const dailyInterval = setInterval(
+        () => {
+          checkKilometrageUpdateNeeded(vehicules)
+        },
+        24 * 60 * 60 * 1000,
+      ) // 24 hours
+
+      return () => clearInterval(dailyInterval)
+    }, timeToMidnight)
+
+    return () => clearTimeout(midnightTimeout)
   }, [userId])
 
   useEffect(() => {
@@ -199,7 +278,8 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
         (vehicule) =>
           vehicule.code_vehicule.toLowerCase().includes(term) ||
           vehicule.marque_designation.toLowerCase().includes(term) ||
-          vehicule.type_designation.toLowerCase().includes(term),
+          vehicule.type_designation.toLowerCase().includes(term) ||
+          (vehicule.n_immatriculation && vehicule.n_immatriculation.toLowerCase().includes(term)),
       )
     }
 
@@ -250,6 +330,11 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
   // Navigate to add demande page with vehicle code
   const navigateToAddDemande = (code_vehicule: string) => {
     router.push(`/vehicule/intervention/demande?code_vehicule=${code_vehicule}`)
+  }
+
+  // Navigate to dashboard
+  const navigateToDashboard = () => {
+    router.push("/dashboard")
   }
 
   // Generate page numbers to display
@@ -306,7 +391,19 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h2 className="text-lg font-semibold text-gray-800">Liste des Véhicules</h2>
+          <div className="flex items-center">
+            <h2 className="text-lg font-semibold text-gray-800">Liste des Véhicules</h2>
+            {vehiculesNeedingUpdate.length > 0 && (
+              <button
+                onClick={navigateToDashboard}
+                className="ml-3 inline-flex items-center px-2 py-1 rounded-full bg-red-100 text-red-800 hover:bg-red-200 transition-colors"
+                title="Cliquez pour voir le tableau de bord des alertes"
+              >
+                <AlertTriangleIcon className="h-4 w-4 mr-1" />
+                <span>{vehiculesNeedingUpdate.length} véhicule(s) à mettre à jour</span>
+              </button>
+            )}
+          </div>
 
           {/* Search and Filter Controls */}
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
@@ -433,6 +530,12 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
+                Matricule
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Marque
               </th>
               <th
@@ -459,12 +562,18 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
               >
                 Km total
               </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Dernière MAJ
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
                     <LoaderIcon className="w-12 h-12 text-indigo-500 mb-4 animate-spin" />
                     <p className="text-lg font-medium">Chargement des véhicules...</p>
@@ -473,7 +582,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
                     <AlertCircleIcon className="w-12 h-12 text-red-500 mb-4" />
                     <p className="text-lg font-medium text-red-500">Erreur lors du chargement des véhicules</p>
@@ -490,7 +599,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
               </tr>
             ) : filteredVehicules.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                       <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -518,69 +627,86 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
               currentItems.map((vehicule) => (
                 <tr key={vehicule.code_vehicule} className={`hover:bg-gray-50 transition-colors`}>
                   <td className="px-6 py-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                          <span className="sr-only">Options</span>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="w-[200px] bg-white border border-gray-200 shadow-lg rounded-md py-1"
-                      >
-                        <DropdownMenuItem
-                          onClick={() => {}}
-                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                    <div className="flex items-center">
+                      {vehicule.besoin_mise_a_jour && (
+                        <div className="mr-2" title="Mise à jour du kilométrage/heures requise">
+                          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                        </div>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4 b" color="black"/>
+                            <span className="sr-only">Options</span>
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-[200px] bg-white border border-gray-200 shadow-lg rounded-md py-1"
                         >
-                          <span className="mr-2">📋</span> Détails
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {}}
-                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                        >
-                          <span className="mr-2">✏️</span> Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleAjouterDemande(vehicule.code_vehicule)}
-                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                        >
-                          <span className="mr-2">➕</span> Ajouter Demande
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => navigateToIntervention(vehicule.code_vehicule)}
-                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                        >
-                          <span className="mr-2">🔍</span> Constater Demande
-                        </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {}}
+                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <span className="mr-2">📋</span> Détails
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {}}
+                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <span className="mr-2">✏️</span> Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleAjouterDemande(vehicule.code_vehicule)}
+                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <span className="mr-2">➕</span> Ajouter Demande
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => navigateToIntervention(vehicule.code_vehicule)}
+                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <span className="mr-2">🔍</span> Constater Demande
+                          </DropdownMenuItem>
 
-                        {/* Separator */}
-                        <div className="h-px bg-gray-200 my-1"></div>
+                          {/* Separator */}
+                          <div className="h-px bg-gray-200 my-1"></div>
 
-                        {/* New options for popups */}
-                        <DropdownMenuItem
-                          onClick={() => openStatusPopup(vehicule.code_vehicule)}
-                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                        >
-                          <span className="mr-2">🔄</span> Changer le statut
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => openKilometragePopup(vehicule.code_vehicule)}
-                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                        >
-                          <span className="mr-2">🚗</span> Mettre à jour kilométrage
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => openAffectationPopup(vehicule.code_vehicule)}
-                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                        >
-                          <span className="mr-2">🏢</span> Changer l'affectation
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          {/* New options for popups */}
+                          <DropdownMenuItem
+                            onClick={() => openStatusPopup(vehicule.code_vehicule)}
+                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <span className="mr-2">🔄</span> Changer le statut
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => openKilometragePopup(vehicule.code_vehicule)}
+                            className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer flex items-center ${
+                              vehicule.besoin_mise_a_jour ? "text-red-600 font-medium" : "text-gray-700"
+                            }`}
+                          >
+                            <span className="mr-2">🚗</span> Mettre à jour kilométrage
+                            {vehicule.besoin_mise_a_jour && (
+                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Urgent
+                              </span>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => openAffectationPopup(vehicule.code_vehicule)}
+                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <span className="mr-2">🏢</span> Changer l'affectation
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {vehicule.code_vehicule}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {vehicule.n_immatriculation || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicule.marque_designation}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicule.type_designation}</td>
@@ -598,6 +724,15 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicule.code_structure}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {vehicule.total_kilometrage.toLocaleString()} km
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {vehicule.derniere_mise_a_jour ? (
+                      <span className={vehicule.besoin_mise_a_jour ? "text-red-600" : ""}>
+                        {new Date(vehicule.derniere_mise_a_jour).toLocaleDateString()}
+                      </span>
+                    ) : (
+                      "-"
+                    )}
                   </td>
                 </tr>
               ))
@@ -688,9 +823,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
         isOpen={isAffectationPopupOpen}
         onClose={() => setIsAffectationPopupOpen(false)}
         code_vehicule={selectedVehicleForPopup}
-        onUpdate={({ code_vehicule, code_structure }) =>
-          handleAffectationUpdate(code_vehicule, code_structure)
-        }
+        onUpdate={({ code_vehicule, code_structure }) => handleAffectationUpdate(code_vehicule, code_structure)}
       />
     </div>
   )

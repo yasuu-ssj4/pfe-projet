@@ -160,7 +160,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
     fetchCentres()
   }, [])
 
-  // Filter centres based on search term
+  
   useEffect(() => {
     const filtered = dataCentre.filter((item) =>
       item.designation.toLowerCase().includes(FormValue.code_structure.toLowerCase()),
@@ -358,7 +358,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
         </button>
         <button
           type="button"
-          onClick={() => SetStep(2)}
+          onClick={() => {SetStep(2), console.log(FormValue.code_type)}}
           disabled={
             !FormValue.code_structure || isLoading.genres || isLoading.marques || isLoading.types || isLoading.centres
           }
