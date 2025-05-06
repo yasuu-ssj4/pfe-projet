@@ -160,7 +160,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
 
     const demandeIntervention: DemandeIntervention = {
       id_demande_intervention: formValues.numero_demande || `DI-${Date.now()}`, // Generate ID if not provided
-      etat_demande: "En cours",
+      etat_demande: "incomplet",
       date_application: new Date(),
       date_heure_panne: formValues.date_heure_panne,
       structure_maintenance: structureMaintenance,

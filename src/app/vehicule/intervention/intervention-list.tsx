@@ -388,13 +388,13 @@ export default function InterventionList({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[200px]">
                         <DropdownMenuItem onClick={() => {}}>Détails</DropdownMenuItem>
-                        {demande.etat_demande === "En cours" && (
+                        {demande.etat_demande === "incomplet" && (
                           <DropdownMenuItem onClick={() => navigateToCompleterForm(demande.id_demande_intervention)}>
                             Compléter Demande
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={() => {}}>Constater Demande</DropdownMenuItem>
-                        {demande.etat_demande.toLowerCase() === "qualification" && (
+                        {demande.etat_demande.toLowerCase() === "En instance" && (
                           <DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
                             Ajouter Rapport
                           </DropdownMenuItem>
@@ -414,7 +414,7 @@ export default function InterventionList({
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                       ${
-                        demande.etat_demande === "qualification"
+                        demande.etat_demande === "En instance"
                           ? "bg-yellow-100 text-yellow-800"
                           : demande.etat_demande === "rapport"
                             ? "bg-blue-100 text-blue-800"

@@ -29,7 +29,7 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
 
   const [formValues, setFormValues] = useState({
     id_demande_intervention: id_demande, // Initialize with the passed ID
-    etat_demande: "qualification",
+    etat_demande: "En instance",
     date_application: new Date(),
     date_heure_panne: "",
     structure_maintenance_type: "",
@@ -121,7 +121,7 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
         setFormValues((prev) => ({
           ...prev,
           id_demande_intervention: data.id_demande_intervention || id_demande,
-          etat_demande: "qualification", // Change status to qualification
+          etat_demande: "En instance", 
           date_application: data.date_application ? new Date(data.date_application) : new Date(),
           date_heure_panne: data.date_heure_panne || "",
           structure_maintenance_type: structure_type,

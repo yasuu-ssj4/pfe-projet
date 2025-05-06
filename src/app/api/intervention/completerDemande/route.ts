@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Demande d'intervention non trouvée" }, { status: 404 })
     }
 
-    if (demande.etat_demande !== "qualification") {
+    if (demande.etat_demande !== "En instance") {
       return NextResponse.json({ error: "La demande n'est pas en état de qualification" }, { status: 400 })
     }
 

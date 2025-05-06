@@ -29,7 +29,7 @@ try{
          const rapport = await ajouterRapportIntervention(RapportBody);
          await prisma.demande_intervention.update({
           where : {id_demande_intervention : RapportBody.id_demande_intervention},
-          data : {etat_demande : "complété"}
+          data : {etat_demande : "complet"}
          })
         return NextResponse.json({ succes: true }, { status: 201 });
 }catch (error) {
