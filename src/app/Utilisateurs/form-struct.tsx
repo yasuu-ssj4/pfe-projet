@@ -157,9 +157,9 @@ export default function FormStruct({ onClose }: { onClose?: () => void }) {
   ]
 
   const structure_parent = [
-    { id: "1", label: "Branche GPL" },
+    { id: "3", label: "Branche GPL" },
     { id: "2", label: "Branche Commercialisation" },
-    { id: "3", label: "Branche Carburant" },
+    { id: "1", label: "Branche Carburant" },
   ]
 
   const showNotification = (message: string, type: "success" | "error") => {

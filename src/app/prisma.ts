@@ -152,4 +152,3 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     await prisma.traveaux_externe.create({ data });
   }
 
-

@@ -136,7 +136,16 @@ export default function InterventionList({
   const navigateToCompleterForm = (id_demande_intervention: string) => {
     router.push(`/vehicule/intervention/completer/${id_demande_intervention}`)
   }
-
+  // Navigate to constater demande page with vehicle code
+  const navigateToConstaterDemande = (id_demande_intervention: string) => {
+    // First we need to get the demande ID for this vehicle
+    // For now, we'll navigate to a placeholder route
+    router.push(`/vehicule/intervention/demande/${id_demande_intervention}`)
+  }
+  //Navigate to constater rapport
+  const navigateToConstaterRapport = (id_demande_intervention: string) => {
+    router.push(`/vehicule/intervention/rapport/${id_demande_intervention}`)
+  }
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pageNumbers = []
@@ -387,16 +396,26 @@ export default function InterventionList({
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[200px]">
-                        <DropdownMenuItem onClick={() => {}}>Détails</DropdownMenuItem>
-                        {demande.etat_demande === "incomplet" && (
+                        {demande.etat_demande === "En cours" && (
                           <DropdownMenuItem onClick={() => navigateToCompleterForm(demande.id_demande_intervention)}>
                             Compléter Demande
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onClick={() => {}}>Constater Demande</DropdownMenuItem>
-                        {demande.etat_demande.toLowerCase() === "En instance" && (
+                        <DropdownMenuItem onClick={() => navigateToConstaterDemande(demande.id_demande_intervention)}>
+                          Constater Demande</DropdownMenuItem>
+                          {demande.etat_demande.toLowerCase() === "qualification" && (
                           <DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
                             Ajouter Rapport
+                          </DropdownMenuItem>
+                        )}
+                        {demande.etat_demande.toLowerCase() === "en instance" && (
+                          <DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
+                            Ajouter Rapport
+                          </DropdownMenuItem>
+                        )}
+                        {demande.etat_demande.toLowerCase() === "complété" && (
+                          <DropdownMenuItem onClick={() => navigateToConstaterRapport(demande.id_demande_intervention)}>
+                            Constater Rapport
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -414,7 +433,7 @@ export default function InterventionList({
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                       ${
-                        demande.etat_demande === "En instance"
+                        demande.etat_demande === "qualification"
                           ? "bg-yellow-100 text-yellow-800"
                           : demande.etat_demande === "rapport"
                             ? "bg-blue-100 text-blue-800"

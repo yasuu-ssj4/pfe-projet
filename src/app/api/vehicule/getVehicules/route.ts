@@ -1,4 +1,4 @@
-// Example for /app/api/getVehicules/route.ts (Next.js 13+)
+
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()

@@ -67,7 +67,7 @@ export interface Vehicule {
     cause_immobilisation: string;
     lieu: string;
     action: string;
-    echeance: Date;
+    echeance?: Date;
   }
   
   export interface Affectation {

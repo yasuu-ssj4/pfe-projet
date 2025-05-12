@@ -99,7 +99,7 @@ model immobilisation {
   cause_immobilisation String
   lieu                 String
   action               String
-  echeance             DateTime
+  echeance             DateTime?
   vehicule             vehicule @relation(fields: [code_vehicule], references: [code_vehicule])
 
   @@id([code_vehicule, date_immobilisation])
