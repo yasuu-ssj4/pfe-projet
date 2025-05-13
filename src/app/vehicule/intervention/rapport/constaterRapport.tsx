@@ -3,52 +3,142 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AlertCircle, Loader2 } from "lucide-react"
-import { TraveauxExterne, TraveauxInterne, RapportIntervention } from "@/app/interfaces"
+import type { TraveauxExterne } from "@/app/interfaces"
+
+// Add print-specific styles
+const printStyles = `
+  @media print {
+    /* Scale content to fit on one page with better margins */
+    html, body {
+      height: 100%;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden;
+    }
+    
+    /* Hide URL and timestamp in print footer */
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    
+    .print-container {
+      font-size: 8.5pt !important;
+      width: 95%;
+      max-width: 95%;
+      margin: 0 auto;
+      transform: scale(0.92);
+      transform-origin: top center;
+      height: 100%;
+      page-break-inside: avoid;
+      page-break-after: avoid;
+    }
+    
+    table {
+      page-break-inside: avoid;
+      font-size: 8.5pt !important;
+      margin-bottom: 0.2rem !important;
+    }
+    
+    td, th {
+      padding: 1px !important;
+    }
+    
+    .mb-6 {
+      margin-bottom: 0.3rem !important;
+    }
+    
+    .mb-3 {
+      margin-bottom: 0.15rem !important;
+    }
+    
+    .p-3 {
+      padding: 0.3rem !important;
+    }
+    
+    .p-2 {
+      padding: 0.2rem !important;
+    }
+    
+    .p-1 {
+      padding: 0.1rem !important;
+    }
+    
+    .space-y-3 > * + * {
+      margin-top: 0.15rem !important;
+    }
+    
+    /* Reduce border widths */
+    .border-2 {
+      border-width: 1px !important;
+    }
+    
+    /* Reduce heights of some elements */
+    .h-24 {
+      height: 4.5rem !important;
+    }
+    
+    /* Adjust font sizes for headers */
+    h2 {
+      font-size: 16pt !important;
+    }
+    
+    h4, h5 {
+      font-size: 10pt !important;
+      margin: 0 !important;
+    }
+    
+    /* Hide any unnecessary elements when printing */
+    .print:hidden {
+      display: none !important;
+    }
+  }
+`
+
 type ConstaterRapportProps = {
-    id_demande_intervention: string;
+  id_demande_intervention: string
 }
 
 type Rapport = {
-    rapport: Rapport_Intervention;
-    TravauxInterne: {
-        id_rapport: string;
-        id_travaille: number;
-        atelier_desc: string;
-        temps_alloue: number;
-        PDR_consommee: string;
-        cout_pdr: number;
-        reference_bc_bm_btm: string;
-      }[];
-    TravauxExterne: TraveauxExterne[];
+  rapport: Rapport_Intervention
+  TravauxInterne: {
+    id_rapport: string
+    id_travaille: number
+    atelier_desc: string
+    temps_alloue: number
+    PDR_consommee: string
+    cout_pdr: number
+    reference_bc_bm_btm: string
+  }[]
+  TravauxExterne: TraveauxExterne[]
 }
 
-
 type Rapport_Intervention = {
-    id_demande_intervention: string;
-    id_rapport_intervention: string;
-    structure_maintenance_en_charge_des_travaux: string;
-    date_application: Date;
-    date_debut_travaux: string ;
-    date_fin_travaux: string ;
-    date_panne: string | Date;
-    date_prise_charge: string ;
-    duree_travaux: string;
-    district_id: string;
-    centre_id: string;
-    numero_OR: string;
-    description_essais: string;
-    essais: string;
-    reservation: string | null;
-    cout_total_traveaux_interne: number;
-    cout_total_traveaux_externe: number;
-    reference_documentée: string;
-    date_fin_permis: string ;
-    nom_utilisateur: string;
-    date_utilisateur: Date;
-    nom_prenom_demandeur: string;
-    date_demandeur: string ;
-    nom_prenom_responsable: string;
-    date_responsable: string ;
+  id_demande_intervention: string
+  id_rapport_intervention: string
+  structure_maintenance_en_charge_des_travaux: string
+  date_application: Date
+  date_debut_travaux: string
+  date_fin_travaux: string
+  date_panne: string | Date
+  date_prise_charge: string
+  duree_travaux: string
+  district_id: string
+  centre_id: string
+  numero_OR: string
+  description_essais: string
+  essais: string
+  reservation: string | null
+  cout_total_traveaux_interne: number
+  cout_total_traveaux_externe: number
+  reference_documentée: string
+  date_fin_permis: string
+  nom_utilisateur: string
+  date_utilisateur: Date
+  nom_prenom_demandeur: string
+  date_demandeur: string
+  nom_prenom_responsable: string
+  date_responsable: string
 }
 export default function ConstaterRapport({ id_demande_intervention }: ConstaterRapportProps){
     const router = useRouter()
@@ -286,7 +376,12 @@ export default function ConstaterRapport({ id_demande_intervention }: ConstaterR
       };
     
       return(
-        <div className="bg-white p-6 max-w-5xl mx-auto my-8 shadow-lg rounded-lg print:shadow-none print:p-0">
+  <>
+    <style jsx global>{printStyles}</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="date" content="no" />
+    <div className="bg-white p-6 max-w-5xl mx-auto my-8 shadow-lg rounded-lg print:shadow-none print:p-0 print:m-0 print:max-w-none">
             <div className="print:hidden flex justify-between mb-6">
               <button
                 onClick={handleBack}
@@ -364,7 +459,7 @@ export default function ConstaterRapport({ id_demande_intervention }: ConstaterR
                   </div>
                   </td>
                   <td className="border-2 border-gray-800 px-1">
-                    <span className="font-bold">Date et Heure de la panne </span>
+                    <span className="font-bold">Date et Heure de la panne </span> 
                     <div className="font-bold">ou de l'avarie :</div>
                     <div className="flex items-center">
                     <span className="font-bold">Le</span>
@@ -595,6 +690,7 @@ export default function ConstaterRapport({ id_demande_intervention }: ConstaterR
           </div>          
           </div>
             </div>
-        </div>
+            </div>
+        </>
       )
 }

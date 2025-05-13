@@ -75,3 +75,24 @@ body {
   width: 100%; /* Adjust as needed */
   height: 100%; /* Adjust as needed */
 }
+@media print {
+  .sidebar {
+    display: none !important;
+  }
+
+  .layout {
+    display: block !important;
+  }
+
+  .main-content {
+    width: 100% !important;
+    flex: none !important;
+  }
+    body, html {
+    color: black !important;
+  }
+
+  * {
+    color: black !important;
+  }
+}

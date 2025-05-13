@@ -63,7 +63,7 @@ export default function Sidebar() {
   ]
 
   return (
-    <div className="fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-10">
+<div className="fixed print:static top-0 left-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-10 print:hidden">
       {/*logo*/}
       <div className="flex items-center justify-center h-[12vh] border-b border-gray-200 text-white">
         <img src={naftal_logo.src || "/placeholder.svg"} alt="Naftal Logo" className="h-16 w-auto" />

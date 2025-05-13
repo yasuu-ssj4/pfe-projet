@@ -1,0 +1,102 @@
+/* Print styles */
+@media print {
+  /* Set landscape orientation and hide sidebar */
+  @page {
+    size: landscape;
+    margin: 0.5cm;
+  }
+
+  /* Hide sidebar and navigation */
+  body > div > div:first-child,
+  nav,
+  aside,
+  header,
+  footer,
+  .print-hide {
+    display: none !important;
+  }
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Force each district to start on a new page */
+  .district-container {
+    page-break-before: always;
+    page-break-after: always;
+    page-break-inside: avoid;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Ensure tables don't break across pages */
+  table {
+    page-break-inside: avoid;
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  /* Hide pagination controls */
+  .pagination-controls {
+    display: none !important;
+  }
+
+  /* Make sure the content is visible */
+  .print-show {
+    display: block !important;
+  }
+
+  /* Ensure the container takes full width */
+  .container {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Remove any left margin or padding */
+  .ml-4,
+  .ml-0,
+  .mx-auto {
+    margin-left: 0 !important;
+  }
+
+  /* Ensure proper table column widths */
+  th,
+  td {
+    padding: 4px 8px !important;
+  }
+
+  th:nth-child(1),
+  td:nth-child(1) {
+    width: 8% !important;
+  } /* SCD */
+  th:nth-child(2),
+  td:nth-child(2) {
+    width: 10% !important;
+  } /* VEHICULE */
+  th:nth-child(3),
+  td:nth-child(3) {
+    width: 10% !important;
+  } /* DATE */
+  th:nth-child(4),
+  td:nth-child(4) {
+    width: 15% !important;
+  } /* LIEU */
+  th:nth-child(5),
+  td:nth-child(5) {
+    width: 25% !important;
+  } /* CAUSES */
+  th:nth-child(6),
+  td:nth-child(6) {
+    width: 22% !important;
+  } /* ACTIONS */
+  th:nth-child(7),
+  td:nth-child(7) {
+    width: 10% !important;
+  } /* ECHEANCE */
+}
