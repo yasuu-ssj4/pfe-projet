@@ -152,3 +152,24 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     await prisma.traveaux_externe.create({ data });
   }
 
+ const supprimerRapport = async (id_demande_intervention: string) => {
+    try {
+
+    const res = await fetch("http://localhost:3000/api/rapport/ajouterRapport", {
+  method: "DELETE",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ id_demande_intervention }),
+});
+
+      if (!res.ok) {
+        throw new Error("Erreur lors de la suppression du rapport")
+      }
+
+      // Refresh the demandes after deletion
+     
+    } catch (error) {
+      console.error("Error in supprimerRapport:", error)
+     
+    }
+  }
+supprimerRapport("11");

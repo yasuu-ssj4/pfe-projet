@@ -52,3 +52,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
   }
 }
+export async function DELETE(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { id_demande_intervention } = body;
+
+
+    if (!id_demande_intervention) {
+      return NextResponse.json(
+        { message: "ID de demande d'intervention manquant" },
+        { status: 400 }
+      );
+    }
+   await prisma.demande_intervention.delete({
+      where: { id_demande_intervention },
+
+   });
+
+    return NextResponse.json({ message: "Demande supprimé avec succès" }, { status: 200 });
+  } catch (error) {
+    console.error("Error in DELETE /api/...", error);
+    return NextResponse.json(
+      { error: "Erreur interne de serveur" },
+      { status: 500 }
+    );
+  }
+}

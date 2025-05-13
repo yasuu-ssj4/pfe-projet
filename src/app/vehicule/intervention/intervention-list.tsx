@@ -126,6 +126,46 @@ export default function InterventionList({
     setSearchTerm("")
     setStatusFilter("")
   }
+ const supprimerRapport = async (id_demande_intervention: string) => {
+    try {
+
+    const res = await fetch("/api/rapport/ajouterRapport", {
+  method: "DELETE",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ id_demande_intervention }),
+});
+
+      if (!res.ok) {
+        throw new Error("Erreur lors de la suppression du rapport")
+      }
+
+      // Refresh the demandes after deletion
+     fetchDemandes()
+    } catch (error) {
+      console.error("Error in supprimerRapport:", error)
+     
+    }
+  }
+const supprimerDemande = async (id_demande_intervention: string) => {
+    try {
+
+    const res = await fetch("/api/intervention/ajouterDemande", {
+  method: "DELETE",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ id_demande_intervention }),
+});
+
+      if (!res.ok) {
+        throw new Error("Erreur lors de la suppression du demande")
+      }
+
+      // Refresh 
+     fetchDemandes()
+    } catch (error) {
+      console.error("Error in supprimer demande:", error)
+     
+    }
+  }
 
   // Navigate to rapport page with demande id
   const navigateToRapport = (id_demande_intervention: string) => {
@@ -396,21 +436,29 @@ export default function InterventionList({
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[200px]">
-                        {demande.etat_demande === "En cours" && (
+                        {demande.etat_demande === "incomplet" && (
                           <DropdownMenuItem onClick={() => navigateToCompleterForm(demande.id_demande_intervention)}>
                             Compléter Demande
                           </DropdownMenuItem>
+                          
+                        )}
+                         {demande.etat_demande === "incomplet" && (
+                          <DropdownMenuItem onClick={() => supprimerDemande(demande.id_demande_intervention)}>
+                            Supprimer Demande
+                          </DropdownMenuItem>
+                          
                         )}
                         <DropdownMenuItem onClick={() => navigateToConstaterDemande(demande.id_demande_intervention)}>
                           Constater Demande</DropdownMenuItem>
-                          {demande.etat_demande.toLowerCase() === "qualification" && (
+                         
+                        {demande.etat_demande.toLowerCase() === "en instance" && (
                           <DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
                             Ajouter Rapport
                           </DropdownMenuItem>
                         )}
                         {demande.etat_demande.toLowerCase() === "en instance" && (
-                          <DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
-                            Ajouter Rapport
+                         <DropdownMenuItem onClick={() => supprimerDemande(demande.id_demande_intervention)}>
+                            Supprimer Demande
                           </DropdownMenuItem>
                         )}
                         {demande.etat_demande.toLowerCase() === "complété" && (
@@ -418,6 +466,7 @@ export default function InterventionList({
                             Constater Rapport
                           </DropdownMenuItem>
                         )}
+                      
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
@@ -433,7 +482,7 @@ export default function InterventionList({
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                       ${
-                        demande.etat_demande === "qualification"
+                        demande.etat_demande === "En instance"
                           ? "bg-yellow-100 text-yellow-800"
                           : demande.etat_demande === "rapport"
                             ? "bg-blue-100 text-blue-800"
