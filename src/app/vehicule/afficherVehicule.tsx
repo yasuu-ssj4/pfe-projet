@@ -25,6 +25,7 @@ import {
 import KilometrageUpdatePopup from "./popups/kilometrage-update-popup"
 import AffectationUpdatePopup from "./popups/affectation-update-popup"
 import StatusUpdatePopup from "./popups/status-update-popup"
+import VehiculeDetailsPopup from "./popups/vehicule-details-popup"
 
 type Vehiculetype = {
   code_vehicule: string
@@ -57,6 +58,11 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
   const [isKilometragePopupOpen, setIsKilometragePopupOpen] = useState(false)
   const [isAffectationPopupOpen, setIsAffectationPopupOpen] = useState(false)
   const [selectedVehicleForPopup, setSelectedVehicleForPopup] = useState<string>("")
+  const [isDetailsPopupOpen, setIsDetailsPopupOpen] = useState(false)
+  const [selectedVehicleForDetails, setSelectedVehicleForDetails] = useState<string>("")
+
+  const [isDeletingVehicle, setIsDeletingVehicle] = useState<string | null>(null)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<string | null>(null)
 
   const handleAjouterDemande = (code_vehicule: string) => {
     setSelectedVehiculeCode(code_vehicule)
@@ -83,6 +89,44 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
     setIsAffectationPopupOpen(true)
   }
 
+  const openDetailsPopup = (code_vehicule: string) => {
+    setSelectedVehicleForDetails(code_vehicule)
+    setIsDetailsPopupOpen(true)
+  }
+
+  const supprimerVehicule = async (code_vehicule: string) => {
+    try {
+      setIsDeletingVehicle(code_vehicule)
+      const response = await fetch("/api/vehicule", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code_vehicule }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la suppression du véhicule")
+      }
+
+      // Show success message
+      alert("Véhicule supprimé avec succès")
+
+      // Refresh the vehicle list
+      fetchVehicules()
+      return Promise.resolve()
+    } catch (error) {
+      console.error("Erreur de suppression:", error)
+      alert("Erreur lors de la suppression du véhicule")
+      return Promise.reject(error)
+    } finally {
+      setIsDeletingVehicle(null)
+      setShowDeleteConfirmation(null)
+    }
+  }
+
+  const confirmDelete = (code_vehicule: string) => {
+    setShowDeleteConfirmation(code_vehicule)
+  }
+
   const handleStatusUpdate = async ({ code_vehicule, code_status }: { code_vehicule: string; code_status: string }) => {
     try {
       // Replace with your actual API endpoint
@@ -96,10 +140,12 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
         throw new Error("Erreur lors de la mise à jour du statut")
       }
 
+      alert("Statut mis à jour avec succès")
       fetchVehicules()
       return Promise.resolve()
     } catch (error) {
       console.error("Error updating status:", error)
+      alert("Erreur lors de la mise à jour du statut")
       return Promise.reject(error)
     }
   }
@@ -125,10 +171,13 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
       if (!response.ok) {
         throw new Error("Erreur lors de la mise à jour du kilométrage")
       }
+
+      alert("Kilométrage mis à jour avec succès")
       fetchVehicules()
       return Promise.resolve()
     } catch (error) {
       console.error("Error updating kilometrage:", error)
+      alert("Erreur lors de la mise à jour du kilométrage")
       return Promise.reject(error)
     }
   }
@@ -146,18 +195,20 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
         throw new Error("Erreur lors de la mise à jour de l'affectation")
       }
 
+      alert("Affectation mise à jour avec succès")
       // Refresh the vehicle list after successful update
       fetchVehicules()
       return Promise.resolve()
     } catch (error) {
       console.error("Error updating affectation:", error)
+      alert("Erreur lors de la mise à jour de l'affectation")
       return Promise.reject(error)
     }
   }
-type dateMaj = {
-  code_vehicule : string 
-  date : Date
-}
+  type dateMaj = {
+    code_vehicule: string
+    date: Date
+  }
   // Check if a vehicle needs a kilometrage update
   const checkKilometrageUpdateNeeded = async (vehicules: Vehiculetype[]) => {
     try {
@@ -175,13 +226,11 @@ type dateMaj = {
         if (response.ok) {
           const responseData: dateMaj[] = await response.json()
           const data = responseData[0]
-          console.log("Response data:", data);
-         
-   
+          console.log("Response data:", data)
+
           if (data && data.date !== null) {
-        
             vehicule.derniere_mise_a_jour = new Date(data.date).toISOString().split("T")[0]
-            console.log("Dernière mise à jour:", vehicule.derniere_mise_a_jour);
+            console.log("Dernière mise à jour:", vehicule.derniere_mise_a_jour)
 
             const lastUpdateDate = new Date(data.date)
             const currentDate = new Date()
@@ -636,7 +685,7 @@ type dateMaj = {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4 b" color="black"/>
+                            <MoreVertical className="h-4 w-4 b" color="black" />
                             <span className="sr-only">Options</span>
                           </button>
                         </DropdownMenuTrigger>
@@ -645,28 +694,34 @@ type dateMaj = {
                           className="w-[200px] bg-white border border-gray-200 shadow-lg rounded-md py-1"
                         >
                           <DropdownMenuItem
-                            onClick={() => {}}
+                            onClick={() => openDetailsPopup(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
-                            <span className="mr-2">📋</span> Détails
+                            <span className="mr-2"></span> Détails
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {}}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
-                            <span className="mr-2">✏️</span> Modifier
+                            <span className="mr-2"></span> Modifier
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleAjouterDemande(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
-                            <span className="mr-2">➕</span> Ajouter Demande
+                            <span className="mr-2"></span> Ajouter Demande
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => navigateToIntervention(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
-                            <span className="mr-2">🔍</span> Constater Demande
+                            <span className="mr-2"></span> Constater Demande
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => confirmDelete(vehicule.code_vehicule)}
+                            className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer flex items-center"
+                          >
+                            <span className="mr-2"></span> Supprimer véhicule
                           </DropdownMenuItem>
 
                           {/* Separator */}
@@ -677,7 +732,7 @@ type dateMaj = {
                             onClick={() => openStatusPopup(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
-                            <span className="mr-2">🔄</span> Changer le statut
+                            <span className="mr-2"></span> Changer le statut
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => openKilometragePopup(vehicule.code_vehicule)}
@@ -685,7 +740,7 @@ type dateMaj = {
                               vehicule.besoin_mise_a_jour ? "text-red-600 font-medium" : "text-gray-700"
                             }`}
                           >
-                            <span className="mr-2">🚗</span> Mettre à jour kilométrage
+                            <span className="mr-2"></span> Mettre à jour kilométrage
                             {vehicule.besoin_mise_a_jour && (
                               <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                 Urgent
@@ -696,7 +751,7 @@ type dateMaj = {
                             onClick={() => openAffectationPopup(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
-                            <span className="mr-2">🏢</span> Changer l'affectation
+                            <span className="mr-2"></span> Changer l'affectation
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -825,6 +880,45 @@ type dateMaj = {
         code_vehicule={selectedVehicleForPopup}
         onUpdate={({ code_vehicule, code_structure }) => handleAffectationUpdate(code_vehicule, code_structure)}
       />
+      <VehiculeDetailsPopup
+        isOpen={isDetailsPopupOpen}
+        onClose={() => setIsDetailsPopupOpen(false)}
+        code_vehicule={selectedVehicleForDetails}
+      />
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirmer la suppression</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Êtes-vous sûr de vouloir supprimer ce véhicule ? Cette action est irréversible.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirmation(null)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition duration-300"
+                disabled={isDeletingVehicle === showDeleteConfirmation}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => supprimerVehicule(showDeleteConfirmation)}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300 flex items-center"
+                disabled={isDeletingVehicle === showDeleteConfirmation}
+              >
+                {isDeletingVehicle === showDeleteConfirmation ? (
+                  <>
+                    <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                    Suppression...
+                  </>
+                ) : (
+                  "Supprimer"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

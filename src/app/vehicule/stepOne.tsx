@@ -121,6 +121,21 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
 
         const data = await response.json()
         setType(data)
+           if (data.length > 0) {
+          // If we're in edit mode, keep the existing type if it's in the list
+         
+            const existingType = data.find((t: any) => t.id_type === FormValue.code_type)
+            if (!existingType && data.length > 0) {
+              // If the current type isn't in the list, set to the first one
+              FormValue.code_type = data[0].id_type
+            
+          } else {
+            // In create mode, always set to the first type
+            FormValue.code_type = data[0].id_type
+            console.log(FormValue.code_type);
+            
+          }
+        }
       } catch (err) {
         console.error("Erreur dans fetchTypes ⚠️:", err)
         setError(err instanceof Error ? err.message : "Une erreur est survenue")

@@ -39,15 +39,15 @@ export async function DELETE(req: NextRequest) {
         return NextResponse.json({ error: "Le code du véhicule est requis" }, { status: 400 })
       }
 
-      const existingVehicule = await prisma.vehicule.findUnique({
+      await prisma.affectation.deleteMany({
         where: { code_vehicule },
       })
-  
-      if (!existingVehicule) {
-        return NextResponse.json({ error: "Véhicule non trouvé" }, { status: 404 })
-      }
-  
-      // Delete vehicle
+      await prisma.historique_kilometrage_heure.deleteMany({
+        where: { code_vehicule },
+      })
+      await prisma.historique_status.deleteMany({
+        where: { code_vehicule },
+      })
       await prisma.vehicule.delete({
         where: { code_vehicule },
       })
