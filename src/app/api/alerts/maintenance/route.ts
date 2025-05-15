@@ -55,13 +55,24 @@ type VehicleKilometrageTracker = {
 // Helper function to generate a unique key for a maintenance program
 function generateProgramKey(code_type: number, code_gamme: string, code_operation: string): string {
   // Make sure we have valid values before creating a key
-  if (code_type === null || code_type === undefined || 
-      code_gamme === null || code_gamme === undefined || 
-      code_operation === null || code_operation === undefined) {
-    console.error("Invalid program key components:", { code_type, code_gamme, code_operation });
-    return "invalid-key"; // Return a placeholder to avoid crashes
+  if (
+    code_type === null ||
+    code_type === undefined ||
+    code_gamme === null ||
+    code_gamme === undefined ||
+    code_operation === null ||
+    code_operation === undefined
+  ) {
+    console.error("Invalid program key components:", { code_type, code_gamme, code_operation })
+    return "invalid-key" // Return a placeholder to avoid crashes
   }
-  return `${code_type}-${code_gamme}-${code_operation}`;
+  return `${code_type}-${code_gamme}-${code_operation}`
+}
+
+// Helper function to determine if we need to multiply the periode by 1000
+function shouldMultiplyPeriode(uniteMesure: string): boolean {
+  const uniteLower = uniteMesure.toLowerCase()
+  return uniteLower === "km" || uniteLower === "kilometrage"
 }
 
 export async function POST(request: NextRequest) {
@@ -127,17 +138,13 @@ export async function POST(request: NextRequest) {
       for (const program of programs) {
         // Skip invalid programs
         if (!program.code_gamme || !program.code_operation) {
-          console.warn("Skipping invalid program:", program);
-          continue;
+          console.warn("Skipping invalid program:", program)
+          continue
         }
 
-        const programKey = generateProgramKey(
-          program.code_type,
-          program.code_gamme,
-          program.code_operation
-        )
+        const programKey = generateProgramKey(program.code_type, program.code_gamme, program.code_operation)
 
-        if (programKey === "invalid-key") continue;
+        if (programKey === "invalid-key") continue
 
         if (!kilometrageTracker[vehicle.code_vehicule][programKey]) {
           kilometrageTracker[vehicle.code_vehicule][programKey] = {
@@ -161,31 +168,34 @@ export async function POST(request: NextRequest) {
       const vehicleTracker = kilometrageTracker[vehicle.code_vehicule]
       if (!vehicleTracker) continue
 
-      let avgKilometrage = avgKilometrageMap.get(vehicle.code_vehicule) as number;
+      let avgKilometrage = avgKilometrageMap.get(vehicle.code_vehicule) as number
       if (typeof avgKilometrage !== "number" || isNaN(avgKilometrage)) {
-        avgKilometrage = 300; // Default to 300 if not found or invalid
+        avgKilometrage = 300 // Default to 300 if not found or invalid
       }
 
       for (const [programKey, programTracker] of Object.entries(vehicleTracker)) {
         // Skip invalid keys
-        if (programKey === "invalid-key") continue;
-        
+        if (programKey === "invalid-key") continue
+
         // Skip entries with invalid data
         if (!programTracker.code_gamme || !programTracker.code_operation) {
-          console.warn("Skipping invalid tracker entry:", programTracker);
-          continue;
+          console.warn("Skipping invalid tracker entry:", programTracker)
+          continue
         }
 
         const program = maintenancePrograms.find(
           (p) =>
             p.code_type === programTracker.code_type &&
             p.code_gamme === programTracker.code_gamme &&
-            p.code_operation === programTracker.code_operation
+            p.code_operation === programTracker.code_operation,
         )
 
         if (!program) continue
 
-        const valeurRestante = program.periode - programTracker.valeur_accumulee
+        const uniteMesure = program.gamme.unite_mesure || "kilometrage"
+        const multiplyFactor = shouldMultiplyPeriode(uniteMesure) ? 1000 : 1
+        const periodeAdjusted = program.periode * multiplyFactor
+        const valeurRestante = periodeAdjusted - programTracker.valeur_accumulee
 
         // Alert if remaining value is less than average kilometrage
         if (valeurRestante <= avgKilometrage) {
@@ -196,10 +206,10 @@ export async function POST(request: NextRequest) {
             code_operation: program.code_operation,
             gamme_designation: program.gamme.designation,
             operation_designation: program.operation.designation,
-            periode: program.periode,
+            periode: periodeAdjusted,
             valeur_accumulee: programTracker.valeur_accumulee,
             valeur_restante: valeurRestante,
-            unite_mesure: program.gamme.unite_mesure || "km",
+            unite_mesure: uniteMesure,
           })
         }
       }
@@ -261,7 +271,6 @@ function loadKilometrageTracker(): VehicleKilometrageTracker {
   return {}
 }
 
-// Save the kilometrage tracker to JSON file
 function saveKilometrageTracker(tracker: VehicleKilometrageTracker): void {
   try {
     const alertsDir = path.join(process.cwd(), "alerts")

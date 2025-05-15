@@ -6,8 +6,8 @@ import { X, AlertTriangle, RefreshCw, Loader2 } from "lucide-react"
 type MaintenanceAlert = {
   code_vehicule: string
   code_type: number
-  code_gamme: number
-  code_operation: number
+  code_gamme: string
+  code_operation: string
   gamme_designation: string
   operation_designation: string
   periode: number
@@ -89,6 +89,7 @@ export default function MaintenanceAlertsTable({ userId }: { userId: number }) {
       )
     } catch (error) {
       console.error("Error resetting maintenance counter:", error)
+  
     } finally {
       const key = `${alert.code_vehicule}-${alert.code_type}-${alert.code_gamme}-${alert.code_operation}`
       setResetting({ ...resetting, [key]: false })
