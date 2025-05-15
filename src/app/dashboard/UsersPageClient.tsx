@@ -11,8 +11,11 @@ import {
   FileTextIcon,
   AlertCircleIcon,
   PauseCircleIcon,
+  WrenchIcon,
 } from "lucide-react"
 import KilometrageUpdatePopup from "../vehicule/popups/kilometrage-update-popup"
+import NotificationCenter from "@/app/components/notification-center"
+import MaintenanceAlertsTable from "@/app/components/maintenance-alerts-table"
 
 type VehiculeAlerte = {
   code_vehicule: string
@@ -33,6 +36,19 @@ type DocumentAlerte = {
   jours_restants: number
 }
 
+type MaintenanceAlerte = {
+  code_vehicule: string
+  code_type: number
+  code_gamme: number
+  code_operation: number
+  gamme_designation: string
+  operation_designation: string
+  periode: number
+  valeur_accumulee: number
+  valeur_restante: number
+  unite_mesure: string
+}
+
 type Props = {
   userId: number
 }
@@ -42,6 +58,7 @@ export default function DashboardPage({ userId }: Props) {
   const documentLoadingStarted = useRef(false)
   const demandesEnInstanceLoadingStarted = useRef(false)
   const vehiculesImmobilisesLoadingStarted = useRef(false)
+  const maintenanceAlertsLoadingStarted = useRef(false)
 
   // Active tab state
   const [activeTab, setActiveTab] = useState("kilometrage")
@@ -65,6 +82,11 @@ export default function DashboardPage({ userId }: Props) {
   const [vehiculesImmobilisesCount, setVehiculesImmobilisesCount] = useState<number>(0)
   const [isLoadingVehiculesImmobilises, setIsLoadingVehiculesImmobilises] = useState(false)
   const [vehiculesImmobilisesError, setVehiculesImmobilisesError] = useState<string | null>(null)
+
+  // State for maintenance alerts
+  const [maintenanceAlertes, setMaintenanceAlertes] = useState<MaintenanceAlerte[]>([])
+  const [isLoadingMaintenance, setIsLoadingMaintenance] = useState(false)
+  const [maintenanceError, setMaintenanceError] = useState<string | null>(null)
 
   // Popup state
   const [isKilometragePopupOpen, setIsKilometragePopupOpen] = useState(false)
@@ -96,22 +118,25 @@ export default function DashboardPage({ userId }: Props) {
     } finally {
       setIsLoadingKilometrage(false)
 
-      // Start loading document alerts in the background if not already started
+      // Start loading other data in the background
       if (!documentLoadingStarted.current) {
         documentLoadingStarted.current = true
         fetchDocumentAlertes()
       }
 
-      // Start loading demandes en instance count in the background
       if (!demandesEnInstanceLoadingStarted.current) {
         demandesEnInstanceLoadingStarted.current = true
         fetchDemandesEnInstanceCount()
       }
 
-      // Start loading vehicules immobilisés count in the background
       if (!vehiculesImmobilisesLoadingStarted.current) {
         vehiculesImmobilisesLoadingStarted.current = true
         fetchVehiculesImmobilisesCount()
+      }
+
+      if (!maintenanceAlertsLoadingStarted.current) {
+        maintenanceAlertsLoadingStarted.current = true
+        fetchMaintenanceAlertes()
       }
     }
   }
@@ -152,6 +177,7 @@ export default function DashboardPage({ userId }: Props) {
 
   // Function to fetch count of vehicles with demandes in "En instance" state
   const fetchDemandesEnInstanceCount = async () => {
+    setIsLoadingDemandesEnInstance(true)
     setDemandesEnInstanceError(null)
 
     try {
@@ -178,6 +204,7 @@ export default function DashboardPage({ userId }: Props) {
 
   // Function to fetch count of vehicles with status "IMB"
   const fetchVehiculesImmobilisesCount = async () => {
+    setIsLoadingVehiculesImmobilises(true)
     setVehiculesImmobilisesError(null)
 
     try {
@@ -199,6 +226,39 @@ export default function DashboardPage({ userId }: Props) {
       setVehiculesImmobilisesError("Erreur lors du chargement des véhicules immobilisés")
     } finally {
       setIsLoadingVehiculesImmobilises(false)
+    }
+  }
+
+  // Function to fetch maintenance alerts
+  const fetchMaintenanceAlertes = async () => {
+    // No loading indicator for background loading unless the maintenance tab is active
+    if (activeTab === "maintenance") {
+      setIsLoadingMaintenance(true)
+    }
+
+    setMaintenanceError(null)
+
+    try {
+      const res = await fetch("/api/alerts/maintenance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      })
+
+      if (!res.ok) {
+        throw new Error("Erreur lors de la récupération des alertes de maintenance")
+      }
+
+      const alertes = await res.json()
+      console.log("Fetched maintenance alerts:", alertes.length)
+      setMaintenanceAlertes(alertes)
+    } catch (error) {
+      console.error("Error fetching maintenance alerts:", error)
+      setMaintenanceError("Erreur lors du chargement des alertes de maintenance")
+    } finally {
+      if (activeTab === "maintenance") {
+        setIsLoadingMaintenance(false)
+      }
     }
   }
 
@@ -228,6 +288,17 @@ export default function DashboardPage({ userId }: Props) {
       if (!documentLoadingStarted.current) {
         documentLoadingStarted.current = true
         fetchDocumentAlertes()
+      }
+    }
+
+    // If switching to maintenance tab and we haven't loaded the data yet, show loading indicator
+    if (tab === "maintenance" && maintenanceAlertes.length === 0 && !maintenanceError) {
+      setIsLoadingMaintenance(true)
+
+      // If maintenance loading hasn't started yet, start it
+      if (!maintenanceAlertsLoadingStarted.current) {
+        maintenanceAlertsLoadingStarted.current = true
+        fetchMaintenanceAlertes()
       }
     }
   }
@@ -283,11 +354,26 @@ export default function DashboardPage({ userId }: Props) {
     router.push("/vehicule/immobilisation")
   }
 
+  // Navigate to create maintenance demande
+  const navigateToCreateMaintenanceDemande = (vehicleCode: string) => {
+    router.push(`/vehicule/intervention/demande?code_vehicule=${vehicleCode}&type=maintenance`)
+  }
+
   // Get color class based on days remaining
   const getColorClass = (days: number) => {
     if (days <= 3) return "bg-red-100 text-red-800"
     if (days <= 5) return "bg-orange-100 text-orange-800"
     if (days <= 10) return "bg-yellow-100 text-yellow-800"
+    return "bg-green-100 text-green-800"
+  }
+
+  // Get color class based on distance remaining
+  const getDistanceColorClass = (distance: number, periode: number) => {
+    const percentRemaining = (distance / periode) * 100
+
+    if (percentRemaining <= 5) return "bg-red-100 text-red-800"
+    if (percentRemaining <= 10) return "bg-orange-100 text-orange-800"
+    if (percentRemaining <= 20) return "bg-yellow-100 text-yellow-800"
     return "bg-green-100 text-green-800"
   }
 
@@ -297,6 +383,7 @@ export default function DashboardPage({ userId }: Props) {
     documentLoadingStarted.current = false
     demandesEnInstanceLoadingStarted.current = false
     vehiculesImmobilisesLoadingStarted.current = false
+    maintenanceAlertsLoadingStarted.current = false
 
     // Fetch kilometrage alerts first (other data will load in background after)
     fetchKilometrageAlertes()
@@ -305,36 +392,52 @@ export default function DashboardPage({ userId }: Props) {
     if (activeTab === "documents") {
       setIsLoadingDocuments(true)
     }
+
+    // If on maintenance tab, also show loading indicator for maintenance
+    if (activeTab === "maintenance") {
+      setIsLoadingMaintenance(true)
+    }
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Tableau de bord des alertes</h1>
-        <div className="flex space-x-2">
-          <button
-            onClick={navigateToVehicules}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <CarIcon className="h-4 w-4 mr-2" />
-            Liste des véhicules
-          </button>
-          <button
-            onClick={handleRefresh}
-            disabled={isLoadingKilometrage || (activeTab === "documents" && isLoadingDocuments)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            {isLoadingKilometrage || (activeTab === "documents" && isLoadingDocuments) ? (
-              <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <RefreshCwIcon className="h-4 w-4 mr-2" />
-            )}
-            Actualiser
-          </button>
+        <div className="flex items-center space-x-4">
+          {/* Notification Center */}
+          <NotificationCenter userId={userId} />
+
+          <div className="flex space-x-2">
+            <button
+              onClick={navigateToVehicules}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <CarIcon className="h-4 w-4 mr-2" />
+              Liste des véhicules
+            </button>
+            <button
+              onClick={handleRefresh}
+              disabled={
+                isLoadingKilometrage ||
+                (activeTab === "documents" && isLoadingDocuments) ||
+                (activeTab === "maintenance" && isLoadingMaintenance)
+              }
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              {isLoadingKilometrage ||
+              (activeTab === "documents" && isLoadingDocuments) ||
+              (activeTab === "maintenance" && isLoadingMaintenance) ? (
+                <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCwIcon className="h-4 w-4 mr-2" />
+              )}
+              Actualiser
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {/* Kilometrage Alerts Card */}
         <div className="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
           <div className="flex items-center">
@@ -360,6 +463,21 @@ export default function DashboardPage({ userId }: Props) {
               <p className="text-sm font-medium text-gray-600">Documents à renouveler</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {isLoadingDocuments && !documentsAlertes.length ? "..." : documentsAlertes.length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Maintenance Alerts Card */}
+        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-green-100 mr-4">
+              <WrenchIcon className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Maintenances à prévoir</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {isLoadingMaintenance && !maintenanceAlertes.length ? "..." : maintenanceAlertes.length}
               </p>
             </div>
           </div>
@@ -425,6 +543,16 @@ export default function DashboardPage({ userId }: Props) {
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
               Alertes Documents
+            </button>
+            <button
+              onClick={() => handleTabChange("maintenance")}
+              className={`${
+                activeTab === "maintenance"
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              Alertes Maintenance
             </button>
           </nav>
         </div>
@@ -680,6 +808,9 @@ export default function DashboardPage({ userId }: Props) {
           )}
         </div>
       )}
+
+      {/* Maintenance Alerts Tab */}
+      {activeTab === "maintenance" && <MaintenanceAlertsTable userId={userId} />}
 
       {/* Kilometrage Update Popup */}
       <KilometrageUpdatePopup

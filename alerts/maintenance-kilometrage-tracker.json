@@ -1,0 +1,51 @@
+{
+  "xxxxxx": {
+    "1-NaN-NaN": {
+      "code_type": 1,
+      "code_gamme": null,
+      "code_operation": null,
+      "valeur_accumulee": 0,
+      "periode": 10,
+      "derniere_mise_a_jour": "2025-05-15T17:13:23.142Z"
+    }
+  },
+  "F0101": {},
+  "A0422": {},
+  "A0156": {},
+  "A0246": {},
+  "A0166": {},
+  "A0343": {},
+  "A0267": {},
+  "A0403": {},
+  "A0421": {},
+  "lastchristmas": {
+    "1-NaN-NaN": {
+      "code_type": 1,
+      "code_gamme": null,
+      "code_operation": null,
+      "valeur_accumulee": 0,
+      "periode": 10,
+      "derniere_mise_a_jour": "2025-05-15T17:13:43.112Z"
+    }
+  },
+  "work": {
+    "1-NaN-NaN": {
+      "code_type": 1,
+      "code_gamme": null,
+      "code_operation": null,
+      "valeur_accumulee": 500,
+      "periode": 10,
+      "derniere_mise_a_jour": "2025-05-15T17:24:44.998Z"
+    }
+  },
+  "L3400": {
+    "1-NaN-NaN": {
+      "code_type": 1,
+      "code_gamme": null,
+      "code_operation": null,
+      "valeur_accumulee": 0,
+      "periode": 10,
+      "derniere_mise_a_jour": "2025-05-15T17:13:48.417Z"
+    }
+  }
+}

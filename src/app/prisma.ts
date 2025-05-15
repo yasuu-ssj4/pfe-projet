@@ -152,13 +152,13 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     await prisma.traveaux_externe.create({ data });
   }
 
- const constater_vehicule = async (code_vehicule: string) => {
+ const constater_vehicule = async (id_utilisateur: number) => {
     try {
 
-    const res = await fetch("http://localhost:3000/api/vehicule/getVehiculeInfos", {
+    const res = await fetch("http://localhost:3000/api/vehicule/kilometrage-heure/getMoyenKilometrage", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ code_vehicule }),
+  body: JSON.stringify({ id_utilisateur }),
 });
 
       if (!res.ok) {

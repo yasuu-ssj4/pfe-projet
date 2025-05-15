@@ -126,7 +126,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
          
             const existingType = data.find((t: any) => t.id_type === FormValue.code_type)
             if (!existingType && data.length > 0) {
-              // If the current type isn't in the list, set to the first one
+     
               FormValue.code_type = data[0].id_type
             
           } else {
