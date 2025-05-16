@@ -20,9 +20,11 @@ export async function POST(req: NextRequest) {
         mot_de_passe: true,
         methode_authent: true,
         id_utilisateur: true,
+        droit_utilisateur: true,
       },
     });
-
+    console.log(user?.droit_utilisateur);
+    
     if (!user) {
       return NextResponse.json({ error: "Utilisateur non trouvé." }, { status: 404 });
     }
@@ -33,11 +35,12 @@ export async function POST(req: NextRequest) {
       if (!isPasswordValid) {
         return NextResponse.json({ error: "Mot de passe incorrect." }, { status: 401 });
       }
-
+    
   
       const token = jwt.sign(
         {
           id_utilisateur: user.id_utilisateur,
+          droit_utilisateur: user.droit_utilisateur,
         },
         SECRET_KEY,
         { expiresIn: "12h" }

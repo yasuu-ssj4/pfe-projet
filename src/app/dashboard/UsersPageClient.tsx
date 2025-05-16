@@ -51,9 +51,10 @@ type MaintenanceAlerte = {
 
 type Props = {
   userId: number
+  droits : string 
 }
 
-export default function DashboardPage({ userId }: Props) {
+export default function DashboardPage({ userId , droits}: Props) {
   const router = useRouter()
   const documentLoadingStarted = useRef(false)
   const demandesEnInstanceLoadingStarted = useRef(false)

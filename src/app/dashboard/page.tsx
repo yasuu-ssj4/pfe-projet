@@ -9,5 +9,8 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  return <UsersPage userId={user.id_utilisateur} />;
+  return <UsersPage
+   userId={user.id_utilisateur}
+   droits={user.droit_utilisateur}
+    />;
 }
