@@ -1,6 +1,6 @@
 import { PrismaClient, utilisateur } from "@prisma/client";
 import CryptoJS from "crypto-js";
-
+import bcrypt from 'bcrypt';
 import {
     Vehicule,
     Marque,
@@ -74,7 +74,8 @@ export async function ajouterMarque(data: Marque) {
   
   
 export async function ajouterUtilisateur(user: Utilisateur) {
-    const encryptedMdp = CryptoJS.AES.encrypt(user.mot_de_passe, SECRET_KEY).toString();
+  const saltRounds = 10;
+const hashedMdp = await bcrypt.hash(user.mot_de_passe, saltRounds);
 
     await prisma.utilisateur.create({
         data: {
@@ -83,7 +84,7 @@ export async function ajouterUtilisateur(user: Utilisateur) {
             username: user.username,
             email: user.email,
             numero_telephone: user.numero_telephone,
-            mot_de_passe: encryptedMdp,
+            mot_de_passe: hashedMdp,
             code_structure: user.code_structure,
             methode_authent: user.methode_authent,
             est_admin: user.est_admin,

@@ -82,41 +82,41 @@
       "code_type": 75,
       "code_gamme": "1a66a291-c386-431a-9d08-de10c1fb950f",
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 500,
       "periode": 35,
-      "derniere_mise_a_jour": "2025-05-15T18:16:16.272Z"
+      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
     },
     "75-559f1cef-c42e-4b5a-bba8-965e6a9340de-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
       "code_gamme": "559f1cef-c42e-4b5a-bba8-965e6a9340de",
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 500,
       "periode": 30,
-      "derniere_mise_a_jour": "2025-05-15T18:16:16.272Z"
+      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
     },
     "75-cee60ac9-671a-41d6-985a-473eebb8d757-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
       "code_gamme": "cee60ac9-671a-41d6-985a-473eebb8d757",
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 500,
       "periode": 20,
-      "derniere_mise_a_jour": "2025-05-15T18:16:16.272Z"
+      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
     },
     "75-eb9e46c0-dec6-4704-88bf-d7b225cfe959-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
       "code_gamme": "eb9e46c0-dec6-4704-88bf-d7b225cfe959",
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 500,
       "periode": 50,
-      "derniere_mise_a_jour": "2025-05-15T18:16:16.272Z"
+      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
     },
     "75-f5e7fa15-b729-4104-889c-a3ca7e2e0fe3-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
       "code_gamme": "f5e7fa15-b729-4104-889c-a3ca7e2e0fe3",
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 500,
       "periode": 15,
-      "derniere_mise_a_jour": "2025-05-15T18:16:16.273Z"
+      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
     }
   },
   "A0166": {

@@ -22,26 +22,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { userId } = body
 
-    // Get all vehicles for this user using the stored procedure
+    // fonction pour recuperer tt les vehicules de l'utilisateur
     const vehicles: Vehiculetype[] = await prisma.$queryRawUnsafe(`
       EXEC PS_GET_ALL_VEHICULE_INFOS_PAR_UTILISATEUR ${userId}
     `)
 
-    // Extract vehicle codes
+    // Extract les codes des véhicules
     const vehicleCodes = vehicles.map((v) => v.code_vehicule)
 
-    // Try to get pre-calculated alerts from file
     let alerts = []
 
     try {
-      // Read from the file
+     
       const filePath = path.join(process.cwd(), "alerts", "document-alerts.json")
 
       if (fs.existsSync(filePath)) {
         const fileContent = fs.readFileSync(filePath, "utf8")
         const allAlerts = JSON.parse(fileContent)
 
-        // Filter alerts for this user's vehicles
+    
         alerts = allAlerts.filter((alert: { code_vehicule: string }) => vehicleCodes.includes(alert.code_vehicule))
       } else {
         console.log("Alerts file not found, calculating on-demand")
