@@ -2,7 +2,8 @@ import { ajouterDemandeIntervention } from "@/app/prisma"
 import { PrismaClient } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 
-
+import { sendInterventionNotification } from "@/app/lib/mail"
+import { Utilisateur } from '../../../interfaces';
 
 const prisma = new PrismaClient()
 
@@ -17,32 +18,46 @@ export async function POST(req: NextRequest) {
     const demandeData = JSON.parse(bodyText)
     console.log("Parsed Body:", demandeData)
     
-    // Validate required fields
+
     if (!demandeData.code_vehicule) {
       return NextResponse.json({ error: "Le code du véhicule est requis" }, { status: 400 })
     }
 
-    // Get the service maintenance code based on the structure code
-    // const vehiculeInfo = await prisma.vehicule.findFirst({
-    //   where: { code_vehicule: demandeData.code_vehicule },
-    //   include: {
-    //     affectations: {
-    //       orderBy: { date: "desc" },
-    //       take: 1,
-    //       include: {
-    //         structure: true,
-    //       },
-    //     },
-    //   },
-    // })
 
-    // if (!vehiculeInfo || vehiculeInfo.affectations.length === 0) {
-    //   return NextResponse.json({ error: "Véhicule ou structure non trouvé" }, { status: 404 })
-    // }
+    const vehiculeInfo = await prisma.vehicule.findFirst({
+      where: { code_vehicule: demandeData.code_vehicule },
+      include: {
+        affectations: {
+          orderBy: { date: "desc" },
+          take: 1,
+          include: {
+            structure: true,
+          },
+        },
+      },
+    })
 
-    // const structureCode = vehiculeInfo.affectations[0].code_structure
-    // const serviceMaintenance = structureCode + "2" 
+    if (!vehiculeInfo || vehiculeInfo.affectations.length === 0) {
+      return NextResponse.json({ error: "Véhicule ou structure non trouvé" }, { status: 404 })
+    }
 
+    const structureCode = vehiculeInfo.affectations[0].code_structure 
+    const serviceMaintenance = structureCode + "2" 
+    const UtilisateurAEnvoyer =await prisma.utilisateur.findMany({
+      where : {
+        code_structure : serviceMaintenance,
+      },
+      select: {
+        email: true,
+        droit_utilisateur: true,
+      }
+
+    })
+      UtilisateurAEnvoyer.forEach((user) => {
+        if (user.droit_utilisateur || user.droit_utilisateur.includes("ajouter_rapport")|| user.droit_utilisateur.includes("ajouter_QI")) {
+          sendInterventionNotification(user.email, demandeData.id_demande_intervention, demandeData.code_vehicule)
+        }
+      })
     // Create the demande
      await ajouterDemandeIntervention(demandeData)
       return NextResponse.json({success : true}, {status : 200})
