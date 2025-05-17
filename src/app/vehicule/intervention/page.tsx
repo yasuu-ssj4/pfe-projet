@@ -23,7 +23,7 @@ export default async function InterventionPage({
       <p className="text-gray-600 mb-6">
         Véhicule: <span className="font-semibold">{code_vehicule}</span>
       </p>
-      <InterventionList code_vehicule={code_vehicule} userId={user.id_utilisateur} />
+      <InterventionList code_vehicule={code_vehicule} userId={user.id_utilisateur} userPrivs={user.droit_utilisateur.split('/')} />
     </div>
   )
 }

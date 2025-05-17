@@ -16,9 +16,9 @@ export default async function Vehicule() {
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-3xl font-bold text-gray-800">Gestion des Véhicules</h1>
-              <FormVehicule />
+              <FormVehicule userPrivs={user.droit_utilisateur.split('/')} />
             </div>
-            <AfficheVehicule userId={user.id_utilisateur} />
+            <AfficheVehicule userId={user.id_utilisateur} userPrivs={user.droit_utilisateur.split('/')} />
           </div>
         </main>
       </div>

@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import type { Utilisateurid } from "@/app/interfaces"
+import FormStruct from "./form-struct"
 import {
   AlertCircle,
   Check,
@@ -17,9 +18,10 @@ import {
   Edit,
   Trash2,
 } from "lucide-react"
-import FormStruct from "./form-struct"
+import { Label } from "@radix-ui/react-dropdown-menu"
 
-export default function Compte({ userId }: { userId: number }) {
+
+export default function Compte({ userId, userPrivs }: { userId: number, userPrivs: string[] }) {
   const [popup, setPopup] = useState(false)
   const [struct, setStruct] = useState(false)
   const [step, setStep] = useState(1)
@@ -166,14 +168,14 @@ export default function Compte({ userId }: { userId: number }) {
     setCheckedItems(privileges)
 
     // Explicitly handle the phone number, ensuring it's not null or undefined
-    const phoneNumber = user.numero_telephone 
+    const phoneNumber = user.numero_telephone
     debugLog("Phone number extracted", phoneNumber)
 
     const formData = {
       nom: user.nom_utilisateur || "",
       prenom: user.prenom_utilisateur || "",
       email: user.email || "",
-      tel: phoneNumber, 
+      tel: phoneNumber,
       username: user.username || "",
       password: "", // Don't set the password for security reasons
       structure: user.code_structure || "",
@@ -289,7 +291,7 @@ export default function Compte({ userId }: { userId: number }) {
       prenom_utilisateur: formValue.prenom,
       username: formValue.username,
       email: formValue.email,
-      numero_telephone : phoneNumber || formValue.tel , 
+      numero_telephone: phoneNumber || formValue.tel,
       mot_de_passe: formValue.password,
       code_structure: formValue.structure,
       methode_authent: formValue.authType,
@@ -407,16 +409,12 @@ export default function Compte({ userId }: { userId: number }) {
     { id: "supprimer_user", label: "Supprimer Un Utilisateur" },
     { id: "struct", label: "Structure" },
     { id: "ajouter_structure", label: "Ajouter Une Structure" },
-    { id: "modifier_structure", label: "Modifier Une Structure" },
-    { id: "supprimer_structure", label: "Supprimer Une Structure" },
     { id: "vehicule", label: "Véhicule" },
     { id: "ajout_vehicule", label: "Ajouter Un Véhicule" },
     { id: "modifier_vehicule", label: "Modifier Un Véhicule" },
     { id: "supprimer_vehicule", label: "Supprimer Un Véhicule" },
     { id: "ajouter_DI", label: "Ajouter la Demande d'intervention" },
     { id: "ajouter_QI", label: "Ajouter la qualification d'intervention " },
-    { id: "modifier_QI", label: "Modifier la qualification d'intervention" },
-    { id: "modifier_DI", label: "Modifier la Demande d'intervention" },
     { id: "supprimer_DI", label: "Supprimer la Demande d'intervention" },
     { id: "demande", label: "Demande" },
     { id: "rapport", label: "Rapport" },
@@ -424,7 +422,12 @@ export default function Compte({ userId }: { userId: number }) {
     { id: "supprimer_rapport", label: "Supprimer Rapport" },
     { id: "programme_entretien", label: "Programme Entretien" },
     { id: "ajouter_programme_entretien", label: "Ajouter Programme Entretien" },
+    { id: "modifier_programme_entretien", label: "Modifier Programme Entretien"},
     { id: "supprimer_programme_entretien", label: "Supprimer Programme Entretien" },
+    { id: "modifier_kilo_heure", label: "Faire la mise a jour du kilometrage/heure"},
+    { id: "modifier_status", label: "Modifier Le Status d'un vehicule"},
+    { id: "modifier_affectation", label: "Affecter un vehicule a une autre structure"},
+    { id: "ajouter_situation_immobilisation", label: "Ajouter Une Situation d'immobilisation hebdomadaire"}
   ]
 
   return (
@@ -462,20 +465,21 @@ export default function Compte({ userId }: { userId: number }) {
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-3xl font-bold text-gray-800">Gestion des Utilisateurs</h1>
               <div className="flex space-x-4">
+                {userPrivs.includes('ajouter_structure') && (
                 <button
                   onClick={() => setStruct(true)}
                   className="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
                 >
                   <Plus className="w-5 h-5" />
                   <span>Ajouter une structure</span>
-                </button>
-                <button
+                </button>)}
+                {userPrivs.includes('ajouter_user') && (<button
                   onClick={handlePopup}
                   className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
                 >
                   <UserPlus className="w-5 h-5" />
                   <span>Ajouter un compte</span>
-                </button>
+                </button>)}
               </div>
             </div>
 
@@ -572,28 +576,6 @@ export default function Compte({ userId }: { userId: number }) {
                     </button>
                   </div>
                 </div>
-
-                {/* Filter Status */}
-                {(searchTerm || roleFilter || structureFilter) && (
-                  <div className="mt-3 flex items-center text-sm text-gray-500">
-                    <span className="mr-2">Filtres actifs:</span>
-                    {searchTerm && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
-                        Recherche: {searchTerm}
-                      </span>
-                    )}
-                    {roleFilter && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
-                        Rôle: {roleOptions.find((r) => r.value === roleFilter)?.label}
-                      </span>
-                    )}
-                    {structureFilter && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                        Structure: {structureFilter}
-                      </span>
-                    )}
-                  </div>
-                )}
               </div>
 
               <div className="overflow-x-auto">
@@ -705,15 +687,26 @@ export default function Compte({ userId }: { userId: number }) {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.code_structure}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <button
-                              className="text-indigo-600 hover:text-indigo-900 mr-3 inline-flex items-center"
-                              onClick={() => handleEditUser(user)}
+                              onClick={userPrivs.includes('modifier_user') ? () => handleEditUser(user): undefined}
+                              disabled={!userPrivs.includes('modifier_user')}
+                              className={`mr-3 inline-flex items-center 
+                                ${userPrivs.includes('modifier_user')
+                                  ? "text-indigo-600 hover:text-indigo-900"
+                                  : "text-gray-400 hover:text-gray-600 cursor-not-allowed"
+                                }`}
                             >
                               <Edit className="h-4 w-4 mr-1" />
                               Modifier
                             </button>
                             <button
-                              className="text-red-600 hover:text-red-900 inline-flex items-center"
-                              onClick={() => handleDeleteUser(user.id_utilisateur!)}
+                              
+                              onClick={userPrivs.includes('supprimer_user') ? () => handleDeleteUser(user.id_utilisateur!): undefined}
+                              disabled={!userPrivs.includes('supprimer_user')}
+                              className={`inline-flex items-center 
+                                ${userPrivs.includes('supprimer_user')
+                                  ? "text-red-600 hover:text-red-900"
+                                  : "text-gray-400 hover:text-gray-600 cursor-not-allowed"
+                                }`}
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
                               Supprimer
@@ -732,7 +725,6 @@ export default function Compte({ userId }: { userId: number }) {
                     <div className="text-sm text-gray-500 mb-4 sm:mb-0">
                       Affichage de {indexOfFirstUser + 1}-{Math.min(indexOfLastUser, filteredUsers.length)} sur{" "}
                       {filteredUsers.length} utilisateur{filteredUsers.length > 1 ? "s" : ""}
-                      {searchTerm || roleFilter || structureFilter ? " (filtrés)" : ""}
                     </div>
 
                     <div className="flex items-center">
@@ -750,17 +742,17 @@ export default function Compte({ userId }: { userId: number }) {
                         </button>
 
                         {/* Page numbers */}
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
                           // Logic to show pages around current page
                           let pageNum
-                          if (totalPages <= 5) {
+                          if (totalPages <= 3) {
                             pageNum = i + 1
-                          } else if (currentPage <= 3) {
+                          } else if (currentPage <= 2) {
                             pageNum = i + 1
-                          } else if (currentPage >= totalPages - 2) {
-                            pageNum = totalPages - 4 + i
+                          } else if (currentPage >= totalPages - 1) {
+                            pageNum = totalPages - 2 + i
                           } else {
-                            pageNum = currentPage - 2 + i
+                            pageNum = currentPage - 1 + i
                           }
 
                           return (
@@ -796,7 +788,7 @@ export default function Compte({ userId }: { userId: number }) {
         </main>
       </div>
 
-      {/* Add User Modal */}
+      {/* Add User Modal - Single Page Version */}
       {popup && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -806,38 +798,32 @@ export default function Compte({ userId }: { userId: number }) {
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
               &#8203;
             </span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
               <form onSubmit={handleUser}>
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
+                  <div className="flex justify-between items-center pb-3 mb-3 border-b border-gray-200">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      {isEditMode
-                        ? step === 1
-                          ? "Modifier un utilisateur"
-                          : "Modifier les privilèges"
-                        : step === 1
-                          ? "Créer un utilisateur"
-                          : "Sélectionner les privilèges"}
+                      {isEditMode ? "Modifier un utilisateur" : "Créer un utilisateur"}
                     </h3>
                     <button
                       type="button"
                       onClick={() => setPopup(false)}
                       className="text-gray-400 hover:text-gray-500 focus:outline-none"
                     >
-                      <X className="h-6 w-6" />
+                      <X className="h-5 w-5" />
                     </button>
                   </div>
 
                   {/* Error message in form */}
                   {error && (
-                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                    <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md">
                       <div className="flex">
                         <div className="flex-shrink-0">
-                          <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+                          <AlertCircle className="h-4 w-4 text-red-400" aria-hidden="true" />
                         </div>
-                        <div className="ml-3">
-                          <h3 className="text-sm font-medium text-red-800">Erreur</h3>
-                          <div className="mt-2 text-sm text-red-700">
+                        <div className="ml-2">
+                          <h3 className="text-xs font-medium text-red-800">Erreur</h3>
+                          <div className="mt-1 text-xs text-red-700">
                             <p>{error}</p>
                           </div>
                         </div>
@@ -845,10 +831,13 @@ export default function Compte({ userId }: { userId: number }) {
                     </div>
                   )}
 
-                  {step === 1 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-12 gap-4">
+                    {/* Left side - User Information */}
+                    <div className="col-span-12 md:col-span-5 space-y-3">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Informations de l'utilisateur</h4>
+
                       <div>
-                        <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="nom" className="block text-xs font-medium text-gray-700 mb-1">
                           Nom
                         </label>
                         <input
@@ -858,12 +847,12 @@ export default function Compte({ userId }: { userId: number }) {
                           onChange={handleForm}
                           type="text"
                           placeholder="Nom"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="prenom" className="block text-xs font-medium text-gray-700 mb-1">
                           Prénom
                         </label>
                         <input
@@ -873,12 +862,12 @@ export default function Compte({ userId }: { userId: number }) {
                           onChange={handleForm}
                           type="text"
                           placeholder="Prénom"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1">
                           Email
                         </label>
                         <input
@@ -888,12 +877,12 @@ export default function Compte({ userId }: { userId: number }) {
                           onChange={handleForm}
                           type="email"
                           placeholder="Email"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="tel" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="tel" className="block text-xs font-medium text-gray-700 mb-1">
                           Numéro de téléphone
                         </label>
                         <input
@@ -903,12 +892,12 @@ export default function Compte({ userId }: { userId: number }) {
                           value={formValue.tel}
                           onChange={handleForm}
                           placeholder="Numéro de téléphone"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="username" className="block text-xs font-medium text-gray-700 mb-1">
                           Nom d'utilisateur
                         </label>
                         <input
@@ -917,13 +906,13 @@ export default function Compte({ userId }: { userId: number }) {
                           value={formValue.username}
                           onChange={handleForm}
                           placeholder="Nom d'utilisateur"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
                           readOnly={isEditMode} // Username cannot be changed in edit mode
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="password" className="block text-xs font-medium text-gray-700 mb-1">
                           {isEditMode ? "Nouveau mot de passe (laisser vide pour ne pas changer)" : "Mot de passe"}
                         </label>
                         <input
@@ -933,12 +922,12 @@ export default function Compte({ userId }: { userId: number }) {
                           onChange={handleForm}
                           type="password"
                           placeholder={isEditMode ? "Nouveau mot de passe" : "Mot de passe"}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="structure" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="structure" className="block text-xs font-medium text-gray-700 mb-1">
                           Structure
                         </label>
                         <input
@@ -948,12 +937,12 @@ export default function Compte({ userId }: { userId: number }) {
                           onChange={handleForm}
                           type="text"
                           placeholder="Code de la structure"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="role" className="block text-xs font-medium text-gray-700 mb-1">
                           Rôle
                         </label>
                         <div className="relative">
@@ -962,7 +951,7 @@ export default function Compte({ userId }: { userId: number }) {
                             name="role"
                             value={formValue.role}
                             onChange={handleForm}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black appearance-none"
+                            className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black appearance-none"
                           >
                             <option value="DG">Direction générale</option>
                             <option value="branche">Branche</option>
@@ -971,13 +960,13 @@ export default function Compte({ userId }: { userId: number }) {
                             <option value="ST">Service transport</option>
                             <option value="SM">Service maintenance</option>
                           </select>
-                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         </div>
                       </div>
 
-                      <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Type d'authentification</label>
-                        <div className="flex space-x-6">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Type d'authentification</label>
+                        <div className="flex space-x-4">
                           <label className="inline-flex items-center">
                             <input
                               type="radio"
@@ -985,9 +974,9 @@ export default function Compte({ userId }: { userId: number }) {
                               value="BDD"
                               checked={formValue.authType === "BDD"}
                               onChange={handleForm}
-                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                              className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                             />
-                            <span className="ml-2 text-gray-700">Base de données</span>
+                            <span className="ml-1.5 text-xs text-gray-700">Base de données</span>
                           </label>
                           <label className="inline-flex items-center">
                             <input
@@ -996,99 +985,69 @@ export default function Compte({ userId }: { userId: number }) {
                               value="AD"
                               checked={formValue.authType === "AD"}
                               onChange={handleForm}
-                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                              className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                             />
-                            <span className="ml-2 text-gray-700">Active Directory</span>
+                            <span className="ml-1.5 text-xs text-gray-700">Active Directory</span>
                           </label>
                         </div>
                       </div>
                     </div>
-                  )}
 
-                  {step === 2 && (
-                    <div className="space-y-6">
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <h4 className="text-base font-medium text-gray-900 mb-4">Sélection des privilèges</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {privilege.map((option) => (
-                            <label
-                              key={option.id}
-                              htmlFor={option.id}
-                              className={`flex items-center p-3 rounded-md border ${
-                                checkedItems.includes(option.id)
-                                  ? "border-indigo-500 bg-indigo-50"
-                                  : "border-gray-300 hover:bg-gray-50"
-                              } transition-colors duration-200 cursor-pointer`}
-                            >
-                              <input
-                                type="checkbox"
-                                id={option.id}
-                                name="privilege"
-                                value={option.id}
-                                checked={checkedItems.includes(option.id)}
-                                onChange={handleItems}
-                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                              />
-                              <span className="ml-2 text-sm text-gray-700">{option.label}</span>
-                            </label>
-                          ))}
-                        </div>
+                    {/* Right side - Privileges */}
+                    <div className="col-span-12 md:col-span-7 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Sélection des privilèges</h4>
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto">
+                        {privilege.map((option) => (
+                          <label
+                            key={option.id}
+                            htmlFor={option.id}
+                            className={`flex items-center p-2 rounded-md border ${
+                              checkedItems.includes(option.id)
+                                ? "border-indigo-500 bg-indigo-50"
+                                : "border-gray-300 hover:bg-gray-100"
+                            } transition-colors duration-200 cursor-pointer`}
+                          >
+                            <input
+                              type="checkbox"
+                              id={option.id}
+                              name="privilege"
+                              value={option.id}
+                              checked={checkedItems.includes(option.id)}
+                              onChange={handleItems}
+                              className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                            />
+                            <span className="ml-1.5 text-xs text-gray-700">{option.label}</span>
+                          </label>
+                        ))}
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  {step === 1 ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleNext}
-                        disabled={isLoading}
-                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                            Chargement...
-                          </>
-                        ) : (
-                          "Suivant"
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPopup(false)}
-                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                      >
-                        Annuler
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                            Chargement...
-                          </>
-                        ) : (
-                          "Confirmer"
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleBack}
-                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                      >
-                        Retour
-                      </button>
-                    </>
-                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Chargement...
+                      </>
+                    ) : isEditMode ? (
+                      "Modifier"
+                    ) : (
+                      "Ajouter"
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPopup(false)}
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  >
+                    Annuler
+                  </button>
                 </div>
               </form>
             </div>

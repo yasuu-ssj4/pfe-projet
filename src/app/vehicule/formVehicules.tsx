@@ -36,7 +36,7 @@ export interface VehicleForm {
   date_fin_certificat: string | null
 }
 
-export default function FormVehicule() {
+export default function FormVehicule({userPrivs} : {userPrivs: string[]}) {
   const [popup, setPopup] = useState(false)
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -349,13 +349,14 @@ export default function FormVehicule() {
 
   return (
     <div>
+      {userPrivs.includes('ajout_vehicule') &&(
       <button
         onClick={openPopup}
         className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
       >
         <PlusIcon className="w-5 h-5" />
         <span>Ajouter un véhicule</span>
-      </button>
+      </button>)}
 
       {/* Alert for success */}
       {success && (

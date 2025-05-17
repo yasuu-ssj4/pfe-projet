@@ -49,12 +49,8 @@ type MaintenanceAlerte = {
   unite_mesure: string
 }
 
-type Props = {
-  userId: number
-  droits : string 
-}
 
-export default function DashboardPage({ userId , droits}: Props) {
+export default function DashboardPage({ userId , userPrivs}: {userId: number, userPrivs: string[]}) {
   const router = useRouter()
   const documentLoadingStarted = useRef(false)
   const demandesEnInstanceLoadingStarted = useRef(false)
@@ -675,8 +671,12 @@ export default function DashboardPage({ userId , droits}: Props) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <button
-                          onClick={() => handleUpdateKilometrage(vehicule.code_vehicule)}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          onClick={userPrivs.includes('modifier_kilo_heure') ? () => handleUpdateKilometrage(vehicule.code_vehicule):undefined}
+                          disabled={!userPrivs.includes('modifier_kilo_heure')}
+                          className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white 
+                            ${userPrivs.includes('modifier_kilo_heure') 
+                              ? "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              : "bg-gray-400 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"}`}
                         >
                           <ClockIcon className="h-3.5 w-3.5 mr-1" color="white" />
                           Mettre à jour

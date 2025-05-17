@@ -39,7 +39,7 @@ type Vehiculetype = {
   besoin_mise_a_jour?: boolean
 }
 
-export default function AfficheVehicule({ userId }: { userId: number }) {
+export default function AfficheVehicule({ userId, userPrivs }: { userId: number, userPrivs: string[]}) {
   const router = useRouter()
   const [vehicules, setVehicules] = useState<Vehiculetype[]>([])
   const [filteredVehicules, setFilteredVehicules] = useState<Vehiculetype[]>([])
@@ -435,7 +435,7 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
 
     return pageNumbers
   }
-
+console.log(userPrivs)
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
       <div className="px-6 py-4 border-b border-gray-200">
@@ -676,9 +676,9 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
               currentItems.map((vehicule) => (
                 <tr key={vehicule.code_vehicule} className={`hover:bg-gray-50 transition-colors`}>
                   <td className="px-6 py-4">
-                    <div className="flex items-center">
+                    <div className="relative flex items-center">
                       {vehicule.besoin_mise_a_jour && (
-                        <div className="mr-2" title="Mise à jour du kilométrage/heures requise">
+                        <div className="mr-2 absolute -top-1 -left-1" title="Mise à jour du kilométrage/heures requise">
                           <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                         </div>
                       )}
@@ -699,41 +699,46 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                           >
                             <span className="mr-2"></span> Détails
                           </DropdownMenuItem>
+                          {userPrivs.includes('modifier_vehicule') && (
                           <DropdownMenuItem
                             onClick={() => {}}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Modifier
-                          </DropdownMenuItem>
+                          </DropdownMenuItem>)}
+                          {userPrivs.includes('ajouter_DI') && (
                           <DropdownMenuItem
                             onClick={() => handleAjouterDemande(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Ajouter Demande
-                          </DropdownMenuItem>
+                          </DropdownMenuItem>)}
                           <DropdownMenuItem
                             onClick={() => navigateToIntervention(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Constater Demande
                           </DropdownMenuItem>
+                          {userPrivs.includes('supprimer_vehicule') && (
                           <DropdownMenuItem
                             onClick={() => confirmDelete(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Supprimer véhicule
                           </DropdownMenuItem>
-
+                          )}
                           {/* Separator */}
                           <div className="h-px bg-gray-200 my-1"></div>
 
                           {/* New options for popups */}
+                          {userPrivs.includes('modifier_status') && (
                           <DropdownMenuItem
                             onClick={() => openStatusPopup(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Changer le statut
-                          </DropdownMenuItem>
+                          </DropdownMenuItem>)}
+                          {userPrivs.includes('modifier_kilo_heure') && (
                           <DropdownMenuItem
                             onClick={() => openKilometragePopup(vehicule.code_vehicule)}
                             className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer flex items-center ${
@@ -746,13 +751,14 @@ export default function AfficheVehicule({ userId }: { userId: number }) {
                                 Urgent
                               </span>
                             )}
-                          </DropdownMenuItem>
+                          </DropdownMenuItem>)}
+                          {userPrivs.includes('modifier_affectation') && (
                           <DropdownMenuItem
                             onClick={() => openAffectationPopup(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Changer l'affectation
-                          </DropdownMenuItem>
+                          </DropdownMenuItem>)}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
