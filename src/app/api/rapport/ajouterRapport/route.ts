@@ -52,17 +52,23 @@ export async function DELETE(req: NextRequest) {
         { status: 400 }
       );
     }
-    const id_rapport_intervention = await prisma.rapport_intervention.findUnique({
-      where: { id_demande_intervention },
-      select: { id_rapport_intervention: true },
-    });
-    console.log("ID de rapport d'intervention:", id_rapport_intervention);
-    await prisma.traveaux_interne.deleteMany({
-      where: { id_rapport : id_rapport_intervention?.id_rapport_intervention },
-    });
-    await prisma.traveaux_externe.deleteMany({
-      where: { id_rapport : id_rapport_intervention?.id_rapport_intervention },
-    });
+const rapport = await prisma.rapport_intervention.findUnique({
+  where: { id_demande_intervention },
+  select: { id_rapport_intervention: true },
+});
+
+if (!rapport) {
+  return NextResponse.json({ message: "Rapport introuvable" }, { status: 404 });
+}
+
+const id_rapport = rapport.id_rapport_intervention;
+
+await prisma.traveaux_interne.deleteMany({
+  where: { id_rapport },
+});
+await prisma.traveaux_externe.deleteMany({
+  where: { id_rapport },
+});
     await prisma.demande_intervention.update({
       where: { id_demande_intervention },
       data: { etat_demande: "En instance" },

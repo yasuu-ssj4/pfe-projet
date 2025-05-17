@@ -466,7 +466,11 @@ const supprimerDemande = async (id_demande_intervention: string) => {
                             Constater Rapport
                           </DropdownMenuItem>
                         )}
-                      
+                          {demande.etat_demande.toLowerCase() === "complété" && (
+                          <DropdownMenuItem onClick={() => supprimerRapport(demande.id_demande_intervention)}>
+                            Supprimer Rapport
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
