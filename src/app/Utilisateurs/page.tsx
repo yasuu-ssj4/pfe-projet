@@ -16,7 +16,7 @@ export default async function Vehicule(){
                    
                    <main className="w-full h-full flex-1  ">
                     
-                    <Compte userId={user.id_utilisateur} />
+                    <Compte userId={user.id_utilisateur} userPrivs={user.droit_utilisateur.split('/')} />
                    </main>
                    </div>
         </div>

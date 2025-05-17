@@ -13,7 +13,7 @@ import { fr } from "date-fns/locale"
 type VehicleImb = {
   code_vehicule: string
   code_structure: string
-  date_immobilisation: Date
+  status_date: Date
 }
 
 export default function AjouterImmobilisationPage({ userId }: { userId: number }) {
@@ -130,7 +130,7 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
       // Prepare payload with proper date handling
       const payload = {
         code_vehicule: vehicle.code_vehicule,
-        date_immobilisation: new Date(vehicle.date_immobilisation),
+        date_immobilisation: new Date(vehicle.status_date),
         lieu,
         cause_immobilisation,
         action,
@@ -265,7 +265,7 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
                 <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                   <td className="px-4 py-3 border">{vehicle.code_vehicule}</td>
                   <td className="px-4 py-3 border">{vehicle.code_structure}</td>
-                  <td className="px-4 py-3 border">{new Date(vehicle.date_immobilisation).toString()}</td>
+                  <td className="px-4 py-3 border">{new Date(vehicle.status_date).toLocaleDateString('fr-FR')}</td>
                   <td
                     className="px-4 py-3 border cursor-text"
                     onClick={() => handleCellClick(vehicle.code_vehicule, "lieu")}

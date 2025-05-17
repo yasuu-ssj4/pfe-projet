@@ -41,9 +41,11 @@ type DemandeIntervention = {
 export default function InterventionList({
   code_vehicule,
   userId,
+  userPrivs
 }: {
   code_vehicule: string
   userId: number
+  userPrivs: string[]
 }) {
   const router = useRouter()
   const [demandes, setDemandes] = useState<DemandeIntervention[]>([])
@@ -436,37 +438,37 @@ const supprimerDemande = async (id_demande_intervention: string) => {
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[200px]">
-                        {demande.etat_demande === "incomplet" && (
-                          <DropdownMenuItem onClick={() => navigateToCompleterForm(demande.id_demande_intervention)}>
+                        {userPrivs.includes('ajouter_QI') && 
+                        (demande.etat_demande === "incomplet" && 
+                          (<DropdownMenuItem onClick={() => navigateToCompleterForm(demande.id_demande_intervention)}>
                             Compléter Demande
                           </DropdownMenuItem>
-                          
-                        )}
-                         {demande.etat_demande === "incomplet" && (
-                          <DropdownMenuItem onClick={() => supprimerDemande(demande.id_demande_intervention)}>
-                            Supprimer Demande
-                          </DropdownMenuItem>
-                          
-                        )}
+                        ))}
                         <DropdownMenuItem onClick={() => navigateToConstaterDemande(demande.id_demande_intervention)}>
-                          Constater Demande</DropdownMenuItem>
-                         
-                        {demande.etat_demande.toLowerCase() === "en instance" && (
-                          <DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
+                          Constater Demande
+                        </DropdownMenuItem>
+                        {userPrivs.includes('ajouter_rapport') && 
+                        (demande.etat_demande.toLowerCase() === "en instance" && 
+                        (<DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
                             Ajouter Rapport
                           </DropdownMenuItem>
-                        )}
-                        {demande.etat_demande.toLowerCase() === "en instance" && (
-                         <DropdownMenuItem onClick={() => supprimerDemande(demande.id_demande_intervention)}>
-                            Supprimer Demande
-                          </DropdownMenuItem>
-                        )}
+                        ))}
                         {demande.etat_demande.toLowerCase() === "complété" && (
                           <DropdownMenuItem onClick={() => navigateToConstaterRapport(demande.id_demande_intervention)}>
                             Constater Rapport
                           </DropdownMenuItem>
                         )}
-                      
+                        {userPrivs.includes('supprimer_DI') &&  
+                          (<DropdownMenuItem onClick={() => supprimerDemande(demande.id_demande_intervention)}>
+                            Supprimer Demande
+                          </DropdownMenuItem>
+                        )}
+                        {userPrivs.includes('supprimer_rapport') &&
+                        (demande.etat_demande.toLowerCase() === "complété" &&
+                          (<DropdownMenuItem onClick={() => supprimerRapport(demande.id_demande_intervention)}>
+                            Supprimer Rapport
+                          </DropdownMenuItem>
+                        ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>

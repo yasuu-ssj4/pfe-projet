@@ -11,6 +11,6 @@ export default async function DashboardPage() {
 
   return <UsersPage
    userId={user.id_utilisateur}
-   droits={user.droit_utilisateur}
+   userPrivs={user.droit_utilisateur.split('/')}
     />;
 }

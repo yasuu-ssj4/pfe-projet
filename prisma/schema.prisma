@@ -43,11 +43,11 @@ model marque {
 }
 
 model type {
-  id_type             Int                 @id @default(autoincrement())
+  id_type             Int                   @id @default(autoincrement())
   designation         String
   id_marque           Int
   progammes_entretien programme_entretien[]
-  FK_type_REF_marque  marque              @relation(fields: [id_marque], references: [id_marque])
+  FK_type_REF_marque  marque                @relation(fields: [id_marque], references: [id_marque])
   vehicules           vehicule[]
 }
 
@@ -100,7 +100,7 @@ model immobilisation {
   lieu                 String
   action               String
   echeance             DateTime?
-  vehicule             vehicule @relation(fields: [code_vehicule], references: [code_vehicule])
+  vehicule             vehicule  @relation(fields: [code_vehicule], references: [code_vehicule])
 
   @@id([code_vehicule, date_immobilisation])
 }
@@ -133,14 +133,14 @@ model utilisateur {
 }
 
 model gamme {
-  code_gamme   String               @id 
+  code_gamme   String                @id
   designation  String
   unite_mesure String
   programmes   programme_entretien[]
 }
 
 model operation {
-  code_operation String               @id
+  code_operation String                @id
   designation    String
   programmes     programme_entretien[]
 }
@@ -148,7 +148,7 @@ model operation {
 model programme_entretien {
   code_gamme     String
   code_operation String
-  code_type      Int       
+  code_type      Int
   periode        Int
   gamme          gamme     @relation(fields: [code_gamme], references: [code_gamme])
   operation      operation @relation(fields: [code_operation], references: [code_operation])
