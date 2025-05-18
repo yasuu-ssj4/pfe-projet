@@ -169,13 +169,13 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     } });
   }
 
- const constater_vehicule = async (id_utilisateur: number) => {
+ const rapport_activite = async ({id_utilisateur, date}: {id_utilisateur: number , date: string}) => {
     try {
 
-    const res = await fetch("http://localhost:3000/api/vehicule/kilometrage-heure/getMoyenKilometrage", {
+    const res = await fetch("/api/rapport/rapportActivites", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ id_utilisateur }),
+  body: JSON.stringify({ id_utilisateur, date }),
 });
 
       if (!res.ok) {
@@ -187,7 +187,7 @@ export async function ajouterUtilisateur(user: Utilisateur) {
      
      
     } catch (error) {
-      console.error("Error in supprimerRapport:", error)
+      console.error("Erreur lors de la recuperation:", error)
      
     }
   }
