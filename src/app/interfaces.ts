@@ -193,6 +193,7 @@ export interface Vehicule {
     PDR_consommee: string;
     cout_pdr: number;
     reference_bc_bm_btm: string;
+    description: string;
   }
   
   export interface TraveauxExterne {
@@ -201,5 +202,6 @@ export interface Vehicule {
     reference_contrat: string;
     reference_facture: string;
     cout_facture: number;
+    description : string;
   }
  

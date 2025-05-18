@@ -48,6 +48,9 @@ export async function DELETE(req: NextRequest) {
       await prisma.historique_status.deleteMany({
         where: { code_vehicule },
       })
+      await prisma.immobilisation.deleteMany({
+        where: { code_vehicule },
+      })
       await prisma.vehicule.delete({
         where: { code_vehicule },
       })

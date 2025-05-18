@@ -18,10 +18,8 @@ import {
   Edit,
   Trash2,
 } from "lucide-react"
-import { Label } from "@radix-ui/react-dropdown-menu"
 
-
-export default function Compte({ userId, userPrivs }: { userId: number, userPrivs: string[] }) {
+export default function Compte({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
   const [popup, setPopup] = useState(false)
   const [struct, setStruct] = useState(false)
   const [step, setStep] = useState(1)
@@ -41,6 +39,11 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
     droit_acces: "",
     role: "DG",
   })
+
+  // Add these state variables for real-time validation
+  const [usernameError, setUsernameError] = useState<string | null>(null)
+  const [structureError, setStructureError] = useState<string | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
 
   const [role, setRole] = useState("Direction generale")
   const [checkedItems, setCheckedItems] = useState<string[]>([])
@@ -128,12 +131,66 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
     setCurrentPage(1)
   }, [searchTerm, roleFilter, structureFilter, users])
 
+  // Add this function to validate fields in real-time
+  const validateField = async (field: string, value: string) => {
+    if (!value.trim()) {
+      return field === "username" ? setUsernameError(null) : setStructureError(null)
+    }
+
+    setIsValidating(true)
+    try {
+      const res = await fetch("/api/utilisateur/validerUser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: field === "username" ? value : formValue.username,
+          code_structure: field === "structure" ? value : formValue.structure,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        if (field === "username") {
+          setUsernameError(data.error || "Nom d'utilisateur invalide")
+        } else {
+          setStructureError(data.error || "Structure invalide")
+        }
+      } else {
+        if (field === "username") {
+          setUsernameError(null)
+        } else {
+          setStructureError(null)
+        }
+      }
+    } catch (err) {
+      console.error(
+        `Erreur lors de la validation du ${field === "username" ? "nom d'utilisateur" : "code structure"}:`,
+        err,
+      )
+      if (field === "username") {
+        setUsernameError("Erreur de validation")
+      } else {
+        setStructureError("Erreur de validation")
+      }
+    } finally {
+      setIsValidating(false)
+    }
+  }
+
   const handleForm = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormValue((prev) => ({
       ...prev,
       [name]: value,
     }))
+
+    // Add real-time validation for username and structure
+    if (name === "username" && !isEditMode) {
+      validateField("username", value)
+    } else if (name === "structure") {
+      validateField("structure", value)
+    }
   }
 
   const handlePopup = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -151,6 +208,9 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
       authType: "BDD",
       est_admin: false,
     })
+    // Reset validation errors when opening the popup
+    setUsernameError(null)
+    setStructureError(null)
     setIsEditMode(false)
     setEditUserId(null)
     setPopup(true)
@@ -187,6 +247,10 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
 
     debugLog("Form data being set", formData)
     setFormValue(formData)
+
+    // Reset validation errors for edit mode
+    setUsernameError(null)
+    setStructureError(null)
 
     setPopup(true)
     setStep(1)
@@ -228,7 +292,6 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
     setError(null)
 
     try {
-      // Skip validation if we're in edit mode
       if (isEditMode) {
         setStep(2)
         setIsLoading(false)
@@ -271,9 +334,16 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
     setRole(event.target.value)
   }
 
-  // Replace the handleUser function with this enhanced version
+  // Update the handleUser function to check for validation errors before submission
   const handleUser = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    // Check for validation errors before submitting
+    if (usernameError || structureError) {
+      showAlert("error", "Veuillez corriger les erreurs avant de soumettre le formulaire")
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
@@ -422,12 +492,12 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
     { id: "supprimer_rapport", label: "Supprimer Rapport" },
     { id: "programme_entretien", label: "Programme Entretien" },
     { id: "ajouter_programme_entretien", label: "Ajouter Programme Entretien" },
-    { id: "modifier_programme_entretien", label: "Modifier Programme Entretien"},
+    { id: "modifier_programme_entretien", label: "Modifier Programme Entretien" },
     { id: "supprimer_programme_entretien", label: "Supprimer Programme Entretien" },
-    { id: "modifier_kilo_heure", label: "Faire la mise a jour du kilometrage/heure"},
-    { id: "modifier_status", label: "Modifier Le Status d'un vehicule"},
-    { id: "modifier_affectation", label: "Affecter un vehicule a une autre structure"},
-    { id: "ajouter_situation_immobilisation", label: "Ajouter Une Situation d'immobilisation hebdomadaire"}
+    { id: "modifier_kilo_heure", label: "Faire la mise a jour du kilometrage/heure" },
+    { id: "modifier_status", label: "Modifier Le Status d'un vehicule" },
+    { id: "modifier_affectation", label: "Affecter un vehicule a une autre structure" },
+    { id: "ajouter_situation_immobilisation", label: "Ajouter Une Situation d'immobilisation hebdomadaire" },
   ]
 
   return (
@@ -465,21 +535,24 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-3xl font-bold text-gray-800">Gestion des Utilisateurs</h1>
               <div className="flex space-x-4">
-                {userPrivs.includes('ajouter_structure') && (
-                <button
-                  onClick={() => setStruct(true)}
-                  className="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span>Ajouter une structure</span>
-                </button>)}
-                {userPrivs.includes('ajouter_user') && (<button
-                  onClick={handlePopup}
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
-                >
-                  <UserPlus className="w-5 h-5" />
-                  <span>Ajouter un compte</span>
-                </button>)}
+                {userPrivs.includes("ajouter_structure") && (
+                  <button
+                    onClick={() => setStruct(true)}
+                    className="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Ajouter une structure</span>
+                  </button>
+                )}
+                {userPrivs.includes("ajouter_user") && (
+                  <button
+                    onClick={handlePopup}
+                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                    <span>Ajouter un compte</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -687,25 +760,30 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.code_structure}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <button
-                              onClick={userPrivs.includes('modifier_user') ? () => handleEditUser(user): undefined}
-                              disabled={!userPrivs.includes('modifier_user')}
+                              onClick={userPrivs.includes("modifier_user") ? () => handleEditUser(user) : undefined}
+                              disabled={!userPrivs.includes("modifier_user")}
                               className={`mr-3 inline-flex items-center 
-                                ${userPrivs.includes('modifier_user')
-                                  ? "text-indigo-600 hover:text-indigo-900"
-                                  : "text-gray-400 hover:text-gray-600 cursor-not-allowed"
+                                ${
+                                  userPrivs.includes("modifier_user")
+                                    ? "text-indigo-600 hover:text-indigo-900"
+                                    : "text-gray-400 hover:text-gray-600 cursor-not-allowed"
                                 }`}
                             >
                               <Edit className="h-4 w-4 mr-1" />
                               Modifier
                             </button>
                             <button
-                              
-                              onClick={userPrivs.includes('supprimer_user') ? () => handleDeleteUser(user.id_utilisateur!): undefined}
-                              disabled={!userPrivs.includes('supprimer_user')}
+                              onClick={
+                                userPrivs.includes("supprimer_user")
+                                  ? () => handleDeleteUser(user.id_utilisateur!)
+                                  : undefined
+                              }
+                              disabled={!userPrivs.includes("supprimer_user")}
                               className={`inline-flex items-center 
-                                ${userPrivs.includes('supprimer_user')
-                                  ? "text-red-600 hover:text-red-900"
-                                  : "text-gray-400 hover:text-gray-600 cursor-not-allowed"
+                                ${
+                                  userPrivs.includes("supprimer_user")
+                                    ? "text-red-600 hover:text-red-900"
+                                    : "text-gray-400 hover:text-gray-600 cursor-not-allowed"
                                 }`}
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
@@ -906,9 +984,15 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
                           value={formValue.username}
                           onChange={handleForm}
                           placeholder="Nom d'utilisateur"
-                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          className={`w-full px-2 py-1.5 text-sm border ${
+                            usernameError ? "border-red-500" : "border-gray-300"
+                          } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black`}
                           readOnly={isEditMode} // Username cannot be changed in edit mode
                         />
+                        {usernameError && <p className="mt-1 text-xs text-red-600">{usernameError}</p>}
+                        {isValidating && formValue.username && !usernameError && (
+                          <p className="mt-1 text-xs text-blue-600">Vérification en cours...</p>
+                        )}
                       </div>
 
                       <div>
@@ -937,8 +1021,14 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
                           onChange={handleForm}
                           type="text"
                           placeholder="Code de la structure"
-                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
+                          className={`w-full px-2 py-1.5 text-sm border ${
+                            structureError ? "border-red-500" : "border-gray-300"
+                          } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black`}
                         />
+                        {structureError && <p className="mt-1 text-xs text-red-600">{structureError}</p>}
+                        {isValidating && formValue.structure && !structureError && (
+                          <p className="mt-1 text-xs text-blue-600">Vérification en cours...</p>
+                        )}
                       </div>
 
                       <div>
@@ -1027,13 +1117,18 @@ export default function Compte({ userId, userPrivs }: { userId: number, userPriv
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || isValidating || !!usernameError || !!structureError}
                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Chargement...
+                      </>
+                    ) : isValidating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Validation...
                       </>
                     ) : isEditMode ? (
                       "Modifier"

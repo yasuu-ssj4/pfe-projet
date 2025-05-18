@@ -1,6 +1,6 @@
 import { PrismaClient, utilisateur } from "@prisma/client";
 import CryptoJS from "crypto-js";
-import bcrypt from 'bcrypt';
+
 import {
     Vehicule,
     Marque,
@@ -74,8 +74,7 @@ export async function ajouterMarque(data: Marque) {
   
   
 export async function ajouterUtilisateur(user: Utilisateur) {
-  const saltRounds = 10;
-const hashedMdp = await bcrypt.hash(user.mot_de_passe, saltRounds);
+    const encryptedMdp = CryptoJS.AES.encrypt(user.mot_de_passe, SECRET_KEY).toString();
 
     await prisma.utilisateur.create({
         data: {
@@ -84,7 +83,7 @@ const hashedMdp = await bcrypt.hash(user.mot_de_passe, saltRounds);
             username: user.username,
             email: user.email,
             numero_telephone: user.numero_telephone,
-            mot_de_passe: hashedMdp,
+            mot_de_passe: encryptedMdp,
             code_structure: user.code_structure,
             methode_authent: user.methode_authent,
             est_admin: user.est_admin,
@@ -146,11 +145,28 @@ const hashedMdp = await bcrypt.hash(user.mot_de_passe, saltRounds);
     
   
   export async function ajouterTravauxInterne(data: TraveauxInterne) {
-     await prisma.traveaux_interne.create({ data });
+     await prisma.traveaux_interne.create({ 
+        data: {
+          id_rapport: data.id_rapport,
+          atelier_desc: data.atelier_desc,
+          PDR_consommee: data.PDR_consommee,
+          cout_pdr: Number.parseFloat(data.cout_pdr.toString()),
+          reference_bc_bm_btm: data.reference_bc_bm_btm,
+          temps_alloue: Number.parseFloat(data.temps_alloue.toString()),
+          description: data.description,
+        }
+      });
   }
   
   export async function ajouterTravauxExterne(data: TraveauxExterne) {
-    await prisma.traveaux_externe.create({ data });
+    await prisma.traveaux_externe.create({ data : {
+      id_rapport: data.id_rapport,
+      design_prestataire: data.design_prestataire,
+      reference_contrat: data.reference_contrat,
+      reference_facture: data.reference_facture,
+      cout_facture: Number.parseFloat(data.cout_facture.toString()),
+      description: data.description,
+    } });
   }
 
  const constater_vehicule = async (id_utilisateur: number) => {

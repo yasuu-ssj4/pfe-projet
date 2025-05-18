@@ -23,7 +23,7 @@ export default function FormRapport({
     description: string
     atelier: string
     temps_alloue: number
-    pdr_consomme: number
+    pdr_consomme: string
     cout: number
     reference: string
   }
@@ -95,7 +95,7 @@ export default function FormRapport({
       description: "",
       atelier: "",
       temps_alloue: 0,
-      pdr_consomme: 0,
+      pdr_consomme: "",
       cout: 0,
       reference: "",
     }

@@ -235,6 +235,7 @@ model traveaux_interne {
   PDR_consommee       String
   cout_pdr            Int
   reference_bc_bm_btm String
+  description         String?              @db.NVarChar(255)
   rapport             rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade)
 }
 
@@ -245,6 +246,7 @@ model traveaux_externe {
   reference_contrat  String
   reference_facture  String
   cout_facture       Int
+  description        String?              @db.NVarChar(255)
   rapport            rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade)
 }
 
