@@ -1,13 +1,26 @@
 "use client"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, Users, Car, FileText, LogOut } from "lucide-react"
+import { 
+  Home, 
+  Users,
+  Car,
+  FileText,
+  MonitorCogIcon,
+  LogOut,
+  ChevronDown,
+  BarChart2,
+  FileBarChart,
+  Warehouse,
+  Dog} from "lucide-react"
 import naftal_logo from "../lib/Logo_NAFTAL.svg"
 import { useState } from "react"
+import path from "path"
 
 export default function Sidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [expandedItems, setExpandedItems] = useState<string[]>([])
 
   const isActive = (path: string) => {
     return pathname === path
@@ -15,6 +28,12 @@ export default function Sidebar() {
 
   const navigateTo: (path: string) => void = (path: string) => {
     router.push(path)
+  }
+
+  const toggleExpand = (itemPath: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(itemPath) ? prev.filter((item) => item !== itemPath) : [...prev, itemPath],
+    )
   }
 
   const handleLogout = async () => {
@@ -56,14 +75,53 @@ export default function Sidebar() {
       icon: <Car size={20} />,
     },
     {
+      path: "/rapport",
+      label: "Rapport",
+      icon: <FileText size={20} />,
+      subItems: [
+        {
+          path: "/rapport/situation-imb",
+          label: "Situation IMB",
+          icon: <BarChart2 size={18} />,
+        },
+        {
+          path: "/rapport/activite",
+          label: "Rapport Activite",
+          icon: <FileBarChart size={18} />, 
+        },
+      ],
+    },
+    {
       path: "/documents",
       label: "Documents",
       icon: <FileText size={20} />,
     },
+    {
+      path: "/parametrage",
+      label: "Parametrage",
+      icon: <MonitorCogIcon size={20} />,
+      subItems: [
+        {
+          path: "/Utilisateurs",
+          label: "Utilisateurs",
+          icon: <Users size={18} />,
+        },
+        {
+          path: "/documents/entretien",
+          label: "Programme d'entretien",
+          icon: <Warehouse size={18} />,
+        },
+      ]
+    },
+    {
+          path: "",
+          label: "Slimane",
+          icon: <Dog size={20} />,
+        },
   ]
 
   return (
-<div className="fixed print:static top-0 left-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-10 print:hidden">
+    <div className="fixed print:static top-0 left-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-10 print:hidden">
       {/*logo*/}
       <div className="flex items-center justify-center h-[12vh] border-b border-gray-200 text-white">
         <img src={naftal_logo.src || "/placeholder.svg"} alt="Naftal Logo" className="h-16 w-auto" />
@@ -72,18 +130,46 @@ export default function Sidebar() {
       <nav className="flex flex-col h-[calc(100%-4rem)]">
         <div className="flex-1 py-4">
           {menuItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => navigateTo(item.path)}
-              className={`w-full flex items-center px-4 py-3 transition-colors duration-200 ${
-                isActive(item.path)
-                  ? "bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600 font-medium"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <span className={`${isActive(item.path) ? "text-indigo-600" : "text-gray-500"}`}>{item.icon}</span>
-              <span className="ml-3">{item.label}</span>
-            </button>
+            <div key={item.path}>
+              <button
+                onClick={() => (item.subItems ? toggleExpand(item.path) : navigateTo(item.path))}
+                className={`w-full flex items-center justify-between px-4 py-3 transition-colors duration-200 ${
+                  isActive(item.path)
+                    ? "bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600 font-medium"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <div className="flex items-center">
+                  <span className={`${isActive(item.path) ? "text-indigo-600" : "text-gray-500"}`}>{item.icon}</span>
+                  <span className="ml-3">{item.label}</span>
+                </div>
+                {item.subItems && (
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-200 ${expandedItems.includes(item.path) ? "rotate-180" : ""}`}
+                  />
+                )}
+              </button>
+
+              {item.subItems && expandedItems.includes(item.path) && (
+                <div className="ml-6 border-l border-gray-200 pl-4">
+                  {item.subItems.map((subItem) => (
+                    <button
+                      key={subItem.path}
+                      onClick={() => navigateTo(subItem.path)}
+                      className={`w-full flex items-center px-4 py-2 text-sm transition-colors duration-200 ${
+                        isActive(subItem.path) ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-indigo-500"
+                      }`}
+                    >
+                      <span className={`${isActive(subItem.path) ? "text-indigo-600" : "text-gray-500"}`}>
+                        {subItem.icon}
+                      </span>
+                      <span className="ml-3">{subItem.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
 

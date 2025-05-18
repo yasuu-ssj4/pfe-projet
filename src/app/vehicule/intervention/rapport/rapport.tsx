@@ -351,7 +351,14 @@ export default function FormRapport({
 
     fetchData()
   }, [id_demande_intervention])
-
+  // pour diviser la structure maintenance en charge en 2
+      let structure_type = ""
+      let structure_detail = ""
+      if(Data?.structure_maintenance) {
+        const parts = Data.structure_maintenance.split(',')
+        structure_type = parts[0] || ''
+        structure_detail = parts[1] || ''
+      }
   if (isLoading && !FormValue.structure_maintenance_charge) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -464,7 +471,7 @@ export default function FormRapport({
                       <div>
                         <div className="font-semibold mb-1">Structure Maintenance en charge des travaux :</div>
                         <div className="px-2 py-1 bg-gray-100 rounded">
-                          {Data.structure_maintenance || FormValue.structure_maintenance_charge || "Non spécifié"}
+                          {structure_detail || FormValue.structure_maintenance_charge || "Non spécifié"}
                         </div>
                       </div>
                     </div>

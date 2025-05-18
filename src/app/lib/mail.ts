@@ -69,19 +69,7 @@ import { env } from "process";
                   </tr>
                   
                   <!-- Action Button -->
-                  <tr>
-                    <td style="padding: 0 0 20px 0;">
-                      <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                        <tr>
-                          <td align="center" style="padding: 15px 0;">
-                            <a href="#" style="background-color: #0056b3; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; display: inline-block;">
-                              Accéder à la demande
-                            </a>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
+                  
                   
                   <tr>
                     <td style="padding: 0; color: #333333; font-size: 16px; line-height: 1.5;">
@@ -116,7 +104,7 @@ import { env } from "process";
 }
 
 // Example usage
-sendInterventionNotification("", "islam chikor", "islam chbab").then((result) => {
+sendInterventionNotification("", "1345", "F0101").then((result) => {
   if (result.success) {
     console.log(process.env.EMAIL_USER)
     console.log("Notification email sent successfully")
