@@ -172,7 +172,7 @@ export async function ajouterUtilisateur(user: Utilisateur) {
  const rapport_activite = async ({id_utilisateur, date}: {id_utilisateur: number , date: string}) => {
     try {
 
-    const res = await fetch("/api/rapport/rapportActivites", {
+    const res = await fetch("http://localhost:3000/api/rapport/rapportActivites", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ id_utilisateur, date }),
@@ -192,3 +192,4 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     }
   }
 
+rapport_activite({id_utilisateur: 2, date: "05/2025"})
