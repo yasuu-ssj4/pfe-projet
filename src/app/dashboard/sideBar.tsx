@@ -11,7 +11,9 @@ import {
   BarChart2,
   FileBarChart,
   Warehouse,
-  Dog} from "lucide-react"
+  Truck,
+  Forklift,
+  Building2} from "lucide-react"
 import naftal_logo from "../lib/Logo_NAFTAL.svg"
 import { useState } from "react"
 import path from "path"
@@ -65,11 +67,6 @@ export default function Sidebar() {
       icon: <Home size={20} />,
     },
     {
-      path: "/Utilisateurs",
-      label: "Utilisateurs",
-      icon: <Users size={20} />,
-    },
-    {
       path: "/vehicule",
       label: "Véhicules",
       icon: <Car size={20} />,
@@ -80,7 +77,7 @@ export default function Sidebar() {
       icon: <FileText size={20} />,
       subItems: [
         {
-          path: "/rapport/situation-imb",
+          path: "/documents/immobilisation",
           label: "Situation IMB",
           icon: <BarChart2 size={18} />,
         },
@@ -90,11 +87,6 @@ export default function Sidebar() {
           icon: <FileBarChart size={18} />, 
         },
       ],
-    },
-    {
-      path: "/documents",
-      label: "Documents",
-      icon: <FileText size={20} />,
     },
     {
       path: "/parametrage",
@@ -108,16 +100,21 @@ export default function Sidebar() {
         },
         {
           path: "/documents/entretien",
-          label: "Programme d'entretien",
-          icon: <Warehouse size={18} />,
+          label: "Programme Entretien",
+          icon: <Forklift size={18} />,
         },
+        {
+          path: "/marque",
+          label: "Marque",
+          icon: <Truck size={18} />,
+        },
+        {
+          path: "/structure",
+          label: "Structures",
+          icon: <Building2 size={18} />,
+        }
       ]
     },
-    {
-          path: "",
-          label: "Slimane",
-          icon: <Dog size={20} />,
-        },
   ]
 
   return (

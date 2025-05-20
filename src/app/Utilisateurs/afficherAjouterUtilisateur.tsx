@@ -18,6 +18,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react"
+import { Label } from "@radix-ui/react-dropdown-menu"
 
 export default function Compte({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
   const [popup, setPopup] = useState(false)
@@ -63,6 +64,94 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
   // Add this debugging function at the top of the component, right after the useState declarations
   const debugLog = (message: string, data: any) => {
     console.log(`DEBUG - ${message}:`, data)
+  }
+
+  // Define the hierarchical privilege structure
+  const privilegeGroups = [
+    {
+      id: "admin",
+      label: "Admin",
+      subItems: [],
+    },
+    {
+      id: "user_group",
+      label: "Compte utilisateur",
+      subItems: [
+        { id: "user", label: "Compte Utilisateur" },
+        { id: "ajouter_user", label: "Ajouter Un Utilisateur" },
+        { id: "modifier_user", label: "Modifier Un Utilisateur" },
+        { id: "supprimer_user", label: "Supprimer Un Utilisateur" },
+      ],
+    },
+    {
+      id: "structure_group",
+      label: "Structure",
+      subItems: [
+        { id: "ajouter_structure", label: "Ajouter Une Structure" },
+        { id: "modifier_structure", label: "Modifier Une Structure" },
+      ],
+    },
+    {
+      id: "vehicule_group",
+      label: "Véhicule",
+      subItems: [
+        { id: "ajout_vehicule", label: "Ajouter Un Véhicule" },
+        { id: "modifier_vehicule", label: "Modifier Un Véhicule" },
+        { id: "supprimer_vehicule", label: "Supprimer Un Véhicule" },
+        { id: "ajouter_marque", label: "Ajouter Une Marque"},
+        { id: "modifier_kilo_heure", label: "Faire la mise a jour du kilometrage/heure" },
+        { id: "modifier_status", label: "Modifier Le Status d'un vehicule" },
+        { id: "modifier_affectation", label: "Affecter un vehicule a une autre structure" },
+      ],
+    },
+    {
+      id: "intervention_group",
+      label: "Demande Intervention",
+      subItems: [
+        { id: "ajouter_DI", label: "Ajouter la Demande d'intervention" },
+        { id: "ajouter_QI", label: "Ajouter la qualification d'intervention" },
+        { id: "supprimer_DI", label: "Supprimer la Demande d'intervention" },
+      ],
+    },
+    {
+      id: "rapport_intervention_group",
+      label: "Rapport d'Intervention",
+      subItems: [
+        { id: "ajouter_rapport", label: "Ajouter Rapport d'intervention" },
+        { id: "supprimer_rapport", label: "Supprimer Rapport d'intervention" },
+      ],
+    },
+    {
+      id: "programme_group",
+      label: "Programme Entretien",
+      subItems: [
+        { id: "ajouter_programme_entretien", label: "Ajouter Programme Entretien" },
+        { id: "modifier_programme_entretien", label: "Modifier Programme Entretien" },
+        { id: "supprimer_programme_entretien", label: "Supprimer Programme Entretien" },
+      ],
+    },
+    {
+      id: "rapport_group",
+      label: "Rapports",
+      subItems: [
+        { id: "ajouter_situation_immobilisation", label: "Ajouter Une Situation d'immobilisation hebdomadaire" },
+      ]
+    }
+  ]
+
+  // Get all privilege IDs (for flattening the structure when needed)
+  const getAllPrivilegeIds = () => {
+    const ids: string[] = []
+    privilegeGroups.forEach((group) => {
+      if (group.id === "admin") {
+        ids.push(group.id)
+      } else {
+        group.subItems.forEach((item) => {
+          ids.push(item.id)
+        })
+      }
+    })
+    return ids
   }
 
   // Fetch users de L'API
@@ -416,14 +505,72 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
     }
   }
 
-  const handleItems = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, checked } = event.target
+  // New function to handle group checkbox changes
+  const handleGroupChange = (groupId: string, checked: boolean) => {
+    if (groupId === "admin") {
+      // Special case for admin - check/uncheck all privileges
+      if (checked) {
+        setCheckedItems(getAllPrivilegeIds())
+        setFormValue((prev) => ({ ...prev, est_admin: true }))
+      } else {
+        setCheckedItems([])
+        setFormValue((prev) => ({ ...prev, est_admin: false }))
+      }
+      return
+    }
 
-    if (id === "admin") {
-      setFormValue((prev) => ({ ...prev, est_admin: checked }))
-      setCheckedItems(checked ? privilege.map((opt) => opt.id) : [])
+    // Find the group
+    const group = privilegeGroups.find((g) => g.id === groupId)
+    if (!group) return
+
+    // Get all sub-item IDs for this group
+    const subItemIds = group.subItems.map((item) => item.id)
+
+    if (checked) {
+      // Add all sub-items that aren't already checked
+      const newCheckedItems = [...checkedItems]
+      subItemIds.forEach((id) => {
+        if (!newCheckedItems.includes(id)) {
+          newCheckedItems.push(id)
+        }
+      })
+      setCheckedItems(newCheckedItems)
     } else {
-      setCheckedItems((prev) => (checked ? [...prev, id] : prev.filter((item) => item !== id)))
+      // Remove all sub-items
+      setCheckedItems(checkedItems.filter((id) => !subItemIds.includes(id)))
+    }
+  }
+
+  // Function to check if a group is fully checked
+  const isGroupChecked = (groupId: string) => {
+    if (groupId === "admin") {
+      return formValue.est_admin
+    }
+
+    const group = privilegeGroups.find((g) => g.id === groupId)
+    if (!group) return false
+
+    // Check if all sub-items are checked
+    return group.subItems.every((item) => checkedItems.includes(item.id))
+  }
+
+  // Function to check if a group is partially checked
+  const isGroupIndeterminate = (groupId: string) => {
+    if (groupId === "admin") return false
+
+    const group = privilegeGroups.find((g) => g.id === groupId)
+    if (!group) return false
+
+    const checkedSubItems = group.subItems.filter((item) => checkedItems.includes(item.id))
+    return checkedSubItems.length > 0 && checkedSubItems.length < group.subItems.length
+  }
+
+  // Handle individual item checkbox changes
+  const handleItemChange = (itemId: string, checked: boolean) => {
+    if (checked) {
+      setCheckedItems((prev) => [...prev, itemId])
+    } else {
+      setCheckedItems((prev) => prev.filter((id) => id !== itemId))
     }
   }
 
@@ -471,37 +618,8 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser)
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
 
-  const privilege = [
-    { id: "admin", label: "Admin" },
-    { id: "user", label: "Compte Utilisateur" },
-    { id: "ajouter_user", label: "Ajouter Un Utilisateur" },
-    { id: "modifier_user", label: "Modifier Un Utilisateur" },
-    { id: "supprimer_user", label: "Supprimer Un Utilisateur" },
-    { id: "struct", label: "Structure" },
-    { id: "ajouter_structure", label: "Ajouter Une Structure" },
-    { id: "vehicule", label: "Véhicule" },
-    { id: "ajout_vehicule", label: "Ajouter Un Véhicule" },
-    { id: "modifier_vehicule", label: "Modifier Un Véhicule" },
-    { id: "supprimer_vehicule", label: "Supprimer Un Véhicule" },
-    { id: "ajouter_DI", label: "Ajouter la Demande d'intervention" },
-    { id: "ajouter_QI", label: "Ajouter la qualification d'intervention " },
-    { id: "supprimer_DI", label: "Supprimer la Demande d'intervention" },
-    { id: "demande", label: "Demande" },
-    { id: "rapport", label: "Rapport" },
-    { id: "ajouter_rapport", label: "Ajouter Rapport" },
-    { id: "supprimer_rapport", label: "Supprimer Rapport" },
-    { id: "programme_entretien", label: "Programme Entretien" },
-    { id: "ajouter_programme_entretien", label: "Ajouter Programme Entretien" },
-    { id: "modifier_programme_entretien", label: "Modifier Programme Entretien" },
-    { id: "supprimer_programme_entretien", label: "Supprimer Programme Entretien" },
-    { id: "modifier_kilo_heure", label: "Faire la mise a jour du kilometrage/heure" },
-    { id: "modifier_status", label: "Modifier Le Status d'un vehicule" },
-    { id: "modifier_affectation", label: "Affecter un vehicule a une autre structure" },
-    { id: "ajouter_situation_immobilisation", label: "Ajouter Une Situation d'immobilisation hebdomadaire" },
-  ]
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50  px-6 py-4  ">
       {/* Alert Notification */}
       {alert.visible && (
         <div
@@ -1083,32 +1201,92 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
                       </div>
                     </div>
 
-                    {/* Right side - Privileges */}
+                    {/* Right side - Hierarchical Privileges */}
                     <div className="col-span-12 md:col-span-7 bg-gray-50 p-3 rounded-lg border border-gray-200">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Sélection des privilèges</h4>
-                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto">
-                        {privilege.map((option) => (
+                      <div className="max-h-[400px] overflow-y-auto">
+                        {/* Admin checkbox at the top */}
+                        <div className="mb-3">
                           <label
-                            key={option.id}
-                            htmlFor={option.id}
+                            htmlFor="admin"
                             className={`flex items-center p-2 rounded-md border ${
-                              checkedItems.includes(option.id)
+                              formValue.est_admin
                                 ? "border-indigo-500 bg-indigo-50"
                                 : "border-gray-300 hover:bg-gray-100"
                             } transition-colors duration-200 cursor-pointer`}
                           >
                             <input
                               type="checkbox"
-                              id={option.id}
-                              name="privilege"
-                              value={option.id}
-                              checked={checkedItems.includes(option.id)}
-                              onChange={handleItems}
-                              className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                              id="admin"
+                              checked={formValue.est_admin}
+                              onChange={(e) => {
+                                setFormValue((prev) => ({ ...prev, est_admin: e.target.checked }))
+                                handleGroupChange("admin", e.target.checked)
+                              }}
+                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                             />
-                            <span className="ml-1.5 text-xs text-gray-700">{option.label}</span>
+                            <span className="ml-2 text-sm font-medium text-gray-700">Admin (Tous les privilèges)</span>
                           </label>
-                        ))}
+                        </div>
+
+                        {/* Privilege groups */}
+                        {privilegeGroups
+                          .filter((group) => group.id !== "admin")
+                          .map((group) => (
+                            <div key={group.id} className="mb-3 border border-gray-200 rounded-md overflow-hidden">
+                              {/* Group header */}
+                              <label
+                                htmlFor={group.id}
+                                className={`flex items-center p-2 ${
+                                  isGroupChecked(group.id)
+                                    ? "bg-indigo-50 border-b border-indigo-100"
+                                    : isGroupIndeterminate(group.id)
+                                      ? "bg-gray-100 border-b border-gray-200"
+                                      : "bg-white border-b border-gray-200"
+                                } cursor-pointer`}
+                              >
+                                <div className="relative flex items-center">
+                                  <input
+                                    type="checkbox"
+                                    id={group.id}
+                                    checked={isGroupChecked(group.id)}
+                                    ref={(el) => {
+                                      if (el) {
+                                        el.indeterminate = isGroupIndeterminate(group.id)
+                                      }
+                                    }}
+                                    onChange={(e) => handleGroupChange(group.id, e.target.checked)}
+                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                  />
+                                  <span className="ml-2 text-sm font-medium text-gray-700">{group.label}</span>
+                                </div>
+                              </label>
+
+                              {/* Group items */}
+                              <div className="pl-6 py-1 bg-gray-50">
+                                {group.subItems.map((item) => (
+                                  <label
+                                    key={item.id}
+                                    htmlFor={item.id}
+                                    className={`flex items-center p-2 rounded-md ${
+                                      checkedItems.includes(item.id)
+                                        ? "text-indigo-700"
+                                        : "text-gray-700 hover:bg-gray-100"
+                                    } transition-colors duration-200 cursor-pointer`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      id={item.id}
+                                      checked={checkedItems.includes(item.id)}
+                                      onChange={(e) => handleItemChange(item.id, e.target.checked)}
+                                      className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                    />
+                                    <span className="ml-2 text-xs">{item.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
                       </div>
                     </div>
                   </div>

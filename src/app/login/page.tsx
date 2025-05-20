@@ -27,7 +27,7 @@ export default function Home() {
   const [isFirstLoad, setIsFirstLoad] = useState(true)
 
   useEffect(() => {
-    // Check if this is the first load
+    
     const hasVisited = sessionStorage.getItem("hasVisited")
     if (hasVisited) {
       setIsFirstLoad(false)

@@ -145,11 +145,28 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     
   
   export async function ajouterTravauxInterne(data: TraveauxInterne) {
-     await prisma.traveaux_interne.create({ data });
+     await prisma.traveaux_interne.create({ 
+        data: {
+          id_rapport: data.id_rapport,
+          atelier_desc: data.atelier_desc,
+          PDR_consommee: data.PDR_consommee,
+          cout_pdr: Number.parseFloat(data.cout_pdr.toString()),
+          reference_bc_bm_btm: data.reference_bc_bm_btm,
+          temps_alloue: Number.parseFloat(data.temps_alloue.toString()),
+          description: data.description,
+        }
+      });
   }
   
   export async function ajouterTravauxExterne(data: TraveauxExterne) {
-    await prisma.traveaux_externe.create({ data });
+    await prisma.traveaux_externe.create({ data : {
+      id_rapport: data.id_rapport,
+      design_prestataire: data.design_prestataire,
+      reference_contrat: data.reference_contrat,
+      reference_facture: data.reference_facture,
+      cout_facture: Number.parseFloat(data.cout_facture.toString()),
+      description: data.description,
+    } });
   }
 
  const constater_vehicule = async (id_utilisateur: number) => {

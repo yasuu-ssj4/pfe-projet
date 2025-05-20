@@ -4,16 +4,10 @@ import { TraveauxExterne, TraveauxInterne } from "@/app/interfaces"
 
 export async function POST(request: Request) {
   try {
-    let body: any;
 
-    // Attempt to parse normally
-    try {
-      body = await request.json()
-    } catch (err) {
-      // Fallback: parse manually if json() fails (body was sent as raw string)
-      const rawText = await request.text()
-      body = JSON.parse(rawText)
-    }
+   
+     const body = await request.json()
+    
 
     console.log("Body de la requête:", body)
 
@@ -35,6 +29,7 @@ export async function POST(request: Request) {
           cout_pdr: Number.parseFloat(travail.cout.toString()),
           reference_bc_bm_btm: travail.reference,
           temps_alloue: Number.parseFloat(travail.temps_alloue.toString()),
+          description   : travail.description,
         }
 
         try {
@@ -54,6 +49,7 @@ export async function POST(request: Request) {
           reference_contrat: travail.reference_contrat,
           reference_facture: travail.reference_facture,
           cout_facture: Number.parseFloat(travail.cout.toString()),
+          description: travail.description,
         }
 
         try {

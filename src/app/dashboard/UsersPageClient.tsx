@@ -442,7 +442,7 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
               <CarIcon className="h-6 w-6 text-red-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">Véhicules nécessitant une mise à jour</p>
+              <p className="text-sm font-medium text-gray-600">Véhicules nécessitant une mise à jour Km/h parcourus</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {isLoadingKilometrage ? "..." : vehiculesAlertes.length}
               </p>
@@ -457,7 +457,7 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
               <FileTextIcon className="h-6 w-6 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">Documents à renouveler</p>
+              <p className="text-sm font-medium text-gray-600">Documents de bords à renouveler</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {isLoadingDocuments && !documentsAlertes.length ? "..." : documentsAlertes.length}
               </p>
@@ -472,7 +472,7 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
               <WrenchIcon className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">Maintenances à prévoir</p>
+              <p className="text-sm font-medium text-gray-600">Maintenances preventives proches</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {isLoadingMaintenance && !maintenanceAlertes.length ? "..." : maintenanceAlertes.length}
               </p>
@@ -490,7 +490,7 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
               <AlertCircleIcon className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">Demandes en instance</p>
+              <p className="text-sm font-medium text-gray-600">DI en instance</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {isLoadingDemandesEnInstance ? "..." : demandesEnInstanceCount}
               </p>
@@ -529,7 +529,7 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
-              Alertes Kilométrage
+              Alertes Kilométrage/Heure
             </button>
             <button
               onClick={() => handleTabChange("documents")}
@@ -539,7 +539,7 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
-              Alertes Documents
+              Alertes Documents de bords
             </button>
             <button
               onClick={() => handleTabChange("maintenance")}
@@ -549,7 +549,7 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
-              Alertes Maintenance
+              Alertes Maintenance Preventive
             </button>
           </nav>
         </div>

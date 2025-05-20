@@ -225,7 +225,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
                   name="code_genre"
                   onChange={handleChange}
                   value={FormValue.code_genre}
-                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
                 >
                   {genre.map((option) => (
                     <option key={option.code_genre} value={option.code_genre}>
@@ -258,7 +258,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
                   name="code_marque"
                   onChange={handleChange}
                   value={FormValue.code_marque}
-                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                  className="block w-full pl-3 pr-10 py-2 text-base border appearance-none border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
                 >
                   {marque.map((option) => (
                     <option key={option.id_marque} value={option.id_marque}>
@@ -291,7 +291,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
                   name="code_type"
                   onChange={handleChange}
                   value={FormValue.code_type}
-                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
                 >
                   {type.length > 0 ? (
                     type.map((option) => (

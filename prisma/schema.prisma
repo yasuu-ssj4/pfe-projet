@@ -116,10 +116,10 @@ model affectation {
 }
 
 model utilisateur {
-  id_utilisateur     Int             @id @default(autoincrement())
+  id_utilisateur     Int       @id @default(autoincrement())
   nom_utilisateur    String
   prenom_utilisateur String
-  username           String          @unique
+  username           String    @unique
   email              String
   numero_telephone   String
   mot_de_passe       String
@@ -128,8 +128,7 @@ model utilisateur {
   est_admin          Boolean
   droit_utilisateur  String
   role               String
-  notifications      notifications[]
-  structure          structure       @relation(fields: [code_structure], references: [code_structure], onDelete: Cascade)
+  structure          structure @relation(fields: [code_structure], references: [code_structure], onDelete: Cascade)
 }
 
 model gamme {
@@ -167,7 +166,7 @@ model demande_intervention {
   nature_panne               String
   nature_travaux             String
   degre_urgence              String
-  code_vehicule              String
+  code_vehicule              String?
   district_id                String
   centre_id                  String
   constat_panne              String?
@@ -192,7 +191,7 @@ model demande_intervention {
   date_hse                   String?
   fonction_hse               String?
   nom_prenom_hse             String?
-  vehicule                   vehicule              @relation(fields: [code_vehicule], references: [code_vehicule])
+  vehicule                   vehicule?             @relation(fields: [code_vehicule], references: [code_vehicule])
   rapport_intervention       rapport_intervention?
 }
 
@@ -235,6 +234,7 @@ model traveaux_interne {
   PDR_consommee       String
   cout_pdr            Int
   reference_bc_bm_btm String
+  description         String?              @db.NVarChar(255)
   rapport             rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade)
 }
 
@@ -245,15 +245,6 @@ model traveaux_externe {
   reference_contrat  String
   reference_facture  String
   cout_facture       Int
+  description        String?              @db.NVarChar(255)
   rapport            rapport_intervention @relation(fields: [id_rapport], references: [id_rapport_intervention], onDelete: Cascade)
-}
-
-model notifications {
-  id             Int         @id(map: "PK__notifica__3213E83F004D14C1") @default(autoincrement())
-  id_utilisateur Int
-  message        String      @db.NVarChar(255)
-  link           String      @db.NVarChar(255)
-  is_read        Boolean     @default(false, map: "DF__notificat__is_re__68D28DBC")
-  created_at     DateTime    @db.DateTime
-  utilisateur    utilisateur @relation(fields: [id_utilisateur], references: [id_utilisateur], onUpdate: NoAction, map: "FK__notificat__id_ut__69C6B1F5")
 }
