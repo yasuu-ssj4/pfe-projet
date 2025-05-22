@@ -5,35 +5,72 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { AlertCircle, ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw, Search, X, Edit } from "lucide-react"
 
+interface Type {
+  id_type: number
+  designation: string
+  id_marque: number
+}
+
 interface Marque {
   id_marque: number
   designation: string
 }
 
-export default function MarquesTable({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
+export default function TypesTable({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
+  const [types, setTypes] = useState<Type[]>([])
+  const [filteredTypes, setFilteredTypes] = useState<Type[]>([])
   const [marques, setMarques] = useState<Marque[]>([])
-  const [filteredMarques, setFilteredMarques] = useState<Marque[]>([])
+  const [selectedMarque, setSelectedMarque] = useState<number | "">("")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
-  const [isAddingMarque, setIsAddingMarque] = useState(false)
-  const [newMarque, setNewMarque] = useState("")
+  const [isAddingType, setIsAddingType] = useState(false)
+  const [newType, setNewType] = useState("")
   const [addingError, setAddingError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Edit mode states
-  const [isEditingMarque, setIsEditingMarque] = useState(false)
-  const [editMarqueId, setEditMarqueId] = useState<number | null>(null)
-  const [editMarqueDesignation, setEditMarqueDesignation] = useState("")
+  const [isEditingType, setIsEditingType] = useState(false)
+  const [editTypeId, setEditTypeId] = useState<number | null>(null)
+  const [editTypeDesignation, setEditTypeDesignation] = useState("")
   const [editingError, setEditingError] = useState<string | null>(null)
+
+  // Fetch marques on component mount
+  useEffect(() => {
+    fetchMarques()
+  }, [])
+
+  // Fetch types when selected marque changes
+  useEffect(() => {
+    if (selectedMarque) {
+      fetchTypes(Number(selectedMarque))
+    } else {
+      setTypes([])
+      setFilteredTypes([])
+      setIsLoading(false)
+    }
+  }, [selectedMarque])
+
+  // Filter types when search term changes
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredTypes(types)
+      return
+    }
+
+    const term = searchTerm.toLowerCase()
+    const filtered = types.filter(
+      (type) => type.designation.toLowerCase().includes(term) || type.id_type.toString().includes(term),
+    )
+
+    setFilteredTypes(filtered)
+    setCurrentPage(1) // Reset to first page when filtering
+  }, [searchTerm, types])
 
   // Fetch marques from API
   const fetchMarques = async () => {
-    setIsLoading(true)
-    setError(null)
-
     try {
       const response = await fetch("/api/vehicule/marque")
 
@@ -44,42 +81,56 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
 
       const data = await response.json()
       setMarques(data)
-      setFilteredMarques(data)
     } catch (err) {
       console.error("Erreur lors de la récupération des marques:", err)
       setError(err instanceof Error ? err.message : "Erreur lors de la récupération des marques")
+    }
+  }
+
+  // Fetch types for a specific marque
+  const fetchTypes = async (marqueId: number) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/vehicule/type", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_marque: marqueId,
+          type: "get",
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Erreur lors de la récupération des types")
+      }
+
+      const data = await response.json()
+      setTypes(data)
+      setFilteredTypes(data)
+    } catch (err) {
+      console.error("Erreur lors de la récupération des types:", err)
+      setError(err instanceof Error ? err.message : "Erreur lors de la récupération des types")
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Fetch marques on component mount
-  useEffect(() => {
-    fetchMarques()
-  }, [])
+  // Handle adding a new type
+  const handleAddType = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-  // Filter marques when search term changes
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredMarques(marques)
+    if (!newType.trim()) {
+      setAddingError("Veuillez entrer une désignation")
       return
     }
 
-    const term = searchTerm.toLowerCase()
-    const filtered = marques.filter(
-      (marque) => marque.designation.toLowerCase().includes(term) || marque.id_marque.toString().includes(term),
-    )
-
-    setFilteredMarques(filtered)
-    setCurrentPage(1) // Reset to first page when filtering
-  }, [searchTerm, marques])
-
-  // Handle adding a new marque
-  const handleAddMarque = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!newMarque.trim()) {
-      setAddingError("Veuillez entrer une désignation")
+    if (!selectedMarque) {
+      setAddingError("Veuillez sélectionner une marque")
       return
     }
 
@@ -87,44 +138,48 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
     setAddingError(null)
 
     try {
-      const response = await fetch("/api/vehicule/marque", {
+      const response = await fetch("/api/vehicule/type", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ designation: newMarque }),
+        body: JSON.stringify({
+          designation: newType,
+          id_marque: Number(selectedMarque),
+          type: "ajouter",
+        }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Erreur lors de l'ajout de la marque")
+        throw new Error(errorData.error || "Erreur lors de l'ajout du type")
       }
 
       // Success - refresh the list and reset form
-      fetchMarques()
-      setNewMarque("")
-      setIsAddingMarque(false)
+      fetchTypes(Number(selectedMarque))
+      setNewType("")
+      setIsAddingType(false)
     } catch (err) {
-      console.error("Erreur lors de l'ajout de la marque:", err)
-      setAddingError(err instanceof Error ? err.message : "Erreur lors de l'ajout de la marque")
+      console.error("Erreur lors de l'ajout du type:", err)
+      setAddingError(err instanceof Error ? err.message : "Erreur lors de l'ajout du type")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Handle editing a marque
-  const handleEditMarque = (marque: Marque) => {
-    setEditMarqueId(marque.id_marque)
-    setEditMarqueDesignation(marque.designation)
+  // Handle editing a type
+  const handleEditType = (type: Type) => {
+    setEditTypeId(type.id_type)
+    setEditTypeDesignation(type.designation)
     setEditingError(null)
-    setIsEditingMarque(true)
+    setIsEditingType(true)
   }
 
   // Handle submitting the edit form
   const handleSubmitEdit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!editMarqueDesignation.trim()) {
+    if (!editTypeDesignation.trim()) {
       setEditingError("Veuillez entrer une désignation")
       return
     }
@@ -133,43 +188,58 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
     setEditingError(null)
 
     try {
-      const response = await fetch("/api/vehicule/marque", {
+      const response = await fetch("/api/vehicule/type", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id_marque: editMarqueId,
-          nouvelleDesignation: editMarqueDesignation,
+          id_type: editTypeId,
+          nouvelleDesignation: editTypeDesignation,
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Erreur lors de la modification de la marque")
+        throw new Error(errorData.error || "Erreur lors de la modification du type")
       }
 
       // Success - refresh the list and reset form
-      fetchMarques()
-      setIsEditingMarque(false)
-      setEditMarqueId(null)
-      setEditMarqueDesignation("")
+      if (selectedMarque) {
+        fetchTypes(Number(selectedMarque))
+      }
+      setIsEditingType(false)
+      setEditTypeId(null)
+      setEditTypeDesignation("")
     } catch (err) {
-      console.error("Erreur lors de la modification de la marque:", err)
-      setEditingError(err instanceof Error ? err.message : "Erreur lors de la modification de la marque")
+      console.error("Erreur lors de la modification du type:", err)
+      setEditingError(err instanceof Error ? err.message : "Erreur lors de la modification du type")
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  // Handle marque selection change
+  const handleMarqueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedMarque(Number(e.target.value))
+    setSearchTerm("")
+    setCurrentPage(1)
+  }
+
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentItems = filteredMarques.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(filteredMarques.length / itemsPerPage)
+  const currentItems = filteredTypes.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(filteredTypes.length / itemsPerPage)
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber)
+  }
+
+  // Get marque name by id
+  const getMarqueName = (id: number) => {
+    const marque = marques.find((m) => m.id_marque === id)
+    return marque ? marque.designation : "Inconnue"
   }
 
   return (
@@ -178,9 +248,28 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
         {/* Header with search and add button */}
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <h2 className="text-lg font-semibold text-gray-800">Liste des Marques</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Liste des Types de Véhicules</h2>
 
             <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+              {/* Marque Selection */}
+              <div className="relative">
+                <select
+                  value={selectedMarque}
+                  onChange={handleMarqueChange}
+                  className="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 w-full md:w-auto"
+                >
+                  <option value="">Sélectionner une marque</option>
+                  {marques.map((marque) => (
+                    <option key={marque.id_marque} value={marque.id_marque}>
+                      {marque.designation}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <ChevronLeft className="h-5 w-5 text-gray-400 rotate-270" />
+                </div>
+              </div>
+
               {/* Search Input */}
               <div className="relative flex-grow md:max-w-xs">
                 <input
@@ -189,6 +278,7 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={!selectedMarque}
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-5 w-5 text-gray-400" />
@@ -203,22 +293,23 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                 )}
               </div>
 
-              {/* Add Marque Button */}
-              {userPrivs.includes("ajouter_marque") && (
+              {/* Add Type Button */}
+               {userPrivs.includes('ajouter_type') && (
                 <button
-                  onClick={() => setIsAddingMarque(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={() => setIsAddingType(true)}
+                  disabled={!selectedMarque}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Ajouter une marque
+                  Ajouter un type
                 </button>
               )}
 
               {/* Refresh Button */}
               <button
-                onClick={fetchMarques}
-                disabled={isLoading}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                onClick={() => selectedMarque && fetchTypes(Number(selectedMarque))}
+                disabled={isLoading || !selectedMarque}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
                 Actualiser
@@ -237,29 +328,46 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                   Désignation
                 </th>
                 <th scope="col" className="px-6 py-3 text-left font-medium text-bold uppercase tracking-wider">
+                  Marque
+                </th>
+                <th scope="col" className="px-6 py-3 text-left font-medium text-bold uppercase tracking-wider">
                   Action
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
+              {!selectedMarque ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                        <ChevronLeft className="h-8 w-8 text-gray-400 rotate-270" />
+                      </div>
+                      <p className="text-lg font-medium">Veuillez sélectionner une marque</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Sélectionnez une marque pour afficher ses types de véhicules
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : isLoading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center">
                       <Loader2 className="w-12 h-12 text-indigo-500 mb-4 animate-spin" />
-                      <p className="text-lg font-medium">Chargement des marques...</p>
+                      <p className="text-lg font-medium">Chargement des types...</p>
                     </div>
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center">
                       <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                      <p className="text-lg font-medium text-red-500">Erreur lors du chargement des marques</p>
+                      <p className="text-lg font-medium text-red-500">Erreur lors du chargement des types</p>
                       <p className="text-sm text-gray-500 mt-1">{error}</p>
                       <button
-                        onClick={fetchMarques}
+                        onClick={() => selectedMarque && fetchTypes(Number(selectedMarque))}
                         className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
                         <RefreshCw className="h-4 w-4 mr-2" />
@@ -268,20 +376,20 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                     </div>
                   </td>
                 </tr>
-              ) : filteredMarques.length === 0 ? (
+              ) : filteredTypes.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                         <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
                       </div>
-                      <p className="text-lg font-medium">Aucune marque trouvée</p>
+                      <p className="text-lg font-medium">Aucun type trouvé</p>
                       <p className="text-sm text-gray-400 mt-1">
                         {searchTerm
                           ? "Essayez de modifier votre recherche"
-                          : "Ajoutez des marques pour les voir apparaître ici"}
+                          : "Ajoutez des types pour les voir apparaître ici"}
                       </p>
                       {searchTerm && (
                         <button
@@ -295,17 +403,20 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                   </td>
                 </tr>
               ) : (
-                currentItems.map((marque) => (
-                  <tr key={marque.id_marque} className="hover:bg-gray-50">
+                currentItems.map((type) => (
+                  <tr key={type.id_type} className="hover:bg-gray-50">
                     
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{marque.designation}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{type.designation}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {getMarqueName(type.id_marque)}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <button
-                        onClick={() => (userPrivs.includes("modifier_user") ? handleEditMarque(marque) : undefined)}
+                        onClick={ () => (userPrivs.includes("modifier_type") ? handleEditType(type) : undefined)}
                         disabled={!userPrivs.includes("modifier_user")}
                         className={`mr-3 inline-flex items-center 
                           ${
-                            userPrivs.includes("modifier_user")
+                            userPrivs.includes("modifier_type")
                               ? "text-indigo-600 hover:text-indigo-900"
                               : "text-gray-400 cursor-not-allowed"
                           }`}
@@ -322,12 +433,12 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
         </div>
 
         {/* Pagination */}
-        {!isLoading && !error && filteredMarques.length > 0 && (
+        {!isLoading && !error && selectedMarque && filteredTypes.length > 0 && (
           <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
             <div className="flex flex-col sm:flex-row justify-between items-center">
               <div className="text-sm text-gray-500 mb-4 sm:mb-0">
-                Affichage de {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredMarques.length)} sur{" "}
-                {filteredMarques.length} marque{filteredMarques.length > 1 ? "s" : ""}
+                Affichage de {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredTypes.length)} sur{" "}
+                {filteredTypes.length} type{filteredTypes.length > 1 ? "s" : ""}
               </div>
 
               <div className="flex items-center">
@@ -384,8 +495,8 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
           </div>
         )}
 
-        {/* Add Marque Modal */}
-        {isAddingMarque && (
+        {/* Add Type Modal */}
+        {isAddingType && (
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 transition-opacity" aria-hidden="true">
@@ -395,13 +506,13 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                 &#8203;
               </span>
               <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <form onSubmit={handleAddMarque}>
+                <form onSubmit={handleAddType}>
                   <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div className="flex justify-between items-center pb-3 mb-3 border-b border-gray-200">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">Ajouter une marque</h3>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">Ajouter un type</h3>
                       <button
                         type="button"
-                        onClick={() => setIsAddingMarque(false)}
+                        onClick={() => setIsAddingType(false)}
                         className="text-gray-400 hover:text-gray-500 focus:outline-none"
                       >
                         <X className="h-5 w-5" />
@@ -425,27 +536,48 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                       </div>
                     )}
 
-                    <div>
-                      <label htmlFor="designation" className="block text-sm font-medium text-gray-700 mb-1">
-                        Désignation de la marque
-                      </label>
-                      <input
-                        id="designation"
-                        name="designation"
-                        value={newMarque}
-                        onChange={(e) => setNewMarque(e.target.value)}
-                        type="text"
-                        placeholder="Entrez le nom de la marque"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                        required
-                      />
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="marque" className="block text-sm font-medium text-gray-700 mb-1">
+                          Marque
+                        </label>
+                        <select
+                          id="marque"
+                          name="marque"
+                          value={selectedMarque}
+                          disabled
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-100"
+                        >
+                          {marques.map((marque) => (
+                            <option key={marque.id_marque} value={marque.id_marque}>
+                              {marque.designation}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="designation" className="block text-sm font-medium text-gray-700 mb-1">
+                          Désignation du type
+                        </label>
+                        <input
+                          id="designation"
+                          name="designation"
+                          value={newType}
+                          onChange={(e) => setNewType(e.target.value)}
+                          type="text"
+                          placeholder="Entrez le nom du type"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                     <button
                       type="submit"
-                      disabled={isSubmitting || !newMarque.trim()}
+                      disabled={isSubmitting || !newType.trim()}
                       className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
                     >
                       {isSubmitting ? (
@@ -459,7 +591,7 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIsAddingMarque(false)}
+                      onClick={() => setIsAddingType(false)}
                       className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                     >
                       Annuler
@@ -471,8 +603,8 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
           </div>
         )}
 
-        {/* Edit Marque Modal */}
-        {isEditingMarque && (
+        {/* Edit Type Modal */}
+        {isEditingType && (
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 transition-opacity" aria-hidden="true">
@@ -485,10 +617,10 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                 <form onSubmit={handleSubmitEdit}>
                   <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div className="flex justify-between items-center pb-3 mb-3 border-b border-gray-200">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">Modifier une marque</h3>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">Modifier un type</h3>
                       <button
                         type="button"
-                        onClick={() => setIsEditingMarque(false)}
+                        onClick={() => setIsEditingType(false)}
                         className="text-gray-400 hover:text-gray-500 focus:outline-none"
                       >
                         <X className="h-5 w-5" />
@@ -514,15 +646,15 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
 
                     <div>
                       <label htmlFor="edit-designation" className="block text-sm font-medium text-gray-700 mb-1">
-                        Nouvelle désignation de la marque
+                        Nouvelle désignation du type
                       </label>
                       <input
                         id="edit-designation"
                         name="edit-designation"
-                        value={editMarqueDesignation}
-                        onChange={(e) => setEditMarqueDesignation(e.target.value)}
+                        value={editTypeDesignation}
+                        onChange={(e) => setEditTypeDesignation(e.target.value)}
                         type="text"
-                        placeholder="Entrez le nouveau nom de la marque"
+                        placeholder="Entrez le nouveau nom du type"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                         required
                       />
@@ -532,7 +664,7 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                   <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                     <button
                       type="submit"
-                      disabled={isSubmitting || !editMarqueDesignation.trim()}
+                      disabled={isSubmitting || !editTypeDesignation.trim()}
                       className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
                     >
                       {isSubmitting ? (
@@ -546,7 +678,7 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIsEditingMarque(false)}
+                      onClick={() => setIsEditingType(false)}
                       className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                     >
                       Annuler
@@ -561,3 +693,4 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
     </div>
   )
 }
+

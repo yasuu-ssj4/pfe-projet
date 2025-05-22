@@ -52,9 +52,25 @@ const NvType : Type = {designation , id_marque}
         { status: 500 }
         );
     }
-
-
-
-
 }
+}
+export async function PUT(req: Request) {
+  const body = await req.json();
+  const { id_type, nouvelleDesignation } = body;
+
+  if (!id_type || !nouvelleDesignation) {
+    return NextResponse.json({ error: "Champs manquants" }, { status: 400 });
+  }
+
+  try {
+    const updated = await prisma.type.update({
+      where: { id_type: Number(id_type) },
+      data: { designation: nouvelleDesignation },
+    });
+
+    return NextResponse.json({ message: "Désignation modifiée avec succès", updated }, { status: 200 });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du type:", error);
+    return NextResponse.json({ error: "Erreur interne de serveur" }, { status: 500 });
+  }
 }

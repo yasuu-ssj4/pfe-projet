@@ -13,7 +13,8 @@ import {
   Warehouse,
   Truck,
   Forklift,
-  Building2} from "lucide-react"
+  Building2,
+  Files} from "lucide-react"
 import naftal_logo from "../lib/Logo_NAFTAL.svg"
 import { useState } from "react"
 import path from "path"
@@ -72,6 +73,16 @@ export default function Sidebar() {
       icon: <Car size={20} />,
     },
     {
+      path: "/liste_DI",
+      label: "Liste des DI",
+      icon: <Files size={20} />,
+    },
+    {
+      path: "/liste_RI",
+      label: "Liste des RI",
+      icon: <Files size={20} />,
+    },
+    {
       path: "/rapport",
       label: "Rapport",
       icon: <FileText size={20} />,
@@ -82,7 +93,7 @@ export default function Sidebar() {
           icon: <BarChart2 size={18} />,
         },
         {
-          path: "/rapport/activite",
+          path: "/rapport_activites",
           label: "Rapport Activite",
           icon: <FileBarChart size={18} />, 
         },
@@ -99,9 +110,9 @@ export default function Sidebar() {
           icon: <Users size={18} />,
         },
         {
-          path: "/documents/entretien",
-          label: "Programme Entretien",
-          icon: <Forklift size={18} />,
+          path: "/structure",
+          label: "Structures",
+          icon: <Building2 size={18} />,
         },
         {
           path: "/marque",
@@ -109,10 +120,15 @@ export default function Sidebar() {
           icon: <Truck size={18} />,
         },
         {
-          path: "/structure",
-          label: "Structures",
-          icon: <Building2 size={18} />,
-        }
+          path: "/type",
+          label: "Type",
+          icon: <Car size={18} />,
+        },
+        {
+          path: "/documents/entretien",
+          label: "Prog.entretien",
+          icon: <Forklift size={18} />,
+        },
       ]
     },
   ]
@@ -125,7 +141,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex flex-col h-[calc(100%-4rem)]">
-        <div className="flex-1 py-4">
+        <div className="flex-1 ">
           {menuItems.map((item) => (
             <div key={item.path}>
               <button
@@ -137,7 +153,9 @@ export default function Sidebar() {
                 }`}
               >
                 <div className="flex items-center">
-                  <span className={`${isActive(item.path) ? "text-indigo-600" : "text-gray-500"}`}>{item.icon}</span>
+                  <span className={`${isActive(item.path) 
+                    ? "text-indigo-600" 
+                    : "text-gray-500"}`}>{item.icon}</span>
                   <span className="ml-3">{item.label}</span>
                 </div>
                 {item.subItems && (
@@ -155,7 +173,9 @@ export default function Sidebar() {
                       key={subItem.path}
                       onClick={() => navigateTo(subItem.path)}
                       className={`w-full flex items-center px-4 py-2 text-sm transition-colors duration-200 ${
-                        isActive(subItem.path) ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-indigo-500"
+                        isActive(subItem.path) 
+                        ? "bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600 font-medium" 
+                        : "text-gray-600 hover:text-indigo-500"
                       }`}
                     >
                       <span className={`${isActive(subItem.path) ? "text-indigo-600" : "text-gray-500"}`}>

@@ -98,11 +98,26 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
         { id: "ajout_vehicule", label: "Ajouter Un Véhicule" },
         { id: "modifier_vehicule", label: "Modifier Un Véhicule" },
         { id: "supprimer_vehicule", label: "Supprimer Un Véhicule" },
-        { id: "ajouter_marque", label: "Ajouter Une Marque"},
         { id: "modifier_kilo_heure", label: "Faire la mise a jour du kilometrage/heure" },
         { id: "modifier_status", label: "Modifier Le Status d'un vehicule" },
         { id: "modifier_affectation", label: "Affecter un vehicule a une autre structure" },
       ],
+    },
+    {
+      id: "marque_group",
+      label: "Marque",
+      subItems: [
+        { id: "ajouter_marque", label: "Ajouter Une Marque"},
+        { id: "modifier_marque", label: "Modifier Une Marque"},       
+      ]
+    },
+    {
+      id: "type_group",
+      label: "Type",
+      subItems: [
+        { id: "ajouter_type", label: "Ajouter Un Type"},
+        { id: "modifier_type", label: "Modifier Un Type"},       
+      ]
     },
     {
       id: "intervention_group",
@@ -135,6 +150,7 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
       label: "Rapports",
       subItems: [
         { id: "ajouter_situation_immobilisation", label: "Ajouter Une Situation d'immobilisation hebdomadaire" },
+        { id: "ajouter_rapport_activite", label: "Ajouter Un Rapport d'activité mensuel" },
       ]
     }
   ]
