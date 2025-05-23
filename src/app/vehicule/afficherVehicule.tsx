@@ -27,6 +27,7 @@ import AffectationUpdatePopup from "./popups/affectation-update-popup"
 import StatusUpdatePopup from "./popups/status-update-popup"
 import VehiculeDetailsPopup from "./popups/vehicule-details-popup"
 import ModificationPopup from "./popups/modification-popup"
+import StatusHistoryPopup from "./popups/status-history-popup"
 
 type Vehiculetype = {
   code_vehicule: string
@@ -73,6 +74,8 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
   const [selectedVehicleForDetails, setSelectedVehicleForDetails] = useState<string>("")
   const [isModificationPopupOpen, setIsModificationPopupOpen] = useState(false)
   const [selectedVehicleForModification, setSelectedVehicleForModification] = useState<string>("")
+  const [isStatusHistoryPopupOpen, setIsStatusHistoryPopupOpen] = useState(false)
+  const [selectedVehicleForStatusHistory, setSelectedVehicleForStatusHistory] = useState<string>("")
 
   const [isDeletingVehicle, setIsDeletingVehicle] = useState<string | null>(null)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<string | null>(null)
@@ -110,6 +113,11 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
   const openModificationPopup = (code_vehicule: string) => {
     setSelectedVehicleForModification(code_vehicule)
     setIsModificationPopupOpen(true)
+  }
+
+  const openStatusHistoryPopup = (code_vehicule: string) => {
+    setSelectedVehicleForStatusHistory(code_vehicule)
+    setIsStatusHistoryPopupOpen(true)
   }
 
   const supprimerVehicule = async (code_vehicule: string) => {
@@ -853,6 +861,12 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
                           >
                             <span className="mr-2"></span> Détails
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => openStatusHistoryPopup(vehicule.code_vehicule)}
+                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <span className="mr-2"></span> Historique des statuts
+                          </DropdownMenuItem>
                           {userPrivs.includes("modifier_vehicule") && (
                             <DropdownMenuItem
                               onClick={() => openModificationPopup(vehicule.code_vehicule)}
@@ -1090,6 +1104,11 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
         onClose={() => setIsModificationPopupOpen(false)}
         code_vehicule={selectedVehicleForModification}
         onUpdate={() => fetchVehicules()}
+      />
+      <StatusHistoryPopup
+        isOpen={isStatusHistoryPopupOpen}
+        onClose={() => setIsStatusHistoryPopupOpen(false)}
+        code_vehicule={selectedVehicleForStatusHistory}
       />
     </div>
   )
