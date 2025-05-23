@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation"
 import Demande from "./intervention/demande/demande"
 import {
   AlertCircleIcon,
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   FilterIcon,
@@ -27,6 +26,7 @@ import KilometrageUpdatePopup from "./popups/kilometrage-update-popup"
 import AffectationUpdatePopup from "./popups/affectation-update-popup"
 import StatusUpdatePopup from "./popups/status-update-popup"
 import VehiculeDetailsPopup from "./popups/vehicule-details-popup"
+import ModificationPopup from "./popups/modification-popup"
 
 type Vehiculetype = {
   code_vehicule: string
@@ -71,6 +71,8 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
   const [selectedVehicleForPopup, setSelectedVehicleForPopup] = useState<string>("")
   const [isDetailsPopupOpen, setIsDetailsPopupOpen] = useState(false)
   const [selectedVehicleForDetails, setSelectedVehicleForDetails] = useState<string>("")
+  const [isModificationPopupOpen, setIsModificationPopupOpen] = useState(false)
+  const [selectedVehicleForModification, setSelectedVehicleForModification] = useState<string>("")
 
   const [isDeletingVehicle, setIsDeletingVehicle] = useState<string | null>(null)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<string | null>(null)
@@ -103,6 +105,11 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
   const openDetailsPopup = (code_vehicule: string) => {
     setSelectedVehicleForDetails(code_vehicule)
     setIsDetailsPopupOpen(true)
+  }
+
+  const openModificationPopup = (code_vehicule: string) => {
+    setSelectedVehicleForModification(code_vehicule)
+    setIsModificationPopupOpen(true)
   }
 
   const supprimerVehicule = async (code_vehicule: string) => {
@@ -369,10 +376,7 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
             return vehicleValue.toString().includes(value.toLowerCase())
           } else if (typeof vehicleValue === "string") {
             return vehicleValue.toLowerCase().includes(value.toLowerCase())
-          } else if (
-            typeof vehicleValue === "string" &&
-            !isNaN(Date.parse(vehicleValue))
-          ) {
+          } else if (typeof vehicleValue === "string" && !isNaN(Date.parse(vehicleValue))) {
             // If the string can be parsed as a date, filter by date string
             return new Date(vehicleValue).toLocaleDateString().includes(value)
           }
@@ -406,14 +410,14 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
         } else if (typeof aValue === "string" && typeof bValue === "string") {
           return sortConfig.direction === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
         } else if (
-          (typeof aValue === "string" && !isNaN(Date.parse(aValue))) &&
-          (typeof bValue === "string" && !isNaN(Date.parse(bValue)))
+          typeof aValue === "string" &&
+          !isNaN(Date.parse(aValue)) &&
+          typeof bValue === "string" &&
+          !isNaN(Date.parse(bValue))
         ) {
           const aDate = new Date(aValue)
           const bDate = new Date(bValue)
-          return sortConfig.direction === "asc"
-            ? aDate.getTime() - bDate.getTime()
-            : bDate.getTime() - aDate.getTime()
+          return sortConfig.direction === "asc" ? aDate.getTime() - bDate.getTime() : bDate.getTime() - aDate.getTime()
         }
 
         return 0
@@ -529,7 +533,6 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center">
-         
             {vehiculesNeedingUpdate.length > 0 && (
               <button
                 onClick={navigateToDashboard}
@@ -544,8 +547,6 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
 
           {/* Filter Controls */}
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-   
-
             {/* clear les filtres */}
             {(Object.values(columnFilters).some((filter) => filter && filter.trim() !== "") ||
               statusFilter ||
@@ -613,9 +614,7 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-               
-              </th>
+              ></th>
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
@@ -856,7 +855,7 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
                           </DropdownMenuItem>
                           {userPrivs.includes("modifier_vehicule") && (
                             <DropdownMenuItem
-                              onClick={() => {}}
+                              onClick={() => openModificationPopup(vehicule.code_vehicule)}
                               className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                             >
                               <span className="mr-2"></span> Modifier
@@ -1085,6 +1084,13 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
           </div>
         </div>
       )}
+      {/* Modification Popup */}
+      <ModificationPopup
+        isOpen={isModificationPopupOpen}
+        onClose={() => setIsModificationPopupOpen(false)}
+        code_vehicule={selectedVehicleForModification}
+        onUpdate={() => fetchVehicules()}
+      />
     </div>
   )
 }
