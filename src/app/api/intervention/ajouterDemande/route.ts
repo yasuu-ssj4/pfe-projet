@@ -80,7 +80,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
    await prisma.demande_intervention.delete({
-      where: { id_demande_intervention },
+      where: { id_demande_intervention: Number(id_demande_intervention) },
 
    });
 

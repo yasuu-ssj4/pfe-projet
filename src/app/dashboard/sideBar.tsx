@@ -78,7 +78,7 @@ export default function Sidebar() {
       icon: <Files size={20} />,
     },
     {
-      path: "/liste_RI",
+      path: "/listeRi",
       label: "Liste des RI",
       icon: <Files size={20} />,
     },

@@ -172,7 +172,7 @@ export async function ajouterUtilisateur(user: Utilisateur) {
  const constater_vehicule = async (id_utilisateur: number) => {
     try {
 
-    const res = await fetch("http://localhost:3000/api/intervention/listeDi", {
+    const res = await fetch("http://localhost:3000/api/rapport/listeRi", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ id_utilisateur }),
@@ -191,4 +191,3 @@ export async function ajouterUtilisateur(user: Utilisateur) {
      
     }
   }
-

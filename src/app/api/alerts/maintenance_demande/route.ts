@@ -69,13 +69,13 @@ function generateProgramKey(code_type: number, code_gamme: string, code_operatio
   return `${code_type}-${code_gamme}-${code_operation}`
 }
 
-// Helper function to determine if we need to multiply the periode by 1000
+
 function shouldMultiplyPeriode(uniteMesure: string): boolean {
   const uniteLower = uniteMesure.toLowerCase()
   return uniteLower === "km" || uniteLower === "kilometrage"
 }
 
-// Load the kilometrage tracker from JSON file
+//recuperer la valeur total du kilometrage
 function loadKilometrageTracker(): VehicleKilometrageTracker {
   const alertsDir = path.join(process.cwd(), "alerts")
   const filePath = path.join(alertsDir, "maintenance-kilometrage-tracker.json")
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Vehicle code is required" }, { status: 400 })
     }
 
-    // Get vehicle type
+    // recuperer le type
     const vehicleType = await prisma.vehicule.findUnique({
       where: { code_vehicule },
       select: { code_type: true },

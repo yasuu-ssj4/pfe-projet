@@ -20,77 +20,70 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu"
 
-type DemandeIntervention = {
+type RapportIntervention = {
   id_demande_intervention: number
-  etat_demande: string
-  nature_panne: string
-  nature_travaux: string
+  id_rapport_intervention: string
   date_application: Date
-  degre_urgence: string
+  cout_total_traveaux_interne: number
+  cout_total_traveaux_externe: number
   code_vehicule: string
   numero_demande: string
 }
 
 type SortConfig = {
-  key: keyof DemandeIntervention | null
+  key: keyof RapportIntervention | null
   direction: "asc" | "desc"
 }
 
 type ColumnFilters = {
-  id_demande_intervention: string
+  id_rapport_intervention: string
   numero_demande: string
-  etat_demande: string
-  nature_panne: string
-  nature_travaux: string
-  date_application: string
-  degre_urgence: string
   code_vehicule: string
+  date_application: string
+  cout_total_traveaux_interne: string
+  cout_total_traveaux_externe: string
 }
 
-export default function ListDIPage() {
+export default function ListRIPage() {
   const router = useRouter()
-  const [demandes, setDemandes] = useState<DemandeIntervention[]>([])
-  const [filteredDemandes, setFilteredDemandes] = useState<DemandeIntervention[]>([])
+  const [rapports, setRapports] = useState<RapportIntervention[]>([])
+  const [filteredRapports, setFilteredRapports] = useState<RapportIntervention[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [statusFilter, setStatusFilter] = useState("")
-  const [urgenceFilter, setUrgenceFilter] = useState("")
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: "asc" })
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({
-    id_demande_intervention: "",
+    id_rapport_intervention: "",
     numero_demande: "",
-    etat_demande: "",
-    nature_panne: "",
-    nature_travaux: "",
-    date_application: "",
-    degre_urgence: "",
     code_vehicule: "",
+    date_application: "",
+    cout_total_traveaux_interne: "",
+    cout_total_traveaux_externe: "",
   })
 
-  const [isDeletingDemande, setIsDeletingDemande] = useState<number | null>(null)
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<number | null>(null)
+  const [isDeletingRapport, setIsDeletingRapport] = useState<string | null>(null)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<string | null>(null)
 
   const itemsPerPage = 10
-  const userId = 2 
+  const userId = 2 // Placeholder, should be dynamic in production
 
-  const fetchDemandes = async () => {
+  const fetchRapports = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/intervention/listeDi", {
+      const res = await fetch("/api/rapport/listeRi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id_utilisateur: userId }),
       })
 
       if (!res.ok) {
-        throw new Error("Erreur lors de la récupération des demandes d'intervention")
+        throw new Error("Erreur lors de la récupération des rapports d'intervention")
       }
 
-      const data: DemandeIntervention[] = await res.json()
-      setDemandes(data)
-      setFilteredDemandes(data)
+      const data: RapportIntervention[] = await res.json()
+      setRapports(data)
+      setFilteredRapports(data)
     } catch (err) {
       console.error("Erreur:", err)
       setError(err instanceof Error ? err.message : "Une erreur est survenue")
@@ -100,19 +93,19 @@ export default function ListDIPage() {
   }
 
   useEffect(() => {
-    fetchDemandes()
+    fetchRapports()
   }, [])
 
   useEffect(() => {
     // Apply filters and sorting
-    let results = [...demandes]
+    let results = [...rapports]
 
     // Apply column filters
     Object.entries(columnFilters).forEach(([key, value]) => {
       if (value) {
-        const filterKey = key as keyof DemandeIntervention
-        results = results.filter((demande) => {
-          const fieldValue = demande[filterKey]
+        const filterKey = key as keyof RapportIntervention
+        results = results.filter((rapport) => {
+          const fieldValue = rapport[filterKey]
           if (fieldValue === null || fieldValue === undefined) return false
 
           if (filterKey === "date_application") {
@@ -124,15 +117,6 @@ export default function ListDIPage() {
         })
       }
     })
-
-    // Apply dropdown filters
-    if (statusFilter) {
-      results = results.filter((demande) => demande.etat_demande === statusFilter)
-    }
-
-    if (urgenceFilter) {
-      results = results.filter((demande) => demande.degre_urgence === urgenceFilter)
-    }
 
     // Apply sorting
     if (sortConfig.key) {
@@ -159,11 +143,11 @@ export default function ListDIPage() {
       })
     }
 
-    setFilteredDemandes(results)
+    setFilteredRapports(results)
     setCurrentPage(1)
-  }, [columnFilters, statusFilter, urgenceFilter, sortConfig, demandes])
+  }, [columnFilters, sortConfig, rapports])
 
-  const handleSort = (key: keyof DemandeIntervention) => {
+  const handleSort = (key: keyof RapportIntervention) => {
     setSortConfig((prevConfig) => ({
       key,
       direction: prevConfig.key === key && prevConfig.direction === "asc" ? "desc" : "asc",
@@ -179,62 +163,55 @@ export default function ListDIPage() {
 
   const clearAllFilters = () => {
     setColumnFilters({
-      id_demande_intervention: "",
+      id_rapport_intervention: "",
       numero_demande: "",
-      etat_demande: "",
-      nature_panne: "",
-      nature_travaux: "",
-      date_application: "",
-      degre_urgence: "",
       code_vehicule: "",
+      date_application: "",
+      cout_total_traveaux_interne: "",
+      cout_total_traveaux_externe: "",
     })
-    setStatusFilter("")
-    setUrgenceFilter("")
     setSortConfig({ key: null, direction: "asc" })
   }
 
-  const supprimerDemande = async (id_demande_intervention: number) => {
+  const supprimerRapport = async (id_rapport_intervention: string) => {
     try {
-      setIsDeletingDemande(id_demande_intervention)
-      const response = await fetch("/api/intervention/ajouterDemande", {
+      setIsDeletingRapport(id_rapport_intervention)
+      // You'll need to implement this API endpoint
+      const response = await fetch("/api/rapport/deleteRapport", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_demande_intervention }),
+        body: JSON.stringify({ id_rapport_intervention }),
       })
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la suppression de la demande")
+        throw new Error("Erreur lors de la suppression du rapport")
       }
 
-      alert("Demande supprimée avec succès")
-      fetchDemandes()
+      alert("Rapport supprimé avec succès")
+      fetchRapports()
       return Promise.resolve()
     } catch (error) {
       console.error("Erreur de suppression:", error)
-      alert("Erreur lors de la suppression de la demande")
+      alert("Erreur lors de la suppression du rapport")
       return Promise.reject(error)
     } finally {
-      setIsDeletingDemande(null)
+      setIsDeletingRapport(null)
       setShowDeleteConfirmation(null)
     }
   }
 
-  const confirmDelete = (id_demande_intervention: number) => {
-    setShowDeleteConfirmation(id_demande_intervention)
+  const confirmDelete = (id_rapport_intervention: string) => {
+    setShowDeleteConfirmation(id_rapport_intervention)
   }
 
-  const navigateToConstater = (id_demande_intervention: number) => {
-    router.push(`/pages/vehicule/intervention/completer/${id_demande_intervention}`)
+  const navigateToViewRapport = (id_rapport_intervention: string) => {
+    router.push(`/pages/vehicule/intervention/rapport/${id_rapport_intervention}`)
   }
 
-  // Get unique values for dropdown filters
-  const uniqueStatuses = Array.from(new Set(demandes.map((demande) => demande.etat_demande))).filter(Boolean)
-  const uniqueUrgences = Array.from(new Set(demandes.map((demande) => demande.degre_urgence))).filter(Boolean)
-
-  const totalPages = Math.ceil(filteredDemandes.length / itemsPerPage)
+  const totalPages = Math.ceil(filteredRapports.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentItems = filteredDemandes.slice(startIndex, endIndex)
+  const currentItems = filteredRapports.slice(startIndex, endIndex)
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber)
@@ -280,82 +257,23 @@ export default function ListDIPage() {
     return pageNumbers
   }
 
-  const hasActiveFilters = Object.values(columnFilters).some((filter) => filter !== "") || statusFilter || urgenceFilter
+  const hasActiveFilters = Object.values(columnFilters).some((filter) => filter !== "")
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "en cours":
-        return "bg-blue-100 text-blue-800"
-      case "terminé":
-        return "bg-green-100 text-green-800"
-      case "annulé":
-        return "bg-red-100 text-red-800"
-      case "qualification":
-        return "bg-yellow-100 text-yellow-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
-  const getUrgenceColor = (urgence: string) => {
-    switch (urgence.toLowerCase()) {
-      case "urgent":
-        return "bg-red-100 text-red-800"
-      case "normal":
-        return "bg-green-100 text-green-800"
-      case "faible":
-        return "bg-blue-100 text-blue-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "DZD",
+    }).format(amount)
   }
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
       <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h2 className="text-xl font-semibold text-gray-800">Liste des Demandes d'Intervention</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Liste des Rapports d'Intervention</h2>
 
           {/* Filter Controls */}
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            {/* Status Filter */}
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="">Tous les statuts</option>
-                {uniqueStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDownIcon className="h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Urgence Filter */}
-            <div className="relative">
-              <select
-                value={urgenceFilter}
-                onChange={(e) => setUrgenceFilter(e.target.value)}
-                className="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="">Toutes les urgences</option>
-                {uniqueUrgences.map((urgence) => (
-                  <option key={urgence} value={urgence}>
-                    {urgence}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDownIcon className="h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-
             {/* Clear Filters Button */}
             {hasActiveFilters && (
               <button
@@ -369,7 +287,7 @@ export default function ListDIPage() {
 
             {/* Refresh Button */}
             <button
-              onClick={fetchDemandes}
+              onClick={fetchRapports}
               disabled={isLoading}
               className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
@@ -398,16 +316,6 @@ export default function ListDIPage() {
                 </span>
               ) : null,
             )}
-            {statusFilter && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2 mb-1">
-                Statut: {statusFilter}
-              </span>
-            )}
-            {urgenceFilter && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mb-1">
-                Urgence: {urgenceFilter}
-              </span>
-            )}
           </div>
         )}
       </div>
@@ -417,6 +325,23 @@ export default function ListDIPage() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16"></th>
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort("id_rapport_intervention")}
+              >
+                <div className="flex items-center">
+                  <span>ID Rapport</span>
+                  {sortConfig.key === "id_rapport_intervention" && (
+                    <div className="ml-1">
+                      {sortConfig.direction === "asc" ? (
+                        <ChevronUpIcon className="h-4 w-4" />
+                      ) : (
+                        <ChevronDownIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </th>
               <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort("numero_demande")}
@@ -453,57 +378,6 @@ export default function ListDIPage() {
               </th>
               <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort("etat_demande")}
-              >
-                <div className="flex items-center">
-                  <span>État</span>
-                  {sortConfig.key === "etat_demande" && (
-                    <div className="ml-1">
-                      {sortConfig.direction === "asc" ? (
-                        <ChevronUpIcon className="h-4 w-4" />
-                      ) : (
-                        <ChevronDownIcon className="h-4 w-4" />
-                      )}
-                    </div>
-                  )}
-                </div>
-              </th>
-              <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort("nature_panne")}
-              >
-                <div className="flex items-center">
-                  <span>Panne</span>
-                  {sortConfig.key === "nature_panne" && (
-                    <div className="ml-1">
-                      {sortConfig.direction === "asc" ? (
-                        <ChevronUpIcon className="h-4 w-4" />
-                      ) : (
-                        <ChevronDownIcon className="h-4 w-4" />
-                      )}
-                    </div>
-                  )}
-                </div>
-              </th>
-              <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort("nature_travaux")}
-              >
-                <div className="flex items-center">
-                  <span>Travaux</span>
-                  {sortConfig.key === "nature_travaux" && (
-                    <div className="ml-1">
-                      {sortConfig.direction === "asc" ? (
-                        <ChevronUpIcon className="h-4 w-4" />
-                      ) : (
-                        <ChevronDownIcon className="h-4 w-4" />
-                      )}
-                    </div>
-                  )}
-                </div>
-              </th>
-              <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort("date_application")}
               >
                 <div className="flex items-center">
@@ -521,11 +395,28 @@ export default function ListDIPage() {
               </th>
               <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort("degre_urgence")}
+                onClick={() => handleSort("cout_total_traveaux_interne")}
               >
                 <div className="flex items-center">
-                  <span>Urgence</span>
-                  {sortConfig.key === "degre_urgence" && (
+                  <span>Coût Interne</span>
+                  {sortConfig.key === "cout_total_traveaux_interne" && (
+                    <div className="ml-1">
+                      {sortConfig.direction === "asc" ? (
+                        <ChevronUpIcon className="h-4 w-4" />
+                      ) : (
+                        <ChevronDownIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </th>
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort("cout_total_traveaux_externe")}
+              >
+                <div className="flex items-center">
+                  <span>Coût Externe</span>
+                  {sortConfig.key === "cout_total_traveaux_externe" && (
                     <div className="ml-1">
                       {sortConfig.direction === "asc" ? (
                         <ChevronUpIcon className="h-4 w-4" />
@@ -540,6 +431,15 @@ export default function ListDIPage() {
             {/* Search row */}
             <tr className="bg-gray-25">
               <td className="px-6 py-2"></td>
+              <td className="px-6 py-2">
+                <input
+                  type="text"
+                  placeholder=""
+                  value={columnFilters.id_rapport_intervention}
+                  onChange={(e) => handleColumnFilterChange("id_rapport_intervention", e.target.value)}
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </td>
               <td className="px-6 py-2">
                 <input
                   type="text"
@@ -562,33 +462,6 @@ export default function ListDIPage() {
                 <input
                   type="text"
                   placeholder=""
-                  value={columnFilters.etat_demande}
-                  onChange={(e) => handleColumnFilterChange("etat_demande", e.target.value)}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-              </td>
-              <td className="px-6 py-2">
-                <input
-                  type="text"
-                  placeholder=""
-                  value={columnFilters.nature_panne}
-                  onChange={(e) => handleColumnFilterChange("nature_panne", e.target.value)}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-              </td>
-              <td className="px-6 py-2">
-                <input
-                  type="text"
-                  placeholder=""
-                  value={columnFilters.nature_travaux}
-                  onChange={(e) => handleColumnFilterChange("nature_travaux", e.target.value)}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-              </td>
-              <td className="px-6 py-2">
-                <input
-                  type="text"
-                  placeholder=""
                   value={columnFilters.date_application}
                   onChange={(e) => handleColumnFilterChange("date_application", e.target.value)}
                   className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -598,8 +471,17 @@ export default function ListDIPage() {
                 <input
                   type="text"
                   placeholder=""
-                  value={columnFilters.degre_urgence}
-                  onChange={(e) => handleColumnFilterChange("degre_urgence", e.target.value)}
+                  value={columnFilters.cout_total_traveaux_interne}
+                  onChange={(e) => handleColumnFilterChange("cout_total_traveaux_interne", e.target.value)}
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </td>
+              <td className="px-6 py-2">
+                <input
+                  type="text"
+                  placeholder=""
+                  value={columnFilters.cout_total_traveaux_externe}
+                  onChange={(e) => handleColumnFilterChange("cout_total_traveaux_externe", e.target.value)}
                   className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </td>
@@ -608,22 +490,22 @@ export default function ListDIPage() {
           <tbody className="bg-white divide-y divide-gray-200">
             {isLoading ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
                     <LoaderIcon className="w-12 h-12 text-indigo-500 mb-4 animate-spin" />
-                    <p className="text-lg font-medium">Chargement des demandes...</p>
+                    <p className="text-lg font-medium">Chargement des rapports...</p>
                   </div>
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
                     <AlertCircleIcon className="w-12 h-12 text-red-500 mb-4" />
-                    <p className="text-lg font-medium text-red-500">Erreur lors du chargement des demandes</p>
+                    <p className="text-lg font-medium text-red-500">Erreur lors du chargement des rapports</p>
                     <p className="text-sm text-gray-500 mt-1">{error}</p>
                     <button
-                      onClick={fetchDemandes}
+                      onClick={fetchRapports}
                       className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       <RefreshCwIcon className="h-4 w-4 mr-2" />
@@ -632,20 +514,18 @@ export default function ListDIPage() {
                   </div>
                 </td>
               </tr>
-            ) : filteredDemandes.length === 0 ? (
+            ) : filteredRapports.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                       <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                     </div>
-                    <p className="text-lg font-medium">Aucune demande trouvée</p>
+                    <p className="text-lg font-medium">Aucun rapport trouvé</p>
                     <p className="text-sm text-gray-400 mt-1">
-                      {hasActiveFilters
-                        ? "Essayez de modifier vos filtres"
-                        : "Aucune demande d'intervention disponible"}
+                      {hasActiveFilters ? "Essayez de modifier vos filtres" : "Aucun rapport d'intervention disponible"}
                     </p>
                     {hasActiveFilters && (
                       <button
@@ -659,8 +539,8 @@ export default function ListDIPage() {
                 </td>
               </tr>
             ) : (
-              currentItems.map((demande) => (
-                <tr key={demande.id_demande_intervention} className="hover:bg-gray-50 transition-colors">
+              currentItems.map((rapport) => (
+                <tr key={rapport.id_rapport_intervention} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="relative flex items-center">
                       <DropdownMenu>
@@ -675,13 +555,13 @@ export default function ListDIPage() {
                           className="w-[200px] bg-white border border-gray-200 shadow-lg rounded-md py-1"
                         >
                           <DropdownMenuItem
-                            onClick={() => navigateToConstater(demande.id_demande_intervention)}
+                            onClick={() => navigateToViewRapport(rapport.id_rapport_intervention)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Constater
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => confirmDelete(demande.id_demande_intervention)}
+                            onClick={() => confirmDelete(rapport.id_rapport_intervention)}
                             className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Supprimer
@@ -691,31 +571,18 @@ export default function ListDIPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {demande.numero_demande}
+                    {rapport.id_rapport_intervention}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{demande.code_vehicule}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                        demande.etat_demande,
-                      )}`}
-                    >
-                      {demande.etat_demande}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{demande.nature_panne}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{demande.nature_travaux}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{rapport.numero_demande}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{rapport.code_vehicule}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(demande.date_application).toLocaleDateString("fr-FR")}
+                    {new Date(rapport.date_application).toLocaleDateString("fr-FR")}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getUrgenceColor(
-                        demande.degre_urgence,
-                      )}`}
-                    >
-                      {demande.degre_urgence}
-                    </span>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(rapport.cout_total_traveaux_interne)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(rapport.cout_total_traveaux_externe)}
                   </td>
                 </tr>
               ))
@@ -725,12 +592,12 @@ export default function ListDIPage() {
       </div>
 
       {/* Pagination */}
-      {!isLoading && !error && filteredDemandes.length > 0 && (
+      {!isLoading && !error && filteredRapports.length > 0 && (
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-500">
-              Affichage de {startIndex + 1}-{Math.min(endIndex, filteredDemandes.length)} sur {filteredDemandes.length}{" "}
-              demandes
+              Affichage de {startIndex + 1}-{Math.min(endIndex, filteredRapports.length)} sur {filteredRapports.length}{" "}
+              rapports
             </div>
 
             <div className="flex space-x-2">
@@ -784,22 +651,22 @@ export default function ListDIPage() {
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Confirmer la suppression</h3>
             <p className="text-sm text-gray-500 mb-4">
-              Êtes-vous sûr de vouloir supprimer cette demande d'intervention ? Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer ce rapport d'intervention ? Cette action est irréversible.
             </p>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowDeleteConfirmation(null)}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition duration-300"
-                disabled={isDeletingDemande === showDeleteConfirmation}
+                disabled={isDeletingRapport === showDeleteConfirmation}
               >
                 Annuler
               </button>
               <button
-                onClick={() => supprimerDemande(showDeleteConfirmation)}
+                onClick={() => supprimerRapport(showDeleteConfirmation)}
                 className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300 flex items-center"
-                disabled={isDeletingDemande === showDeleteConfirmation}
+                disabled={isDeletingRapport === showDeleteConfirmation}
               >
-                {isDeletingDemande === showDeleteConfirmation ? (
+                {isDeletingRapport === showDeleteConfirmation ? (
                   <>
                     <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
                     Suppression...
