@@ -435,7 +435,7 @@ export default function ConstaterRapport({ id_demande_intervention }: ConstaterR
                         <span className="pl-1">{data.rapport.id_rapport_intervention}</span>
                       </div>
                         <span className="font-bold px-1">Structure Maintenance en</span> 
-                          <div className="px-1"> <b> charge des travaux : </b>{structure_detail}</div>
+                          <div className="px-1"> <b> charge des travaux : </b>{data.rapport.structure_maintenance_en_charge_des_travaux}</div>
                     </div>
                   </td>
                   <td className="border-2 border-gray-800 p-1">

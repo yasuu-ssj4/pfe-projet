@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import type { RapportIntervention } from "@/app/interfaces"
 import { Plus, Trash2, X, Loader2 } from "lucide-react"
+import { NextRequest } from 'next/server';
 
 export default function FormRapport({
   id_demande_intervention,
@@ -13,6 +14,7 @@ export default function FormRapport({
   type infos = {
     structure_maintenance: string
     date_heure_panne: Date
+    numero_demande: string
     district_id: string
     centre_id: string
   }
@@ -40,6 +42,7 @@ export default function FormRapport({
 
   const [Data, setData] = useState<infos>({
     structure_maintenance: "",
+    numero_demande: "",
     date_heure_panne: new Date(),
     district_id: "",
     centre_id: "",
@@ -53,7 +56,8 @@ export default function FormRapport({
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const [FormValue, SetFormValue] = useState<RapportIntervention>({
-    id_demande_intervention: id_demande_intervention || "2",
+    id_demande_intervention: Number(id_demande_intervention) ,
+    
     id_rapport_intervention: "",
     structure_maintenance_charge: "",
     date_application: new Date(),
@@ -351,7 +355,14 @@ export default function FormRapport({
 
     fetchData()
   }, [id_demande_intervention])
-
+  // pour diviser la structure maintenance en charge en 2
+      let structure_type = ""
+      let structure_detail = ""
+      if(Data?.structure_maintenance) {
+        const parts = Data.structure_maintenance.split(',')
+        structure_type = parts[0] || ''
+        structure_detail = parts[1] || ''
+      }
   if (isLoading && !FormValue.structure_maintenance_charge) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -464,14 +475,14 @@ export default function FormRapport({
                       <div>
                         <div className="font-semibold mb-1">Structure Maintenance en charge des travaux :</div>
                         <div className="px-2 py-1 bg-gray-100 rounded">
-                          {Data.structure_maintenance || FormValue.structure_maintenance_charge || "Non spécifié"}
+                          {structure_detail || FormValue.structure_maintenance_charge || "Non spécifié"}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-semibold mb-1">DI N° :</div>
-                    <div className="px-2 py-1 bg-gray-100 rounded">{FormValue.id_demande_intervention}</div>
+                    <div className="px-2 py-1 bg-gray-100 rounded">{Data.numero_demande}</div>
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-semibold text-center">Appartenance du Bien</div>

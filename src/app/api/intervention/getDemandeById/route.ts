@@ -13,10 +13,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "L'ID de la demande d'intervention est requis" }, { status: 400 })
     }
     
-    const demandeInfos = await prisma.demande_intervention.findFirst({
-      where: { id_demande_intervention: id_demande },
+    const demandeInfos = await prisma.demande_intervention.findUnique({
+      where: { id_demande_intervention: Number(id_demande) },
       select: {
-        id_demande_intervention: true,
+        numero_demande: true,
         date_application: true,
         date_heure_panne: true,  
         structure_maintenance: true,
@@ -28,10 +28,12 @@ export async function POST(req: NextRequest) {
         district_id: true,
         centre_id: true,
         constat_panne: true,
-        id_demandeur: true,
+        nom_prenom_demandeur: true,
+        fonction_demandeur: true,
         date_demandeur: true
       }
     })
+    console.log("Demande Infos:", demandeInfos)
     
     if (!demandeInfos) {
       return NextResponse.json({ error: "Demande d'intervention non trouvée" }, { status: 404 })

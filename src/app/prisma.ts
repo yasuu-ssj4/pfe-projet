@@ -169,13 +169,13 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     } });
   }
 
- const rapport_activite = async ({id_utilisateur, date}: {id_utilisateur: number , date: string}) => {
+ const constater_vehicule = async (id_utilisateur: number) => {
     try {
 
-    const res = await fetch("http://localhost:3000/api/rapport/rapportActivites", {
+    const res = await fetch("http://localhost:3000/api/intervention/listeDi", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ id_utilisateur, date }),
+  body: JSON.stringify({ id_utilisateur }),
 });
 
       if (!res.ok) {
@@ -187,9 +187,8 @@ export async function ajouterUtilisateur(user: Utilisateur) {
      
      
     } catch (error) {
-      console.error("Erreur lors de la recuperation:", error)
+      console.error("Error in supprimerRapport:", error)
      
     }
   }
 
-rapport_activite({id_utilisateur: 2, date: "05/2025"})

@@ -19,10 +19,11 @@ export async function POST(req: NextRequest){
         const demandeentites = await prisma.demande_intervention.findUnique(
             {
                 where : { 
-                    id_demande_intervention: id_demande_intervention,
+                    id_demande_intervention: Number(id_demande_intervention),
                 },
                 select : {
                     structure_maintenance : true,
+                    numero_demande : true,
                     date_heure_panne : true,
                     centre_id   : true,
                     district_id : true,
@@ -37,12 +38,14 @@ export async function POST(req: NextRequest){
             
         type infos= {
             structure_maintenance : string ,
+            numero_demande: string ,
             date_heure_panne: string ,
             district_id: string ,
             centre_id: string ,
         }
          const demandeInfos: infos = {
             structure_maintenance : demandeentites.structure_maintenance,
+            numero_demande : demandeentites.numero_demande,
             date_heure_panne : demandeentites.date_heure_panne,
             district_id : demandeentites.district_id,
             centre_id : demandeentites.centre_id,

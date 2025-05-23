@@ -120,7 +120,8 @@ export interface Vehicule {
     code_type: number;
   }
   export interface DemandeIntervention {
-    id_demande_intervention: string;
+    
+    numero_demande: string;
     etat_demande: string;
     date_application: Date;
     date_heure_panne: string;
@@ -141,9 +142,11 @@ export interface Vehicule {
     routinier_ref?: string;
     dangereux?: boolean;
     dangereux_ref?: string;
-    id_demandeur: number;
+    nom_prenom_demandeur: string;
+    fonction_demandeur?: string;
     date_demandeur: Date;
-    id_intervevant?: number;
+    nom_prenom_intervevant?: string;
+    fonction_intervevant?: string;
     date_intervevant?: Date;
     nom_prenom_responsable?: string;
     date_responsable?: string;
@@ -158,7 +161,7 @@ export interface Vehicule {
   
   export interface RapportIntervention {
 
-    id_demande_intervention: string;
+    id_demande_intervention: number;
     id_rapport_intervention: string;
     structure_maintenance_charge: string;
     date_application: Date;
@@ -185,7 +188,7 @@ export interface Vehicule {
     date_responsable: string ;
   }
   
-  export interface TraveauxInterne {
+export interface TraveauxInterne {
     
     id_rapport: string;
     atelier_desc: string;

@@ -3,6 +3,7 @@
 import type React from "react"
 import type { DemandeIntervention } from "@/app/interfaces"
 import { useEffect, useState } from "react"
+import MaintenanceGammesSelector from "@/app/components/maintenance-gammes-selector"
 
 type DemandeProps = {
   visible: boolean
@@ -15,10 +16,10 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
   type Vehicule = {
     marque_designation: string
     type_designation: string
-    genre?: string
+    genre_designation: string
     designation_centre: string
     designation_district: string
-    kilometrage?: string
+    totalKilo: string
     id_district?: string
     id_centre?: string
   }
@@ -27,8 +28,20 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
   const [vehiculeInfo, setVehiculeInfo] = useState<Vehicule>({
     marque_designation: "",
     type_designation: "",
+    genre_designation: "",
+    totalKilo: "",
     designation_centre: "",
     designation_district: "",
+  })
+
+  // Add this to the existing state variables
+  const [showGammesSelector, setShowGammesSelector] = useState(false)
+  const [selectedMaintenanceGammes, setSelectedMaintenanceGammes] = useState<any[]>([])
+
+  // Add state for maintenance work types
+  const [maintenanceTypes, setMaintenanceTypes] = useState({
+    corrective: false,
+    preventive: false,
   })
 
   // Form state with all fields from the interface
@@ -38,7 +51,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     structure_maintenance_type: "", // cds, garage, unm, etc.
     structure_maintenance_detail: "", // The specific detail
     activite: "Materiel roulant",
-    nature_travaux: "Maintenance Corrective", // Default value
+    nature_travaux: "", // Will be determined by checkbox logic
     degre_urgence: "3", // Default to Normal
     constat_panne: "",
     nom_prenom_demandeur: "",
@@ -56,9 +69,6 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     dangereux_ref: "",
   })
 
-  const [showGammesSelector, setShowGammesSelector] = useState(false)
-  const [selectedMaintenanceGammes, setSelectedMaintenanceGammes] = useState<any[]>([])
-
   const options = [
     { value: "cds", label: "CDS" },
     { value: "garage", label: "Garage secondaire / Atelier Réseau" },
@@ -72,6 +82,43 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     { id: "Électrique", label: "Électrique" },
     { id: "Autre", label: "Autre" },
   ]
+
+  // Function to determine nature_travaux based on checkbox selections
+  const updateNatureTravaux = (corrective: boolean, preventive: boolean) => {
+    let natureTravaux = ""
+
+    if (corrective && preventive) {
+      // Both selected - corrective takes priority
+      natureTravaux = "Maintenance Corrective"
+    } else if (corrective) {
+      // Only corrective selected
+      natureTravaux = "Maintenance Corrective"
+    } else if (preventive) {
+      // Only preventive selected
+      natureTravaux = "Maintenance Preventive"
+    }
+
+    setFormValues((prev) => ({
+      ...prev,
+      nature_travaux: natureTravaux,
+    }))
+  }
+
+  // Handle maintenance type checkbox changes
+  const handleMaintenanceTypeChange = (type: "corrective" | "preventive", checked: boolean) => {
+    const newMaintenanceTypes = {
+      ...maintenanceTypes,
+      [type]: checked,
+    }
+
+    setMaintenanceTypes(newMaintenanceTypes)
+    updateNatureTravaux(newMaintenanceTypes.corrective, newMaintenanceTypes.preventive)
+
+    // Show gammes selector if preventive is selected
+    if (type === "preventive" && checked) {
+      setShowGammesSelector(true)
+    }
+  }
 
   useEffect(() => {
     const fetchVehicule = async () => {
@@ -98,7 +145,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
         structure_maintenance_type: "",
         structure_maintenance_detail: "",
         activite: "Materiel roulant",
-        nature_travaux: "Maintenance Corrective", // Default value
+        nature_travaux: "",
         degre_urgence: "3", // Default to Normal
         constat_panne: "",
         nom_prenom_demandeur: "",
@@ -116,6 +163,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
         dangereux_ref: "",
       })
       setSelectedItems([])
+      setMaintenanceTypes({ corrective: false, preventive: false })
     }
   }, [code_vehicule, visible])
 
@@ -154,12 +202,12 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     // Format the selected gammes for the constat_panne field
     if (selectedGammes.length > 0) {
       const formattedGammes = selectedGammes
-        .map((gamme) => `${gamme.designation_operation} (${gamme.code_operation})`)
+        .map((gamme) => `${gamme.operation_designation}.${gamme.gamme_designation}`)
         .join(", ")
 
       setFormValues((prev) => ({
         ...prev,
-        constat_panne: `Maintenance préventive: ${formattedGammes}`,
+        constat_panne: ` ${formattedGammes}`,
       }))
     }
   }
@@ -176,7 +224,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       : ""
 
     const demandeIntervention: DemandeIntervention = {
-      id_demande_intervention: formValues.numero_demande || `DI-${Date.now()}`, // Generate ID if not provided
+      numero_demande: formValues.numero_demande || `DI-${Date.now()}`, // Generate ID if not provided
       etat_demande: "en cours",
       date_application: new Date(),
       date_heure_panne: formValues.date_heure_panne,
@@ -197,7 +245,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       routinier_ref: formValues.routinier_ref,
       dangereux: formValues.dangereux,
       dangereux_ref: formValues.dangereux_ref,
-      id_demandeur: 0, // This would typically come from the authenticated user
+      nom_prenom_demandeur: formValues.nom_prenom_demandeur,
+      fonction_demandeur: formValues.fonction_demandeur,
       date_demandeur: new Date(),
       nom_prenom_responsable: formValues.nom_prenom_responsable,
       date_responsable: formValues.date_responsable,
@@ -394,28 +443,19 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                     <div className="space-y-2 pl-2">
                       <label className="flex items-center">
                         <input
-                          type="radio"
-                          name="nature_travaux"
-                          value="Maintenance Corrective"
-                          onChange={handleChange}
-                          checked={formValues.nature_travaux === "Maintenance Corrective"}
-                          className="form-radio h-4 w-4 mr-2 text-blue-600"
+                          type="checkbox"
+                          checked={maintenanceTypes.corrective}
+                          onChange={(e) => handleMaintenanceTypeChange("corrective", e.target.checked)}
+                          className="form-checkbox h-4 w-4 mr-2 text-blue-600"
                         />
                         <span>Maintenance Corrective</span>
                       </label>
                       <label className="flex items-center">
                         <input
-                          type="radio"
-                          name="nature_travaux"
-                          value="Maintenance Preventive"
-                          onChange={(e) => {
-                            handleChange(e)
-                            if (e.target.checked) {
-                              setShowGammesSelector(true)
-                            }
-                          }}
-                          checked={formValues.nature_travaux === "Maintenance Preventive"}
-                          className="form-radio h-4 w-4 mr-2 text-blue-600"
+                          type="checkbox"
+                          checked={maintenanceTypes.preventive}
+                          onChange={(e) => handleMaintenanceTypeChange("preventive", e.target.checked)}
+                          className="form-checkbox h-4 w-4 mr-2 text-blue-600"
                         />
                         <span>Maintenance Préventive</span>
                       </label>
@@ -440,6 +480,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                         <span>Contrôle réglementaire</span>
                       </label>
                     </div>
+                    {/* Display current nature_travaux value */}
+                   
                   </td>
                   <td className="border-2 border-gray-800 p-4">
                     <h5 className="font-bold mb-3">Degré d&apos;urgence :</h5>
@@ -498,7 +540,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-bold">Genre:</div>
-                    <div className="pl-2 mt-1">{vehiculeInfo.genre || "Non spécifié"}</div>
+                    <div className="pl-2 mt-1">{vehiculeInfo.genre_designation || "Non spécifié"}</div>
                   </td>
                 </tr>
                 <tr>
@@ -508,7 +550,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-bold">Km et/ou Heures de fonctionnement:</div>
-                    <div className="pl-2 mt-1">{vehiculeInfo.kilometrage || "Non spécifié"}</div>
+                    <div className="pl-2 mt-1">{vehiculeInfo.totalKilo || "0"}</div>
                   </td>
                 </tr>
                 <tr>
@@ -539,121 +581,6 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
             </div>
           </div>
 
-          {/* Section 5: Additional Information */}
-          <div className="border-2 border-gray-800 mb-6">
-            <div className="bg-gray-100 border-b-2 border-gray-800 py-2">
-              <h4 className="text-center font-bold">Informations complémentaires</h4>
-            </div>
-            <div className="p-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="description" className="font-semibold block mb-1">
-                    Description supplémentaire:
-                  </label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    className="w-full p-2 border border-gray-300 rounded h-24"
-                    placeholder="Description supplémentaire..."
-                    onChange={handleChange}
-                    value={formValues.description}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="diagnostique" className="font-semibold block mb-1">
-                    Diagnostique préliminaire:
-                  </label>
-                  <textarea
-                    id="diagnostique"
-                    name="diagnostique"
-                    className="w-full p-2 border border-gray-300 rounded h-24"
-                    placeholder="Diagnostique préliminaire..."
-                    onChange={handleChange}
-                    value={formValues.diagnostique}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="niveaux_prio" className="font-semibold block mb-1">
-                    Niveau de priorité (1-5):
-                  </label>
-                  <input
-                    type="number"
-                    id="niveaux_prio"
-                    name="niveaux_prio"
-                    min="1"
-                    max="5"
-                    className="w-full p-2 border border-gray-300 rounded"
-                    onChange={handleChange}
-                    value={formValues.niveaux_prio}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="font-semibold mb-1">Permis et autorisations:</div>
-
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="necess_permis"
-                      checked={formValues.necess_permis}
-                      onChange={handleCheckboxChange}
-                      className="form-checkbox h-4 w-4 mr-2 text-blue-600"
-                    />
-                    <span>Nécessite un permis spécial</span>
-                  </label>
-
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="routinier"
-                      checked={formValues.routinier}
-                      onChange={handleCheckboxChange}
-                      className="form-checkbox h-4 w-4 mr-2 text-blue-600"
-                    />
-                    <span>Travail routinier</span>
-                  </label>
-
-                  {formValues.routinier && (
-                    <input
-                      type="text"
-                      name="routinier_ref"
-                      placeholder="Référence du travail routinier"
-                      className="w-full p-2 border border-gray-300 rounded mt-1"
-                      onChange={handleChange}
-                      value={formValues.routinier_ref}
-                    />
-                  )}
-
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="dangereux"
-                      checked={formValues.dangereux}
-                      onChange={handleCheckboxChange}
-                      className="form-checkbox h-4 w-4 mr-2 text-blue-600"
-                    />
-                    <span>Travail dangereux</span>
-                  </label>
-
-                  {formValues.dangereux && (
-                    <input
-                      type="text"
-                      name="dangereux_ref"
-                      placeholder="Référence du travail dangereux"
-                      className="w-full p-2 border border-gray-300 rounded mt-1"
-                      onChange={handleChange}
-                      value={formValues.dangereux_ref}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 6: Signatures */}
           <div className="border-2 border-gray-800">
             <table className="w-full border-collapse">
               <thead>
@@ -775,6 +702,13 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
           </button>
         </div>
       </form>
+      {/* Maintenance Gammes Selector Modal */}
+      <MaintenanceGammesSelector
+        visible={showGammesSelector}
+        onClose={() => setShowGammesSelector(false)}
+        code_vehicule={code_vehicule}
+        onSelect={handleMaintenanceGammesSelect}
+      />
     </div>
   )
 }

@@ -18,17 +18,22 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
   const [error, setError] = useState<string | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [vehiculeInfo, setVehiculeInfo] = useState({
+    numero_demande: "",
     marque_designation: "",
     type_designation: "",
-    genre: "",
+    genre_designation: "",
     designation_centre: "",
     designation_district: "",
-    kilometrage: "",
+    totalKilo: "",
+    id_district: "",
+    id_centre: ""
+
   })
   console.log("id_demande in component:", id_demande)
 
   const [formValues, setFormValues] = useState({
-    id_demande_intervention: id_demande, // Initialize with the passed ID
+    id_demande_intervention: id_demande, 
+    numero_demande: "",
     etat_demande: "En instance",
     date_application: new Date(),
     date_heure_panne: "",
@@ -88,7 +93,7 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
       setIsLoading(true)
       setError(null)
       try {
-        // Fetch demande data
+        
         const response = await fetch(`/api/intervention/getDemandeById`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -121,6 +126,7 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
         setFormValues((prev) => ({
           ...prev,
           id_demande_intervention: data.id_demande_intervention || id_demande,
+          numero_demande: data.numero_demande || "",
           etat_demande: "En instance", 
           date_application: data.date_application ? new Date(data.date_application) : new Date(),
           date_heure_panne: data.date_heure_panne || "",
@@ -239,7 +245,7 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
       }))
     }
   }
-   // Create updated demande object
+  
    const selectedPanne = selectedItems.join("/")
 
    // Combine structure_maintenance_type and structure_maintenance_detail
@@ -258,7 +264,8 @@ routinier : formValues.routinier,
 routinier_ref : formValues.routinier_ref,
 dangereux : formValues.dangereux,
 dangereux_ref : formValues.dangereux_ref  ,
-id_intervevant : 5,
+nom_prenom_intervenant : formValues.nom_prenom_intervenant,
+fonction_intervenant : formValues.fonction_intervenant,
 date_intervevant: new Date(),
 nom_prenom_responsable : formValues.nom_prenom_responsable,
 date_responsable : formValues.date_responsable,
@@ -378,7 +385,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                 <tr>
                   <td className="border-2 border-gray-800 p-3 w-1/3">
                     <div className="font-bold mb-1">N° :</div>
-                    <div className="p-2 bg-gray-100 rounded">{formValues.id_demande_intervention}</div>
+                    <div className="p-2 bg-gray-100 rounded">{formValues.numero_demande}</div>
                   </td>
                   <td className="border-2 border-gray-800 p-3 w-1/3">
                     <div className="font-bold mb-1">District/Autre :</div>
@@ -593,7 +600,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-bold">Genre:</div>
-                    <div className="pl-2 mt-1">{vehiculeInfo.genre || "Non spécifié"}</div>
+                    <div className="pl-2 mt-1">{vehiculeInfo.genre_designation || "Non spécifié"}</div>
                   </td>
                 </tr>
                 <tr>
@@ -603,7 +610,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-bold">Km et/ou Heures de fonctionnement:</div>
-                    <div className="pl-2 mt-1">{vehiculeInfo.kilometrage || "Non spécifié"}</div>
+                    <div className="pl-2 mt-1">{vehiculeInfo.totalKilo || "Non spécifié"}</div>
                   </td>
                 </tr>
                 <tr>

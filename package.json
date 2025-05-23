@@ -22,6 +22,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
+    "exceljs": "^4.4.0",
     "formik": "^2.4.6",
     "framer-motion": "^12.5.0",
     "jose": "^6.0.10",

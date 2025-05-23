@@ -24,7 +24,7 @@ const StepThree: React.FC<StepThreeProps> = ({ FormValue, handleChange, SetStep,
               name="unite_predication"
               onChange={handleChange}
               value={FormValue.unite_predication}
-              className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+              className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
             >
               <option>Kilometrage</option>
               <option>Heure de fonctionnement</option>
@@ -68,7 +68,7 @@ const StepThree: React.FC<StepThreeProps> = ({ FormValue, handleChange, SetStep,
               name="code_status"
               onChange={handleChange}
               value={FormValue.code_status}
-              className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+              className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
             >
               <option value="OPR">OPR - Opérationnel</option>
               <option value="IMB">IMB - Immobilisé</option>

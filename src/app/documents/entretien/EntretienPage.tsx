@@ -183,7 +183,7 @@ export default function EntretienPage({ userPrivs }: {userPrivs: string[]}) {
                             disabled={!userPrivs.includes("modifier_programme_entretien")}
                             title={
                                   userPrivs.includes("modifier_programme_entretien")
-                                  ? "Visualiser le programme d'entretien"
+                                  ? "Modifier le programme d'entretien"
                                   : "Vous n'avez pas le droit d'accéder à cette action"
                                   }
                           >

@@ -13,7 +13,7 @@ const { id_demande_intervention } = body;
   try {
     const demande = await prisma.demande_intervention.findFirst({
       where: {
-        id_demande_intervention: id_demande_intervention
+        id_demande_intervention: Number(id_demande_intervention)
       }
     });
 

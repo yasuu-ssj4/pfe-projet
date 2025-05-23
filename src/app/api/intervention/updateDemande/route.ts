@@ -20,7 +20,8 @@ export async function POST(req: NextRequest) {
       routinier_ref,
       dangereux,
       dangereux_ref,
-      id_intervevant,
+      nom_prenom_intervevant,
+      fonction_intervevant,
       date_intervevant = new Date(),
       nom_prenom_responsable,
       date_responsable,
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
 
 
      await prisma.demande_intervention.update({
-      where: { id_demande_intervention : id_demande_intervention },
+      where: { id_demande_intervention : Number(id_demande_intervention) },
       data: {
         etat_demande, 
         constat_panne,
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest) {
         routinier_ref,
         dangereux,
         dangereux_ref,
-        id_intervevant,
+        nom_prenom_intervevant : nom_prenom_intervevant,
+        fonction_intervevant : fonction_intervevant,
         date_intervevant : date_intervevant ? new Date(date_intervevant) : null,
         nom_prenom_responsable,
         date_responsable,
@@ -70,12 +72,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Demande mise à jour avec succès",  }, { status: 200 })
   } catch (error) {
-    console.error("❌ Error in updateDemande:", {
-      message: (error as any).message,
-      stack: (error as any).stack,
-      code: (error as any).code,
-      meta: (error as any).meta,
-    })
+    
     
     return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
   }

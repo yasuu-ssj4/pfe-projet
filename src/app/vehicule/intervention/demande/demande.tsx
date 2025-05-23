@@ -14,7 +14,7 @@ type DemandeProps = {
 
 const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehicule, onSubmitSuccess }) => {
   type Vehicule = {
-   marque_designation: string
+    marque_designation: string
     type_designation: string
     genre_designation: string
     designation_centre: string
@@ -26,7 +26,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
 
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [vehiculeInfo, setVehiculeInfo] = useState<Vehicule>({
-   marque_designation: "",
+    marque_designation: "",
     type_designation: "",
     genre_designation: "",
     totalKilo: "",
@@ -38,6 +38,12 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
   const [showGammesSelector, setShowGammesSelector] = useState(false)
   const [selectedMaintenanceGammes, setSelectedMaintenanceGammes] = useState<any[]>([])
 
+  // Add state for maintenance work types
+  const [maintenanceTypes, setMaintenanceTypes] = useState({
+    corrective: false,
+    preventive: false,
+  })
+
   // Form state with all fields from the interface
   const [formValues, setFormValues] = useState({
     numero_demande: "",
@@ -45,7 +51,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     structure_maintenance_type: "", // cds, garage, unm, etc.
     structure_maintenance_detail: "", // The specific detail
     activite: "Materiel roulant",
-    nature_travaux: "Maintenance Corrective", // Default value
+    nature_travaux: "", // Will be determined by checkbox logic
     degre_urgence: "3", // Default to Normal
     constat_panne: "",
     nom_prenom_demandeur: "",
@@ -77,6 +83,42 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     { id: "Autre", label: "Autre" },
   ]
 
+  // Function to determine nature_travaux based on checkbox selections
+  const updateNatureTravaux = (corrective: boolean, preventive: boolean) => {
+    let natureTravaux = ""
+
+    if (corrective && preventive) {
+      // Both selected - corrective takes priority
+      natureTravaux = "Maintenance Corrective"
+    } else if (corrective) {
+      // Only corrective selected
+      natureTravaux = "Maintenance Corrective"
+    } else if (preventive) {
+      // Only preventive selected
+      natureTravaux = "Maintenance Preventive"
+    }
+
+    setFormValues((prev) => ({
+      ...prev,
+      nature_travaux: natureTravaux,
+    }))
+  }
+
+  // Handle maintenance type checkbox changes
+  const handleMaintenanceTypeChange = (type: "corrective" | "preventive", checked: boolean) => {
+    const newMaintenanceTypes = {
+      ...maintenanceTypes,
+      [type]: checked,
+    }
+
+    setMaintenanceTypes(newMaintenanceTypes)
+    updateNatureTravaux(newMaintenanceTypes.corrective, newMaintenanceTypes.preventive)
+
+    if (type === "preventive" && checked) {
+      setShowGammesSelector(true)
+    }
+  }
+
   useEffect(() => {
     const fetchVehicule = async () => {
       try {
@@ -102,7 +144,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
         structure_maintenance_type: "",
         structure_maintenance_detail: "",
         activite: "Materiel roulant",
-        nature_travaux: "Maintenance Corrective", // Default value
+        nature_travaux: "",
         degre_urgence: "3", // Default to Normal
         constat_panne: "",
         nom_prenom_demandeur: "",
@@ -120,6 +162,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
         dangereux_ref: "",
       })
       setSelectedItems([])
+      setMaintenanceTypes({ corrective: false, preventive: false })
     }
   }, [code_vehicule, visible])
 
@@ -180,8 +223,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       : ""
 
     const demandeIntervention: DemandeIntervention = {
-      id_demande_intervention: formValues.numero_demande || `DI-${Date.now()}`, // Generate ID if not provided
-      etat_demande: "en cours",
+      numero_demande: formValues.numero_demande || `DI-${Date.now()}`, // Generate ID if not provided
+      etat_demande: "incomplet",
       date_application: new Date(),
       date_heure_panne: formValues.date_heure_panne,
       structure_maintenance: structureMaintenance,
@@ -190,8 +233,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       nature_travaux: formValues.nature_travaux,
       degre_urgence: formValues.degre_urgence,
       code_vehicule: code_vehicule,
-      district_id: vehiculeInfo.id_district || "",
-      centre_id: vehiculeInfo.id_centre || "",
+      district_id: vehiculeInfo.designation_district ,
+      centre_id: vehiculeInfo.designation_centre  ,
       constat_panne: formValues.constat_panne,
       diagnostique: formValues.diagnostique,
       description: formValues.description,
@@ -201,7 +244,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       routinier_ref: formValues.routinier_ref,
       dangereux: formValues.dangereux,
       dangereux_ref: formValues.dangereux_ref,
-      id_demandeur: 0, // This would typically come from the authenticated user
+      nom_prenom_demandeur: formValues.nom_prenom_demandeur,
+      fonction_demandeur: formValues.fonction_demandeur,
       date_demandeur: new Date(),
       nom_prenom_responsable: formValues.nom_prenom_responsable,
       date_responsable: formValues.date_responsable,
@@ -211,18 +255,18 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     console.log("Demande d'intervention à soumettre:", demandeIntervention)
 
     try {
-      // Implement API call here
-      // const response = await fetch('/api/demandes', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(demandeIntervention)
-      // });
+      
+      const response = await fetch('/api/intervention/ajouterDemande', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(demandeIntervention)
+      });
 
-      // if (!response.ok) {
-      //   throw new Error('Erreur lors de la soumission de la demande');
-      // }
+      if (!response.ok) {
+        throw new Error('Erreur lors de la soumission de la demande');
+      }
 
-      // const result = await response.json();
+      const result = await response.json();
 
       // Call the success callback if provided
       if (onSubmitSuccess) {
@@ -398,28 +442,19 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                     <div className="space-y-2 pl-2">
                       <label className="flex items-center">
                         <input
-                          type="radio"
-                          name="nature_travaux"
-                          value="Maintenance Corrective"
-                          onChange={handleChange}
-                          checked={formValues.nature_travaux === "Maintenance Corrective"}
-                          className="form-radio h-4 w-4 mr-2 text-blue-600"
+                          type="checkbox"
+                          checked={maintenanceTypes.corrective}
+                          onChange={(e) => handleMaintenanceTypeChange("corrective", e.target.checked)}
+                          className="form-checkbox h-4 w-4 mr-2 text-blue-600"
                         />
                         <span>Maintenance Corrective</span>
                       </label>
                       <label className="flex items-center">
                         <input
-                          type="radio"
-                          name="nature_travaux"
-                          value="Maintenance Preventive"
-                          onChange={(e) => {
-                            handleChange(e)
-                            if (e.target.checked) {
-                              setShowGammesSelector(true)
-                            }
-                          }}
-                          checked={formValues.nature_travaux === "Maintenance Preventive"}
-                          className="form-radio h-4 w-4 mr-2 text-blue-600"
+                          type="checkbox"
+                          checked={maintenanceTypes.preventive}
+                          onChange={(e) => handleMaintenanceTypeChange("preventive", e.target.checked)}
+                          className="form-checkbox h-4 w-4 mr-2 text-blue-600"
                         />
                         <span>Maintenance Préventive</span>
                       </label>
@@ -444,6 +479,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                         <span>Contrôle réglementaire</span>
                       </label>
                     </div>
+                    {/* Display current nature_travaux value */}
+                   
                   </td>
                   <td className="border-2 border-gray-800 p-4">
                     <h5 className="font-bold mb-3">Degré d&apos;urgence :</h5>

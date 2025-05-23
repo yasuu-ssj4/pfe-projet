@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   try {
     const rapport  = await prisma.rapport_intervention.findUnique({
       where: {
-        id_demande_intervention: id_demande_intervention,
+        id_demande_intervention: Number(id_demande_intervention),
       },
     });
   const id_rapport_intervention = rapport?.id_rapport_intervention;

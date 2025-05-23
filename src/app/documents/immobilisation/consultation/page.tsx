@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChevronLeft, Search, Printer, ChevronDown, ChevronUp, ChevronRight } from "lucide-react"
+import { ChevronLeft, Search, Printer, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { format, addWeeks } from "date-fns"
 import { fr } from "date-fns/locale"
-import "./print.css" // Import the CSS file
 
 // Helper function to get current user ID (placeholder)
 const getCurrentUserId = () => {
@@ -46,6 +45,7 @@ export default function HistoriqueImmobilisationPage() {
   const [groupedData, setGroupedData] = useState<GroupedImmobilisations>({})
   const [expandedDistricts, setExpandedDistricts] = useState<Record<string, boolean>>({})
   const [districtPages, setDistrictPages] = useState<Record<string, number>>({})
+  const [activeDistrict, setActiveDistrict] = useState<string | null>(null)
   const itemsPerPage = 15
 
   useEffect(() => {
@@ -103,6 +103,11 @@ export default function HistoriqueImmobilisationPage() {
           })
           setExpandedDistricts(expanded)
           setDistrictPages(pages)
+
+          // Set the first district as active if there are any
+          if (Object.keys(grouped).length > 0) {
+            setActiveDistrict(Object.keys(grouped)[0])
+          }
         }
       } catch (error) {
         console.error("Error fetching immobilisation history:", error)
@@ -178,11 +183,8 @@ export default function HistoriqueImmobilisationPage() {
     window.print()
   }
 
-  const toggleDistrict = (district: string) => {
-    setExpandedDistricts({
-      ...expandedDistricts,
-      [district]: !expandedDistricts[district],
-    })
+  const selectDistrict = (district: string) => {
+    setActiveDistrict(district)
   }
 
   const changePage = (district: string, page: number) => {
@@ -205,8 +207,20 @@ export default function HistoriqueImmobilisationPage() {
   }
 
   // Calculate total pages for a district
-  const getTotalPages = (district: string, centre: string, immobilisations: ImmobilisationHistorique[]) => {
-    return Math.ceil(immobilisations.length / itemsPerPage)
+  const getTotalPages = (district: string) => {
+    let totalItems = 0
+
+    // Count all immobilisations across all centres in this district
+    Object.values(groupedData[district]?.centres || {}).forEach((centre) => {
+      totalItems += centre.immobilisations.length
+    })
+
+    return Math.ceil(totalItems / itemsPerPage)
+  }
+
+  // Format current date for the report header
+  const formatCurrentDate = (): string => {
+    return format(new Date(), "dd/MM/yyyy", { locale: fr })
   }
 
   const nextWeek = format(addWeeks(new Date(), 1), "dd/MM/yyyy", { locale: fr })
@@ -214,8 +228,116 @@ export default function HistoriqueImmobilisationPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Print-specific styles */}
+      <style jsx global>{`
+        @media print {
+          /* Set landscape orientation and hide sidebar */
+          @page {
+            size: landscape;
+            margin: 0.5cm;
+          }
+          
+          /* Hide sidebar and navigation */
+          body > div > div:first-child,
+          nav,
+          aside,
+          header,
+          footer,
+          .print-hide {
+            display: none !important;
+          }
+          
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          /* Force each district to start on a new page */
+          .district-container {
+            page-break-before: always;
+            page-break-after: always;
+            page-break-inside: avoid;
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            width: 100% !important;
+          }
+          
+          /* Ensure tables don't break across pages */
+          table {
+            page-break-inside: avoid;
+            width: 100% !important;
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+          }
+          
+          /* Hide pagination controls */
+          .pagination-controls {
+            display: none !important;
+          }
+          
+          /* Make sure the content is visible */
+          .print-show {
+            display: block !important;
+          }
+          
+          /* Ensure the container takes full width */
+          .container {
+            width: 100% !important;
+            max-width: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          
+          /* Remove any left margin or padding */
+          .ml-4,
+          .ml-0,
+          .mx-auto {
+            margin-left: 0 !important;
+          }
+          
+          /* Ensure proper table column widths */
+          th, td {
+            padding: 4px 8px !important;
+          }
+          
+          th:nth-child(1), td:nth-child(1) { width: 8% !important; } /* SCD */
+          th:nth-child(2), td:nth-child(2) { width: 10% !important; } /* VEHICULE */
+          th:nth-child(3), td:nth-child(3) { width: 10% !important; } /* DATE */
+          th:nth-child(4), td:nth-child(4) { width: 15% !important; } /* LIEU */
+          th:nth-child(5), td:nth-child(5) { width: 25% !important; } /* CAUSES */
+          th:nth-child(6), td:nth-child(6) { width: 22% !important; } /* ACTIONS */
+          th:nth-child(7), td:nth-child(7) { width: 10% !important; } /* ECHEANCE */
+          
+          /* Show all districts for printing */
+          .district-container {
+            display: block !important;
+          }
+          
+          /* Hide district selector in print */
+          .district-selector {
+            display: none !important;
+          }
+          
+          /* Add page numbers */
+          .page-number:after {
+            content: counter(page);
+          }
+          
+          /* Copyright footer */
+          .copyright {
+            text-align: center;
+            font-size: 8pt;
+            margin-top: 20px;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+          }
+        }
+      `}</style>
+
       {/* Header - Not printed */}
-      <div className="bg-[#0a2d5e] text-white p-4 print:hidden">
+      <div className="bg-[#0a2d5e] text-white p-4 print-hide">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
             <button
@@ -264,81 +386,100 @@ export default function HistoriqueImmobilisationPage() {
             <p className="text-gray-500">Aucune immobilisation trouvée</p>
           </div>
         ) : (
-          <div className="space-y-8">
-            {Object.entries(filteredData).map(([districtCode, district], districtIndex) => (
-              <div key={districtCode} className="district-container">
-                {/* Print Header - Only visible when printing */}
-                <div className="hidden print:block print:mb-4">
-                  <div className="flex justify-between items-center border-b pb-4">
-                    <div className="flex items-center">
-                      <div className="mr-4">
-                        <img src="/abstract-logo.png" alt="Logo" className="h-12" />
-                      </div>
-                      <div>
-                        <h1 className="text-xl font-bold">DIRECTION GENERALE</h1>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <h2 className="font-bold">EQ BGPL MT 33 v1</h2>
-                      <p>Date d&apos;application : {format(new Date(), "dd/MM/yyyy", { locale: fr })}</p>
-                      <p>
-                        Page {districtIndex + 1} sur {Object.keys(filteredData).length}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-center mb-6">
-                    <h1 className="text-2xl font-bold">SITUATION D&apos;IMMOBILISATION HEBDOMADAIRE</h1>
-                  </div>
-                </div>
-
-                <div className="print:flex print:justify-between print:mt-4 hidden print:block">
-                  <p>
-                    <span className="font-semibold">DISTRICT:</span> {district.designation}
-                  </p>
-                  <p>
-                    <span className="font-semibold">ARRETEE AU:</span> {nextWeek}
-                  </p>
-                </div>
-
-                <div className="print:hidden">
+          <>
+            {/* District selector - Web view only */}
+            <div className="district-selector mb-6 print:hidden">
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(filteredData).map(([districtCode, district]) => (
                   <button
-                    onClick={() => toggleDistrict(districtCode)}
-                    className="flex items-center w-full text-left text-xl font-bold mb-4 bg-gray-100 p-3 border-l-4 border-[#0a2d5e]"
+                    key={districtCode}
+                    onClick={() => selectDistrict(districtCode)}
+                    className={`px-4 py-2 rounded-md ${
+                      activeDistrict === districtCode
+                        ? "bg-[#0a2d5e] text-white"
+                        : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    }`}
                   >
-                    <span className="flex-1">DISTRICT: {district.designation}</span>
-                    {expandedDistricts[districtCode] ? (
-                      <ChevronUp className="h-5 w-5" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5" />
-                    )}
+                    {district.designation}
                   </button>
-                </div>
+                ))}
+              </div>
+            </div>
 
-                {expandedDistricts[districtCode] && (
+            {/* Districts content */}
+            <div className="space-y-8">
+              {Object.entries(filteredData).map(([districtCode, district], districtIndex) => (
+                <div
+                  key={districtCode}
+                  className={`district-container ${activeDistrict === districtCode || !activeDistrict ? "" : "hidden print:block"}`}
+                >
+                  {/* Report header - visible in both screen and print */}
+                  <div className="report-header border border-gray-800 mb-4 grid grid-cols-3">
+                    <div className="border border-gray-800 p-4 flex items-center justify-center">
+                      <div className="text-center">
+                        <img src="/logo-naftal.png" alt="NAFTAL Logo" className="h-12 mx-auto mb-1" />
+                        <div className="font-semibold text-xs">DIRECTION GENERALE</div>
+                      </div>
+                    </div>
+                    <div className="border border-gray-800 p-4 flex items-center justify-center">
+                      <h2 className="text-xl font-bold text-center">SITUATION D&apos;IMMOBILISATION HEBDOMADAIRE</h2>
+                    </div>
+                    <div className="border border-gray-800 p-4">
+                      <div className="font-semibold border-b border-black pb-1 mb-1 text-right">EQ BGPL MT 33 v1</div>
+                      <div className="text-right">
+                        <div className="font-semibold">Date d&apos;application : {formatCurrentDate()}</div>
+                        <div className="mt-1">
+                          Page : {districtIndex + 1} sur {Object.keys(filteredData).length}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between mb-4">
+                    <p>
+                      <span className="font-semibold">DISTRICT:</span> {district.designation}
+                    </p>
+                    <p>
+                      <span className="font-semibold">ARRETEE AU:</span> {nextWeek}
+                    </p>
+                  </div>
+
                   <div className="space-y-6">
                     {Object.entries(district.centres).map(([centreCode, centre]) => {
-                      const totalPages = getTotalPages(districtCode, centreCode, centre.immobilisations)
+                      const totalPages = getTotalPages(districtCode)
                       const currentPage = districtPages[districtCode] || 1
-                      const paginatedImmobilisations = getPaginatedImmobilisations(
-                        districtCode,
-                        centreCode,
-                        centre.immobilisations,
+
+                      // Get all immobilisations for this district
+                      let allDistrictImmobilisations: ImmobilisationHistorique[] = []
+                      Object.values(district.centres).forEach((c) => {
+                        allDistrictImmobilisations = [...allDistrictImmobilisations, ...c.immobilisations]
+                      })
+
+                      // Paginate all immobilisations for this district
+                      const startIndex = (currentPage - 1) * itemsPerPage
+                      const endIndex = startIndex + itemsPerPage
+                      const paginatedDistrictImmobilisations = allDistrictImmobilisations.slice(startIndex, endIndex)
+
+                      // Filter immobilisations for this centre from the paginated district immobilisations
+                      const paginatedCentreImmobilisations = paginatedDistrictImmobilisations.filter(
+                        (item) => item.code_centre === centreCode,
                       )
 
-                      // For print view, use all immobilisations
-                      const printImmobilisations = centre.immobilisations
+                      // Skip rendering if there are no immobilisations for this centre in the current page
+                      if (paginatedCentreImmobilisations.length === 0 && !activeDistrict) {
+                        return null
+                      }
 
                       return (
                         <div key={centreCode} className="ml-0 print:ml-0">
-                          <h3 className="text-lg font-semibold mb-3 print:hidden">{centre.designation}</h3>
+                          <h3 className="text-lg font-semibold mb-3">{centre.designation}</h3>
 
                           {/* Web view table with pagination */}
                           <div className="overflow-x-auto print:hidden">
                             <table className="min-w-full bg-white border border-gray-300">
                               <thead>
                                 <tr className="bg-gray-100">
-                                  <th className="px-4 py-2 border text-left font-semibold">CDS</th>
+                                  <th className="px-4 py-2 border text-left font-semibold">SCD</th>
                                   <th className="px-4 py-2 border text-left font-semibold">VEHICULE</th>
                                   <th className="px-4 py-2 border text-left font-semibold">DATE</th>
                                   <th className="px-4 py-2 border text-left font-semibold">LIEU</th>
@@ -350,7 +491,7 @@ export default function HistoriqueImmobilisationPage() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {paginatedImmobilisations.map((item, index) => (
+                                {paginatedCentreImmobilisations.map((item, index) => (
                                   <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                                     <td className="px-4 py-2 border">{item.code_centre}</td>
                                     <td className="px-4 py-2 border">{item.code_vehicule}</td>
@@ -384,7 +525,7 @@ export default function HistoriqueImmobilisationPage() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {printImmobilisations.map((item, index) => (
+                                {centre.immobilisations.map((item, index) => (
                                   <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                                     <td className="px-4 py-2 border">{item.code_centre}</td>
                                     <td className="px-4 py-2 border">{item.code_vehicule}</td>
@@ -400,49 +541,54 @@ export default function HistoriqueImmobilisationPage() {
                               </tbody>
                             </table>
                           </div>
-
-                          {/* Pagination - Web view only */}
-                          {totalPages > 1 && (
-                            <div className="flex justify-between items-center mt-4 print:hidden">
-                              <div className="text-sm text-gray-500">
-                                Page {currentPage} sur {totalPages}
-                              </div>
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => changePage(districtCode, Math.max(1, currentPage - 1))}
-                                  disabled={currentPage === 1}
-                                  className="px-3 py-1 border rounded disabled:opacity-50 flex items-center"
-                                >
-                                  <ChevronLeft className="h-4 w-4 mr-1" />
-                                  Précédent
-                                </button>
-                                <button
-                                  onClick={() => changePage(districtCode, Math.min(totalPages, currentPage + 1))}
-                                  disabled={currentPage === totalPages}
-                                  className="px-3 py-1 border rounded disabled:opacity-50 flex items-center"
-                                >
-                                  Suivant
-                                  <ChevronRight className="h-4 w-4 ml-1" />
-                                </button>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       )
                     })}
                   </div>
-                )}
 
-                {/* Print footer - Only visible when printing */}
-                <div className="hidden print:block print:mt-8 print:border-t print:pt-4">
-                  <div className="flex justify-between">
-                    <p>Document généré le {format(new Date(), "dd/MM/yyyy", { locale: fr })}</p>
-                    <p>Système de Gestion de Maintenance</p>
+                  {/* Pagination - Web view only */}
+                  {getTotalPages(districtCode) > 1 && (
+                    <div className="flex justify-between items-center mt-6 pagination-controls print:hidden">
+                      <div className="text-sm text-gray-500">
+                        Page {districtPages[districtCode] || 1} sur {getTotalPages(districtCode)}
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => changePage(districtCode, Math.max(1, (districtPages[districtCode] || 1) - 1))}
+                          disabled={(districtPages[districtCode] || 1) === 1}
+                          className="px-3 py-1 border rounded disabled:opacity-50 flex items-center"
+                        >
+                          <ChevronLeft className="h-4 w-4 mr-1" />
+                          Précédent
+                        </button>
+                        <button
+                          onClick={() =>
+                            changePage(
+                              districtCode,
+                              Math.min(getTotalPages(districtCode), (districtPages[districtCode] || 1) + 1),
+                            )
+                          }
+                          disabled={(districtPages[districtCode] || 1) === getTotalPages(districtCode)}
+                          className="px-3 py-1 border rounded disabled:opacity-50 flex items-center"
+                        >
+                          Suivant
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Print footer - Only visible when printing */}
+                  <div className="hidden print:block print:mt-8 print:border-t print:pt-4">
+                    <div className="flex justify-between">
+                      <p>Document généré le {formatCurrentDate()}</p>
+                      <p>Propriété NAFTAL GPL - Reproduction Interdite</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -18,7 +18,6 @@ export default function RapportActivitePage() {
   const [manualYear, setManualYear] = useState("")
   const router = useRouter()
 
-  // Fetch report data when date is selected
   useEffect(() => {
     if (selectedDate) {
       fetchReportData(selectedDate)
@@ -127,8 +126,8 @@ export default function RapportActivitePage() {
       {showDatePopup && <DateSelectionPopup onSelect={handleDateSelection} onCancel={() => router.back()} />}
 
       {!showDatePopup && (
-        <div className="max-w-7xl mx-auto print:hidden">
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6 print:hidden">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               {selectedDate && (
                 <div className="text-xl font-semibold text-gray-800">
@@ -212,7 +211,7 @@ export default function RapportActivitePage() {
 
               <button
                 onClick={() => window.print()}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors print:hidden"
               >
                 Imprimer
               </button>
@@ -254,13 +253,6 @@ export default function RapportActivitePage() {
               <p className="text-gray-500">Aucune donnée disponible pour cette période.</p>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Print-only content */}
-      {!showDatePopup && filteredData && filteredData.length > 0 && (
-        <div className="hidden print:block">
-          <ActivityReport data={filteredData} selectedDate={selectedDate} />
         </div>
       )}
     </div>

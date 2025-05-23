@@ -11,9 +11,10 @@ import {
   LoaderIcon,
   MoreVertical,
   RefreshCwIcon,
-  SearchIcon,
   XIcon,
   AlertTriangleIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -39,19 +40,29 @@ type Vehiculetype = {
   besoin_mise_a_jour?: boolean
 }
 
-export default function AfficheVehicule({ userId, userPrivs }: { userId: number, userPrivs: string[]}) {
+type SortConfig = {
+  key: keyof Vehiculetype | null
+  direction: "asc" | "desc"
+}
+
+export default function AfficheVehicule({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
   const router = useRouter()
   const [vehicules, setVehicules] = useState<Vehiculetype[]>([])
   const [filteredVehicules, setFilteredVehicules] = useState<Vehiculetype[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [structureFilter, setStructureFilter] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedVehiculeCode, setSelectedVehiculeCode] = useState<string>("")
   const [vehiculesNeedingUpdate, setVehiculesNeedingUpdate] = useState<string[]>([])
+
+  // Column search filters
+  const [columnFilters, setColumnFilters] = useState<{ [key in keyof Vehiculetype]?: string }>({})
+
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: "asc" })
 
   // Popup states
   const [isStatusPopupOpen, setIsStatusPopupOpen] = useState(false)
@@ -317,32 +328,109 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number,
     return () => clearTimeout(midnightTimeout)
   }, [userId])
 
-  useEffect(() => {
-    // Apply filters
-    let results = [...vehicules]
+  // Handle sorting
+  const requestSort = (key: keyof Vehiculetype) => {
+    let direction: "asc" | "desc" = "asc"
 
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase()
-      results = results.filter(
-        (vehicule) =>
-          vehicule.code_vehicule.toLowerCase().includes(term) ||
-          vehicule.marque_designation.toLowerCase().includes(term) ||
-          vehicule.type_designation.toLowerCase().includes(term) ||
-          (vehicule.n_immatriculation && vehicule.n_immatriculation.toLowerCase().includes(term)),
-      )
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc"
     }
 
+    setSortConfig({ key, direction })
+  }
+
+  // Get sort direction indicator
+  const getSortDirectionIndicator = (key: keyof Vehiculetype) => {
+    if (sortConfig.key !== key) {
+      return null
+    }
+    return sortConfig.direction === "asc" ? (
+      <ArrowUpIcon className="h-4 w-4 ml-1" />
+    ) : (
+      <ArrowDownIcon className="h-4 w-4 ml-1" />
+    )
+  }
+
+  // Apply filters and sorting
+  useEffect(() => {
+    // Start with all vehicles
+    let results = [...vehicules]
+
+    // Apply column filters
+    Object.entries(columnFilters).forEach(([key, value]) => {
+      if (value && value.trim() !== "") {
+        const filterKey = key as keyof Vehiculetype
+        results = results.filter((vehicule) => {
+          const vehicleValue = vehicule[filterKey]
+          if (vehicleValue === null || vehicleValue === undefined) return false
+
+          // Handle different types of values
+          if (typeof vehicleValue === "number") {
+            return vehicleValue.toString().includes(value.toLowerCase())
+          } else if (typeof vehicleValue === "string") {
+            return vehicleValue.toLowerCase().includes(value.toLowerCase())
+          } else if (
+            typeof vehicleValue === "string" &&
+            !isNaN(Date.parse(vehicleValue))
+          ) {
+            // If the string can be parsed as a date, filter by date string
+            return new Date(vehicleValue).toLocaleDateString().includes(value)
+          }
+          return false
+        })
+      }
+    })
+
+    // Apply status filter
     if (statusFilter) {
       results = results.filter((vehicule) => vehicule.status_designation === statusFilter)
     }
 
+    // Apply structure filter
     if (structureFilter) {
       results = results.filter((vehicule) => vehicule.code_structure === structureFilter)
     }
 
+    // Apply sorting
+    if (sortConfig.key) {
+      results.sort((a, b) => {
+        const aValue = a[sortConfig.key as keyof Vehiculetype]
+        const bValue = b[sortConfig.key as keyof Vehiculetype]
+
+        if (aValue === null || aValue === undefined) return sortConfig.direction === "asc" ? -1 : 1
+        if (bValue === null || bValue === undefined) return sortConfig.direction === "asc" ? 1 : -1
+
+        // Handle different types of values
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue
+        } else if (typeof aValue === "string" && typeof bValue === "string") {
+          return sortConfig.direction === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
+        } else if (
+          (typeof aValue === "string" && !isNaN(Date.parse(aValue))) &&
+          (typeof bValue === "string" && !isNaN(Date.parse(bValue)))
+        ) {
+          const aDate = new Date(aValue)
+          const bDate = new Date(bValue)
+          return sortConfig.direction === "asc"
+            ? aDate.getTime() - bDate.getTime()
+            : bDate.getTime() - aDate.getTime()
+        }
+
+        return 0
+      })
+    }
+
     setFilteredVehicules(results)
     setCurrentPage(1) // Reset to first page when filters change
-  }, [searchTerm, statusFilter, structureFilter, vehicules])
+  }, [columnFilters, statusFilter, structureFilter, vehicules, sortConfig])
+
+  // Handle column filter change
+  const handleColumnFilterChange = (key: keyof Vehiculetype, value: string) => {
+    setColumnFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }))
+  }
 
   // Get unique statuses for filter dropdown
   const uniqueStatuses = Array.from(new Set(vehicules.map((vehicule) => vehicule.status_designation))).filter(
@@ -366,7 +454,7 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number,
 
   // Clear all filters
   const clearFilters = () => {
-    setSearchTerm("")
+    setColumnFilters({})
     setStatusFilter("")
     setStructureFilter("")
   }
@@ -435,13 +523,13 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number,
 
     return pageNumbers
   }
-console.log(userPrivs)
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center">
-            <h2 className="text-lg font-semibold text-gray-800">Liste des Véhicules</h2>
+         
             {vehiculesNeedingUpdate.length > 0 && (
               <button
                 onClick={navigateToDashboard}
@@ -454,68 +542,20 @@ console.log(userPrivs)
             )}
           </div>
 
-          {/* Search and Filter Controls */}
+          {/* Filter Controls */}
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            {/* Search Input */}
-            <div className="relative flex-grow md:max-w-xs">
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <SearchIcon className="h-5 w-5 text-gray-400" />
-              </div>
-            </div>
+   
 
-            {/* Status Filter */}
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="">Tous les statuts</option>
-                {uniqueStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDownIcon className="h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Structure Filter */}
-            <div className="relative">
-              <select
-                value={structureFilter}
-                onChange={(e) => setStructureFilter(e.target.value)}
-                className="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="">Toutes les structures</option>
-                {uniqueStructures.map((structure) => (
-                  <option key={structure} value={structure}>
-                    {structure}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDownIcon className="h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Clear Filters Button */}
-            {(searchTerm || statusFilter || structureFilter) && (
+            {/* clear les filtres */}
+            {(Object.values(columnFilters).some((filter) => filter && filter.trim() !== "") ||
+              statusFilter ||
+              structureFilter) && (
               <button
                 onClick={clearFilters}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 <XIcon className="h-4 w-4 mr-1" />
-                Effacer
+                Effacer les filtres
               </button>
             )}
 
@@ -536,14 +576,21 @@ console.log(userPrivs)
         </div>
 
         {/* Filter Status */}
-        {(searchTerm || statusFilter || structureFilter) && (
+        {(Object.values(columnFilters).some((filter) => filter && filter.trim() !== "") ||
+          statusFilter ||
+          structureFilter) && (
           <div className="mt-3 flex items-center text-sm text-gray-500">
             <FilterIcon className="h-4 w-4 mr-2" />
             <span className="mr-2">Filtres actifs:</span>
-            {searchTerm && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
-                Recherche: {searchTerm}
-              </span>
+            {Object.entries(columnFilters).map(([key, value]) =>
+              value && value.trim() !== "" ? (
+                <span
+                  key={key}
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2"
+                >
+                  {key}: {value}
+                </span>
+              ) : null,
             )}
             {statusFilter && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
@@ -567,55 +614,159 @@ console.log(userPrivs)
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Options
+               
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("code_vehicule")}
               >
-                Code
+                <div className="flex items-center">
+                  Code
+                  {getSortDirectionIndicator("code_vehicule")}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    value={columnFilters.code_vehicule || ""}
+                    onChange={(e) => handleColumnFilterChange("code_vehicule", e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                  />
+                </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("n_immatriculation")}
               >
-                Matricule
+                <div className="flex items-center">
+                  Matricule
+                  {getSortDirectionIndicator("n_immatriculation")}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    value={columnFilters.n_immatriculation || ""}
+                    onChange={(e) => handleColumnFilterChange("n_immatriculation", e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                  />
+                </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("marque_designation")}
               >
-                Marque
+                <div className="flex items-center">
+                  Marque
+                  {getSortDirectionIndicator("marque_designation")}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    value={columnFilters.marque_designation || ""}
+                    onChange={(e) => handleColumnFilterChange("marque_designation", e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                  />
+                </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("type_designation")}
               >
-                Type
+                <div className="flex items-center">
+                  Type
+                  {getSortDirectionIndicator("type_designation")}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    value={columnFilters.type_designation || ""}
+                    onChange={(e) => handleColumnFilterChange("type_designation", e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                  />
+                </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("status_designation")}
               >
-                Statut
+                <div className="flex items-center">
+                  Statut
+                  {getSortDirectionIndicator("status_designation")}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    value={columnFilters.status_designation || ""}
+                    onChange={(e) => handleColumnFilterChange("status_designation", e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                  />
+                </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("code_structure")}
               >
-                Structure
+                <div className="flex items-center">
+                  Structure
+                  {getSortDirectionIndicator("code_structure")}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    value={columnFilters.code_structure || ""}
+                    onChange={(e) => handleColumnFilterChange("code_structure", e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                  />
+                </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("total_kilometrage")}
               >
-                Km total
+                <div className="flex items-center">
+                  Km total
+                  {getSortDirectionIndicator("total_kilometrage")}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    value={columnFilters.total_kilometrage || ""}
+                    onChange={(e) => handleColumnFilterChange("total_kilometrage", e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                  />
+                </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("derniere_mise_a_jour")}
               >
-                Dernière MAJ
+                <div className="flex items-center">
+                  Dernière MAJ
+                  {getSortDirectionIndicator("derniere_mise_a_jour")}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    value={columnFilters.derniere_mise_a_jour || ""}
+                    onChange={(e) => handleColumnFilterChange("derniere_mise_a_jour", e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                  />
+                </div>
               </th>
             </tr>
           </thead>
@@ -657,11 +808,15 @@ console.log(userPrivs)
                     </div>
                     <p className="text-lg font-medium">Aucun véhicule trouvé</p>
                     <p className="text-sm text-gray-400 mt-1">
-                      {searchTerm || statusFilter || structureFilter
+                      {Object.values(columnFilters).some((filter) => filter && filter.trim() !== "") ||
+                      statusFilter ||
+                      structureFilter
                         ? "Essayez de modifier vos filtres"
                         : "Ajoutez des véhicules pour les voir apparaître ici"}
                     </p>
-                    {(searchTerm || statusFilter || structureFilter) && (
+                    {(Object.values(columnFilters).some((filter) => filter && filter.trim() !== "") ||
+                      statusFilter ||
+                      structureFilter) && (
                       <button
                         onClick={clearFilters}
                         className="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -699,66 +854,71 @@ console.log(userPrivs)
                           >
                             <span className="mr-2"></span> Détails
                           </DropdownMenuItem>
-                          {userPrivs.includes('modifier_vehicule') && (
-                          <DropdownMenuItem
-                            onClick={() => {}}
-                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                          >
-                            <span className="mr-2"></span> Modifier
-                          </DropdownMenuItem>)}
-                          {userPrivs.includes('ajouter_DI') && (
-                          <DropdownMenuItem
-                            onClick={() => handleAjouterDemande(vehicule.code_vehicule)}
-                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                          >
-                            <span className="mr-2"></span> Ajouter Demande
-                          </DropdownMenuItem>)}
+                          {userPrivs.includes("modifier_vehicule") && (
+                            <DropdownMenuItem
+                              onClick={() => {}}
+                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                            >
+                              <span className="mr-2"></span> Modifier
+                            </DropdownMenuItem>
+                          )}
+                          {userPrivs.includes("ajouter_DI") && (
+                            <DropdownMenuItem
+                              onClick={() => handleAjouterDemande(vehicule.code_vehicule)}
+                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                            >
+                              <span className="mr-2"></span> Ajouter Demande
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={() => navigateToIntervention(vehicule.code_vehicule)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Constater Demande
                           </DropdownMenuItem>
-                          {userPrivs.includes('supprimer_vehicule') && (
-                          <DropdownMenuItem
-                            onClick={() => confirmDelete(vehicule.code_vehicule)}
-                            className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer flex items-center"
-                          >
-                            <span className="mr-2"></span> Supprimer véhicule
-                          </DropdownMenuItem>
+                          {userPrivs.includes("supprimer_vehicule") && (
+                            <DropdownMenuItem
+                              onClick={() => confirmDelete(vehicule.code_vehicule)}
+                              className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer flex items-center"
+                            >
+                              <span className="mr-2"></span> Supprimer véhicule
+                            </DropdownMenuItem>
                           )}
                           {/* Separator */}
                           <div className="h-px bg-gray-200 my-1"></div>
 
                           {/* New options for popups */}
-                          {userPrivs.includes('modifier_status') && (
-                          <DropdownMenuItem
-                            onClick={() => openStatusPopup(vehicule.code_vehicule)}
-                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                          >
-                            <span className="mr-2"></span> Changer le statut
-                          </DropdownMenuItem>)}
-                          {userPrivs.includes('modifier_kilo_heure') && (
-                          <DropdownMenuItem
-                            onClick={() => openKilometragePopup(vehicule.code_vehicule)}
-                            className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer flex items-center ${
-                              vehicule.besoin_mise_a_jour ? "text-red-600 font-medium" : "text-gray-700"
-                            }`}
-                          >
-                            <span className="mr-2"></span> Mettre à jour kilométrage
-                            {vehicule.besoin_mise_a_jour && (
-                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Urgent
-                              </span>
-                            )}
-                          </DropdownMenuItem>)}
-                          {userPrivs.includes('modifier_affectation') && (
-                          <DropdownMenuItem
-                            onClick={() => openAffectationPopup(vehicule.code_vehicule)}
-                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
-                          >
-                            <span className="mr-2"></span> Changer l'affectation
-                          </DropdownMenuItem>)}
+                          {userPrivs.includes("modifier_status") && (
+                            <DropdownMenuItem
+                              onClick={() => openStatusPopup(vehicule.code_vehicule)}
+                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                            >
+                              <span className="mr-2"></span> Changer le statut
+                            </DropdownMenuItem>
+                          )}
+                          {userPrivs.includes("modifier_kilo_heure") && (
+                            <DropdownMenuItem
+                              onClick={() => openKilometragePopup(vehicule.code_vehicule)}
+                              className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer flex items-center ${
+                                vehicule.besoin_mise_a_jour ? "text-red-600 font-medium" : "text-gray-700"
+                              }`}
+                            >
+                              <span className="mr-2"></span> MAJ kilométrage/heure
+                              {vehicule.besoin_mise_a_jour && (
+                                <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  Urgent
+                                </span>
+                              )}
+                            </DropdownMenuItem>
+                          )}
+                          {userPrivs.includes("modifier_affectation") && (
+                            <DropdownMenuItem
+                              onClick={() => openAffectationPopup(vehicule.code_vehicule)}
+                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                            >
+                              <span className="mr-2"></span> Changer l'affectation
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
