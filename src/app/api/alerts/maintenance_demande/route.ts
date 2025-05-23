@@ -5,13 +5,13 @@ import path from "path"
 
 const prisma = new PrismaClient()
 
-// Define types
-type VehicleType = {
+// Définition des types
+type TypeVehicule = {
   code_vehicule: string
   code_type: number
 }
 
-type MaintenanceProgram = {
+type ProgrammeEntretien = {
   code_type: number
   code_gamme: string
   code_operation: string
@@ -25,7 +25,7 @@ type MaintenanceProgram = {
   }
 }
 
-type MaintenanceAlert = {
+type AlerteEntretien = {
   code_vehicule: string
   code_type: number
   code_gamme: string
@@ -38,10 +38,10 @@ type MaintenanceAlert = {
   unite_mesure: string
 }
 
-type VehicleKilometrageTracker = {
+type SuiviKilometrageVehicule = {
   [code_vehicule: string]: {
-    [key: string]: {
-      // key is a composite of code_type-code_gamme-code_operation
+    [cle: string]: {
+      // clé est un composite de code_type-code_gamme-code_operation
       code_type: number
       code_gamme: string
       code_operation: string
@@ -52,9 +52,9 @@ type VehicleKilometrageTracker = {
   }
 }
 
-// Helper function to generate a unique key for a maintenance program
-function generateProgramKey(code_type: number, code_gamme: string, code_operation: string): string {
-  // Make sure we have valid values before creating a key
+// Fonction auxiliaire pour générer une clé unique pour un programme d'entretien
+function genererCleProgramme(code_type: number, code_gamme: string, code_operation: string): string {
+  // S'assurer que nous avons des valeurs valides avant de créer une clé
   if (
     code_type === null ||
     code_type === undefined ||
@@ -63,75 +63,75 @@ function generateProgramKey(code_type: number, code_gamme: string, code_operatio
     code_operation === null ||
     code_operation === undefined
   ) {
-    console.error("Invalid program key components:", { code_type, code_gamme, code_operation })
-    return "invalid-key" // Return a placeholder to avoid crashes
+    console.error("Composants de clé de programme invalides:", { code_type, code_gamme, code_operation })
+    return "cle-invalide" // Retourner un placeholder pour éviter les plantages
   }
   return `${code_type}-${code_gamme}-${code_operation}`
 }
 
-
-function shouldMultiplyPeriode(uniteMesure: string): boolean {
-  const uniteLower = uniteMesure.toLowerCase()
-  return uniteLower === "km" || uniteLower === "kilometrage"
+// Fonction pour déterminer si nous devons multiplier la période par 1000
+function doitMultiplierPeriode(uniteMesure: string): boolean {
+  const uniteMinuscule = uniteMesure.toLowerCase()
+  return uniteMinuscule === "km" || uniteMinuscule === "kilometrage"
 }
 
-//recuperer la valeur total du kilometrage
-function loadKilometrageTracker(): VehicleKilometrageTracker {
-  const alertsDir = path.join(process.cwd(), "alerts")
-  const filePath = path.join(alertsDir, "maintenance-kilometrage-tracker.json")
+// Charger le suivi de kilométrage à partir du fichier JSON
+function chargerSuiviKilometrage(): SuiviKilometrageVehicule {
+  const dossierAlertes = path.join(process.cwd(), "alerts")
+  const cheminFichier = path.join(dossierAlertes, "maintenance-kilometrage-tracker.json")
 
   try {
-    if (!fs.existsSync(alertsDir)) {
-      fs.mkdirSync(alertsDir, { recursive: true })
+    if (!fs.existsSync(dossierAlertes)) {
+      fs.mkdirSync(dossierAlertes, { recursive: true })
     }
 
-    if (fs.existsSync(filePath)) {
-      const fileContent = fs.readFileSync(filePath, "utf8")
-      return JSON.parse(fileContent)
+    if (fs.existsSync(cheminFichier)) {
+      const contenuFichier = fs.readFileSync(cheminFichier, "utf8")
+      return JSON.parse(contenuFichier)
     }
-  } catch (error) {
-    console.error("Error loading kilometrage tracker:", error)
+  } catch (erreur) {
+    console.error("Erreur lors du chargement du suivi de kilométrage:", erreur)
   }
 
   return {}
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(requete: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId, code_vehicule } = body
+    const corps = await requete.json()
+    const { userId, code_vehicule } = corps
 
     if (!code_vehicule) {
-      return NextResponse.json({ error: "Vehicle code is required" }, { status: 400 })
+      return NextResponse.json({ error: "Le code du véhicule est requis" }, { status: 400 })
     }
 
-    // recuperer le type
-    const vehicleType = await prisma.vehicule.findUnique({
+    // Récupérer le type de véhicule
+    const typeVehicule = await prisma.vehicule.findUnique({
       where: { code_vehicule },
       select: { code_type: true },
     })
-    console.log("Vehicle type:", userId , code_vehicule) ;
-    
-    if (!vehicleType || !vehicleType.code_type) {
-      return NextResponse.json({ error: "Vehicle type not found" }, { status: 404 })
+    console.log("Type de véhicule:", userId, code_vehicule)
+
+    if (!typeVehicule || !typeVehicule.code_type) {
+      return NextResponse.json({ error: "Type de véhicule non trouvé" }, { status: 404 })
     }
 
-    // Get maintenance programs for this type
-    const programs = await prisma.programme_entretien.findMany({
-      where: { code_type: vehicleType.code_type },
+    // Obtenir les programmes d'entretien pour ce type
+    const programmes = await prisma.programme_entretien.findMany({
+      where: { code_type: typeVehicule.code_type },
       include: {
         gamme: true,
         operation: true,
       },
     })
 
-    // Load the kilometrage tracker
-    const kilometrageTracker = loadKilometrageTracker()
-    const vehicleTracker = kilometrageTracker[code_vehicule] || {}
+    // Charger le suivi de kilométrage
+    const suiviKilometrage = chargerSuiviKilometrage()
+    const suiviVehicule = suiviKilometrage[code_vehicule] || {}
 
-    // Get average kilometrage for this vehicle
-    const avgKilometrageResponse = await fetch(
-      `${request.nextUrl.origin}/api/vehicule/kilometrage-heure/getMoyenKilometrage`,
+    // Obtenir le kilométrage moyen pour ce véhicule
+    const reponseKilometrageMoyen = await fetch(
+      `${requete.nextUrl.origin}/api/vehicule/kilometrage-heure/getMoyenKilometrage`,
       {
         method: "POST",
         headers: {
@@ -141,56 +141,62 @@ export async function POST(request: NextRequest) {
       },
     )
 
-    if (!avgKilometrageResponse.ok) {
-      throw new Error("Failed to fetch average kilometrage")
+    if (!reponseKilometrageMoyen.ok) {
+      throw new Error("Échec de la récupération du kilométrage moyen")
     }
 
-    const avgKilometrageData = await avgKilometrageResponse.json()
-    const avgKilometrage =
-      avgKilometrageData.find((item: any) => item.code_vehicule === code_vehicule)?.valeur_moy_kil || 300
+    const donneesKilometrageMoyen = await reponseKilometrageMoyen.json()
+    const kilometrageMoyen =
+      donneesKilometrageMoyen.find((item: any) => item.code_vehicule === code_vehicule)?.valeur_moy_kil || 300
 
-    // Generate alerts for this vehicle
-    const alerts: MaintenanceAlert[] = []
-    for (const program of programs) {
-      // Skip invalid programs
-      if (!program.code_gamme || !program.code_operation) {
+    // Générer les alertes pour ce véhicule
+    // Retourne TOUTES les gammes d'entretien, pas seulement celles où la différence est inférieure à la valeur moyenne
+    const alertes: AlerteEntretien[] = []
+    for (const programme of programmes) {
+      // Ignorer les programmes invalides
+      if (!programme.code_gamme || !programme.code_operation) {
         continue
       }
 
-      const programKey = generateProgramKey(program.code_type, program.code_gamme, program.code_operation)
-      if (programKey === "invalid-key") continue
+      const cleProgramme = genererCleProgramme(programme.code_type, programme.code_gamme, programme.code_operation)
+      if (cleProgramme === "cle-invalide") continue
 
-      const programTracker = vehicleTracker[programKey] || {
-        code_type: program.code_type,
-        code_gamme: program.code_gamme,
-        code_operation: program.code_operation,
+      const suiviProgramme = suiviVehicule[cleProgramme] || {
+        code_type: programme.code_type,
+        code_gamme: programme.code_gamme,
+        code_operation: programme.code_operation,
         valeur_accumulee: 0,
-        periode: program.periode,
+        periode: programme.periode,
         derniere_mise_a_jour: new Date().toISOString(),
       }
 
-      const uniteMesure = program.gamme.unite_mesure || "kilometrage"
-      const multiplyFactor = shouldMultiplyPeriode(uniteMesure) ? 1000 : 1
-      const periodeAdjusted = program.periode * multiplyFactor
-      const valeurRestante = periodeAdjusted - programTracker.valeur_accumulee
+      const uniteMesure = programme.gamme.unite_mesure || "kilometrage"
+      const facteurMultiplication = doitMultiplierPeriode(uniteMesure) ? 1000 : 1
+      const periodeAjustee = programme.periode * facteurMultiplication
+      const valeurRestante = periodeAjustee - suiviProgramme.valeur_accumulee
 
-      alerts.push({
+      // Ajouter toutes les gammes à la liste des alertes, sans filtrage
+      alertes.push({
         code_vehicule,
-        code_type: program.code_type,
-        code_gamme: program.code_gamme,
-        code_operation: program.code_operation,
-        gamme_designation: program.gamme.designation,
-        operation_designation: program.operation.designation,
-        periode: periodeAdjusted,
-        valeur_accumulee: programTracker.valeur_accumulee,
+        code_type: programme.code_type,
+        code_gamme: programme.code_gamme,
+        code_operation: programme.code_operation,
+        gamme_designation: programme.gamme.designation,
+        operation_designation: programme.operation.designation,
+        periode: periodeAjustee,
+        valeur_accumulee: suiviProgramme.valeur_accumulee,
         valeur_restante: valeurRestante,
         unite_mesure: uniteMesure,
       })
     }
 
-    return NextResponse.json(alerts)
-  } catch (error) {
-    console.error("Error generating maintenance alerts for vehicle:", error)
-    return NextResponse.json({ error: "Failed to generate maintenance alerts for vehicle" }, { status: 500 })
+    // Retourner toutes les alertes sans filtrage
+    return NextResponse.json(alertes)
+  } catch (erreur) {
+    console.error("Erreur lors de la génération des alertes d'entretien pour le véhicule:", erreur)
+    return NextResponse.json(
+      { error: "Échec de la génération des alertes d'entretien pour le véhicule" },
+      { status: 500 },
+    )
   }
 }

@@ -42,7 +42,7 @@ const MaintenanceGammesSelector = ({ visible, onClose, code_vehicule, onSelect }
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/alerts/maintenance`, {
+      const response = await fetch(`/api/alerts/maintenance_demande`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

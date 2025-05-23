@@ -114,6 +114,7 @@ type ConstaterDemandeProps = {
 
 type DemandeIntervention = {
   id_demande_intervention: string
+  numero_demande : string
   etat_demande: string
   date_application: string
   date_heure_panne: string
@@ -358,7 +359,7 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
                 <tr>
                   <td className="border-2 border-gray-800  w-1/3">
                     <span className="font-bold mb-1 px-1">N° :</span>
-                    <span className="pl-2">{demande.id_demande_intervention}</span>
+                    <span className="pl-2">{demande.numero_demande}</span>
                   </td>
                   <td className="border-2 border-gray-800 ">
                     <span className="font-bold mb-1 px-1">District/Autre :</span>

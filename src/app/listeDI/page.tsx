@@ -224,7 +224,7 @@ export default function ListDIPage() {
   }
 
   const navigateToConstater = (id_demande_intervention: number) => {
-    router.push(`/pages/vehicule/intervention/completer/${id_demande_intervention}`)
+    router.push(`/vehicule/intervention/demande/${id_demande_intervention}`)
   }
 
   // Get unique values for dropdown filters
