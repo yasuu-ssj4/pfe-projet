@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
   const body  = await req.json();
   const { designation , id_marque , type  } = body;
-  const parsedId = parseInt(id_marque); // 🛠 convertit en nombre
+  const parsedId = parseInt(id_marque); 
 
   if (isNaN(parsedId)) {
     return NextResponse.json({ error: "id_marque invalide" }, { status: 400 });

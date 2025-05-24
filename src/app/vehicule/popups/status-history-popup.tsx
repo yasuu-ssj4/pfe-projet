@@ -50,7 +50,12 @@ const StatusIcon = ({ status, isActive, onClick }: StatusIconProps) => {
 }
 
 // Composant d'analyse des statuts
-const StatusAnalytics = ({ statusHistory }) => {
+type StatusHistoryItem = {
+  code_status: keyof typeof STATUS_COLORS;
+  date: string;
+};
+
+const StatusAnalytics = ({ statusHistory }: { statusHistory: StatusHistoryItem[] }) => {
   // Calculer le temps passé dans chaque statut
   const calculateTimeInStatus = () => {
     const result = {}
