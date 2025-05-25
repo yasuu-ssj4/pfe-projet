@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { code_vehicule, kilo_parcouru_heure_fonctionnement } = body
 
-    // Insert new kilometrage record
+   
     const result = await prisma.historique_kilometrage_heure.create({
       data: {
         code_vehicule,
@@ -19,9 +19,10 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Update the maintenance tracker
+    // maj le tracker de kiloemtrage
     await updateMaintenanceTracker(code_vehicule, Number(kilo_parcouru_heure_fonctionnement))
-
+   // envoyer les donnees a predire 
+   await ApiModel(code_vehicule);
     return NextResponse.json({ success: true, result })
   } catch (error) {
     console.error("Error adding kilometrage:", error)
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Update the maintenance tracker with new kilometrage
+// la fonction pour faire maj
 async function updateMaintenanceTracker(code_vehicule: string, kilometrage: number) {
   try {
     const alertsDir = path.join(process.cwd(), "alerts")
@@ -68,3 +69,25 @@ async function updateMaintenanceTracker(code_vehicule: string, kilometrage: numb
     console.error("Error updating maintenance tracker:", error)
   }
 }
+ const ApiModel = async (code_vehicule: string) => {
+    try {
+
+    const res = await fetch("/api/model", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ code_vehicule }),
+});
+
+      if (!res.ok) {
+        throw new Error("Erreur lors de l'envoie de les donnees")
+      }
+
+     const data = await res.json()
+     console.log(data);
+     
+     
+    } catch (error) {
+      console.error("Error:", error)
+     
+    }
+  }

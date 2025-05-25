@@ -169,13 +169,13 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     } });
   }
 
- const constater_vehicule = async (id_utilisateur: number) => {
+ const constater_vehicule = async (code_vehicule: string) => {
     try {
 
-    const res = await fetch("http://localhost:3000/api/rapport/listeRi", {
+    const res = await fetch("http://localhost:3000/api/model", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ id_utilisateur }),
+  body: JSON.stringify({ code_vehicule }),
 });
 
       if (!res.ok) {

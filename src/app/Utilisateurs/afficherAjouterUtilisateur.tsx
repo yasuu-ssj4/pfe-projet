@@ -18,7 +18,6 @@ import {
   Edit,
   Trash2,
 } from "lucide-react"
-import { Label } from "@radix-ui/react-dropdown-menu"
 
 export default function Compte({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
   const [popup, setPopup] = useState(false)
@@ -46,6 +45,16 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
   const [structureError, setStructureError] = useState<string | null>(null)
   const [isValidating, setIsValidating] = useState(false)
 
+  // Column search filters
+  const [columnFilters, setColumnFilters] = useState<{ [key: string]: string }>({})
+
+  // Sorting state
+  type SortConfig = {
+    key: keyof Utilisateurid | null
+    direction: "asc" | "desc"
+  }
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: "asc" })
+
   const [role, setRole] = useState("Direction generale")
   const [checkedItems, setCheckedItems] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -64,110 +73,6 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
   // Add this debugging function at the top of the component, right after the useState declarations
   const debugLog = (message: string, data: any) => {
     console.log(`DEBUG - ${message}:`, data)
-  }
-
-  // Define the hierarchical privilege structure
-  const privilegeGroups = [
-    {
-      id: "admin",
-      label: "Admin",
-      subItems: [],
-    },
-    {
-      id: "user_group",
-      label: "Compte utilisateur",
-      subItems: [
-        { id: "user", label: "Compte Utilisateur" },
-        { id: "ajouter_user", label: "Ajouter Un Utilisateur" },
-        { id: "modifier_user", label: "Modifier Un Utilisateur" },
-        { id: "supprimer_user", label: "Supprimer Un Utilisateur" },
-      ],
-    },
-    {
-      id: "structure_group",
-      label: "Structure",
-      subItems: [
-        { id: "ajouter_structure", label: "Ajouter Une Structure" },
-        { id: "modifier_structure", label: "Modifier Une Structure" },
-      ],
-    },
-    {
-      id: "vehicule_group",
-      label: "Véhicule",
-      subItems: [
-        { id: "ajout_vehicule", label: "Ajouter Un Véhicule" },
-        { id: "modifier_vehicule", label: "Modifier Un Véhicule" },
-        { id: "supprimer_vehicule", label: "Supprimer Un Véhicule" },
-        { id: "modifier_kilo_heure", label: "Faire la mise a jour du kilometrage/heure" },
-        { id: "modifier_status", label: "Modifier Le Status d'un vehicule" },
-        { id: "modifier_affectation", label: "Affecter un vehicule a une autre structure" },
-      ],
-    },
-    {
-      id: "marque_group",
-      label: "Marque",
-      subItems: [
-        { id: "ajouter_marque", label: "Ajouter Une Marque"},
-        { id: "modifier_marque", label: "Modifier Une Marque"},       
-      ]
-    },
-    {
-      id: "type_group",
-      label: "Type",
-      subItems: [
-        { id: "ajouter_type", label: "Ajouter Un Type"},
-        { id: "modifier_type", label: "Modifier Un Type"},       
-      ]
-    },
-    {
-      id: "intervention_group",
-      label: "Demande Intervention",
-      subItems: [
-        { id: "ajouter_DI", label: "Ajouter la Demande d'intervention" },
-        { id: "ajouter_QI", label: "Ajouter la qualification d'intervention" },
-        { id: "supprimer_DI", label: "Supprimer la Demande d'intervention" },
-      ],
-    },
-    {
-      id: "rapport_intervention_group",
-      label: "Rapport d'Intervention",
-      subItems: [
-        { id: "ajouter_rapport", label: "Ajouter Rapport d'intervention" },
-        { id: "supprimer_rapport", label: "Supprimer Rapport d'intervention" },
-      ],
-    },
-    {
-      id: "programme_group",
-      label: "Programme Entretien",
-      subItems: [
-        { id: "ajouter_programme_entretien", label: "Ajouter Programme Entretien" },
-        { id: "modifier_programme_entretien", label: "Modifier Programme Entretien" },
-        { id: "supprimer_programme_entretien", label: "Supprimer Programme Entretien" },
-      ],
-    },
-    {
-      id: "rapport_group",
-      label: "Rapports",
-      subItems: [
-        { id: "ajouter_situation_immobilisation", label: "Ajouter Une Situation d'immobilisation hebdomadaire" },
-        { id: "ajouter_rapport_activite", label: "Ajouter Un Rapport d'activité mensuel" },
-      ]
-    }
-  ]
-
-  // Get all privilege IDs (for flattening the structure when needed)
-  const getAllPrivilegeIds = () => {
-    const ids: string[] = []
-    privilegeGroups.forEach((group) => {
-      if (group.id === "admin") {
-        ids.push(group.id)
-      } else {
-        group.subItems.forEach((item) => {
-          ids.push(item.id)
-        })
-      }
-    })
-    return ids
   }
 
   // Fetch users de L'API
@@ -203,12 +108,29 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
     fetchUsers()
   }, [])
 
-  // Apply filters when search term or filters change
+  // Apply filters and sorting when any filter or sort changes
   useEffect(() => {
-    // Apply filters to the users array
     let results = [...users]
 
-    // Apply search term filter
+    // Apply column filters
+    Object.entries(columnFilters).forEach(([key, value]) => {
+      if (value && value.trim() !== "") {
+        results = results.filter((user) => {
+          const userValue = user[key as keyof Utilisateurid]
+          if (userValue === null || userValue === undefined) return false
+
+          if (typeof userValue === "string") {
+            return userValue.toLowerCase().includes(value.toLowerCase())
+          } else if (typeof userValue === "number") {
+            return userValue.toString().includes(value)
+          }
+          return false
+        })
+      }
+    })
+
+    // Apply global search term filter
+    /*
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       results = results.filter(
@@ -229,12 +151,30 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
     if (structureFilter) {
       results = results.filter((user) => user.code_structure === structureFilter)
     }
+    */
+
+    // Apply sorting
+    if (sortConfig.key) {
+      results.sort((a, b) => {
+        const aValue = a[sortConfig.key as keyof Utilisateurid]
+        const bValue = b[sortConfig.key as keyof Utilisateurid]
+
+        if (aValue === null || aValue === undefined) return sortConfig.direction === "asc" ? -1 : 1
+        if (bValue === null || bValue === undefined) return sortConfig.direction === "asc" ? 1 : -1
+
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          return sortConfig.direction === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
+        } else if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue
+        }
+
+        return 0
+      })
+    }
 
     setFilteredUsers(results)
-
-    // Reset to first page when filters change
     setCurrentPage(1)
-  }, [searchTerm, roleFilter, structureFilter, users])
+  }, [columnFilters, users, sortConfig])
 
   // Add this function to validate fields in real-time
   const validateField = async (field: string, value: string) => {
@@ -521,72 +461,14 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
     }
   }
 
-  // New function to handle group checkbox changes
-  const handleGroupChange = (groupId: string, checked: boolean) => {
-    if (groupId === "admin") {
-      // Special case for admin - check/uncheck all privileges
-      if (checked) {
-        setCheckedItems(getAllPrivilegeIds())
-        setFormValue((prev) => ({ ...prev, est_admin: true }))
-      } else {
-        setCheckedItems([])
-        setFormValue((prev) => ({ ...prev, est_admin: false }))
-      }
-      return
-    }
+  const handleItems = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, checked } = event.target
 
-    // Find the group
-    const group = privilegeGroups.find((g) => g.id === groupId)
-    if (!group) return
-
-    // Get all sub-item IDs for this group
-    const subItemIds = group.subItems.map((item) => item.id)
-
-    if (checked) {
-      // Add all sub-items that aren't already checked
-      const newCheckedItems = [...checkedItems]
-      subItemIds.forEach((id) => {
-        if (!newCheckedItems.includes(id)) {
-          newCheckedItems.push(id)
-        }
-      })
-      setCheckedItems(newCheckedItems)
+    if (id === "admin") {
+      setFormValue((prev) => ({ ...prev, est_admin: checked }))
+      setCheckedItems(checked ? privilege.map((opt) => opt.id) : [])
     } else {
-      // Remove all sub-items
-      setCheckedItems(checkedItems.filter((id) => !subItemIds.includes(id)))
-    }
-  }
-
-  // Function to check if a group is fully checked
-  const isGroupChecked = (groupId: string) => {
-    if (groupId === "admin") {
-      return formValue.est_admin
-    }
-
-    const group = privilegeGroups.find((g) => g.id === groupId)
-    if (!group) return false
-
-    // Check if all sub-items are checked
-    return group.subItems.every((item) => checkedItems.includes(item.id))
-  }
-
-  // Function to check if a group is partially checked
-  const isGroupIndeterminate = (groupId: string) => {
-    if (groupId === "admin") return false
-
-    const group = privilegeGroups.find((g) => g.id === groupId)
-    if (!group) return false
-
-    const checkedSubItems = group.subItems.filter((item) => checkedItems.includes(item.id))
-    return checkedSubItems.length > 0 && checkedSubItems.length < group.subItems.length
-  }
-
-  // Handle individual item checkbox changes
-  const handleItemChange = (itemId: string, checked: boolean) => {
-    if (checked) {
-      setCheckedItems((prev) => [...prev, itemId])
-    } else {
-      setCheckedItems((prev) => prev.filter((id) => id !== itemId))
+      setCheckedItems((prev) => (checked ? [...prev, id] : prev.filter((item) => item !== id)))
     }
   }
 
@@ -617,11 +499,53 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
     { value: "SM", label: "Service maintenance" },
   ]
 
+  // Handle sorting
+  const requestSort = (key: keyof Utilisateurid) => {
+    let direction: "asc" | "desc" = "asc"
+
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc"
+    }
+
+    setSortConfig({ key, direction })
+  }
+
+  // Get sort direction indicator
+  const getSortDirectionIndicator = (key: keyof Utilisateurid) => {
+    if (sortConfig.key !== key) {
+      return (
+        <svg className="h-4 w-4 ml-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+          />
+        </svg>
+      )
+    }
+    return sortConfig.direction === "asc" ? (
+      <svg className="h-4 w-4 ml-1 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+      </svg>
+    ) : (
+      <svg className="h-4 w-4 ml-1 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    )
+  }
+
+  // Handle column filter change
+  const handleColumnFilterChange = (key: string, value: string) => {
+    setColumnFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }))
+  }
+
   // Clear all filters
   const clearFilters = () => {
-    setSearchTerm("")
-    setRoleFilter("")
-    setStructureFilter("")
+    setColumnFilters({})
   }
 
   const handlePageChange = (pageNumber: number) => {
@@ -634,8 +558,37 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser)
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
 
+  const privilege = [
+    { id: "admin", label: "Admin" },
+    { id: "user", label: "Compte Utilisateur" },
+    { id: "ajouter_user", label: "Ajouter Un Utilisateur" },
+    { id: "modifier_user", label: "Modifier Un Utilisateur" },
+    { id: "supprimer_user", label: "Supprimer Un Utilisateur" },
+    { id: "struct", label: "Structure" },
+    { id: "ajouter_structure", label: "Ajouter Une Structure" },
+    { id: "vehicule", label: "Véhicule" },
+    { id: "ajout_vehicule", label: "Ajouter Un Véhicule" },
+    { id: "modifier_vehicule", label: "Modifier Un Véhicule" },
+    { id: "supprimer_vehicule", label: "Supprimer Un Véhicule" },
+    { id: "ajouter_DI", label: "Ajouter la Demande d'intervention" },
+    { id: "ajouter_QI", label: "Ajouter la qualification d'intervention " },
+    { id: "supprimer_DI", label: "Supprimer la Demande d'intervention" },
+    { id: "demande", label: "Demande" },
+    { id: "rapport", label: "Rapport" },
+    { id: "ajouter_rapport", label: "Ajouter Rapport" },
+    { id: "supprimer_rapport", label: "Supprimer Rapport" },
+    { id: "programme_entretien", label: "Programme Entretien" },
+    { id: "ajouter_programme_entretien", label: "Ajouter Programme Entretien" },
+    { id: "modifier_programme_entretien", label: "Modifier Programme Entretien" },
+    { id: "supprimer_programme_entretien", label: "Supprimer Programme Entretien" },
+    { id: "modifier_kilo_heure", label: "Faire la mise a jour du kilometrage/heure" },
+    { id: "modifier_status", label: "Modifier Le Status d'un vehicule" },
+    { id: "modifier_affectation", label: "Affecter un vehicule a une autre structure" },
+    { id: "ajouter_situation_immobilisation", label: "Ajouter Une Situation d'immobilisation hebdomadaire" },
+  ]
+
   return (
-    <div className="min-h-screen bg-gray-50  px-6 py-4  ">
+    <div className="min-h-screen bg-gray-50">
       {/* Alert Notification */}
       {alert.visible && (
         <div
@@ -666,9 +619,8 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
       <div className="flex flex-1 pt min-h-screen">
         <main className="w-full h-full flex-1 px-6">
           <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-center py-2 mb-8">
-              <h1 className="text-3xl font-bold text-gray-800">Gestion des Utilisateurs</h1>
-              <div className="flex space-x-4">
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex space-x-4 mt-8">
                 {userPrivs.includes("ajouter_structure") && (
                   <button
                     onClick={() => setStruct(true)}
@@ -694,71 +646,16 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <h2 className="text-lg font-semibold text-gray-800">Liste des Utilisateurs</h2>
-
                   {/* Search and Filter Controls */}
                   <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
                     {/* Search Input */}
-                    <div className="relative flex-grow md:max-w-xs">
-                      <input
-                        type="text"
-                        placeholder="Rechercher..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
 
                     {/* Role Filter */}
-                    <div className="relative">
-                      <select
-                        value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                        className="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                      >
-                        <option value="">Tous les rôles</option>
-                        {roleOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <ChevronDown className="h-5 w-5 text-gray-400" />
-                      </div>
-                    </div>
 
                     {/* Structure Filter */}
-                    <div className="relative">
-                      <select
-                        value={structureFilter}
-                        onChange={(e) => setStructureFilter(e.target.value)}
-                        className="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                      >
-                        <option value="">Toutes les structures</option>
-                        {uniqueStructures.map((structure) => (
-                          <option key={structure} value={structure}>
-                            {structure}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <ChevronDown className="h-5 w-5 text-gray-400" />
-                      </div>
-                    </div>
 
                     {/* Clear Filters Button */}
-                    {(searchTerm || roleFilter || structureFilter) && (
+                    {Object.values(columnFilters).some((filter) => filter && filter.trim() !== "") && (
                       <button
                         onClick={clearFilters}
                         className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -787,37 +684,107 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
 
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                     <tr>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors"
+                        onClick={() => requestSort("nom_utilisateur")}
                       >
-                        Nom
+                        <div className="flex items-center">
+                          Nom
+                          {getSortDirectionIndicator("nom_utilisateur")}
+                        </div>
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            placeholder="Rechercher..."
+                            value={columnFilters.nom_utilisateur || ""}
+                            onChange={(e) => handleColumnFilterChange("nom_utilisateur", e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors"
+                        onClick={() => requestSort("prenom_utilisateur")}
                       >
-                        Prénom
+                        <div className="flex items-center">
+                          Prénom
+                          {getSortDirectionIndicator("prenom_utilisateur")}
+                        </div>
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            placeholder="Rechercher..."
+                            value={columnFilters.prenom_utilisateur || ""}
+                            onChange={(e) => handleColumnFilterChange("prenom_utilisateur", e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors"
+                        onClick={() => requestSort("email")}
                       >
-                        Email
+                        <div className="flex items-center">
+                          Email
+                          {getSortDirectionIndicator("email")}
+                        </div>
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            placeholder="Rechercher..."
+                            value={columnFilters.email || ""}
+                            onChange={(e) => handleColumnFilterChange("email", e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors"
+                        onClick={() => requestSort("role")}
                       >
-                        Rôle
+                        <div className="flex items-center">
+                          Rôle
+                          {getSortDirectionIndicator("role")}
+                        </div>
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            placeholder="Rechercher..."
+                            value={columnFilters.role || ""}
+                            onChange={(e) => handleColumnFilterChange("role", e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors"
+                        onClick={() => requestSort("code_structure")}
                       >
-                        Structure
+                        <div className="flex items-center">
+                          Structure
+                          {getSortDirectionIndicator("code_structure")}
+                        </div>
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            placeholder="Rechercher..."
+                            value={columnFilters.code_structure || ""}
+                            onChange={(e) => handleColumnFilterChange("code_structure", e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
                       </th>
                       <th
                         scope="col"
@@ -863,11 +830,11 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
                             <UserPlus className="w-12 h-12 text-gray-300 mb-4" />
                             <p className="text-lg font-medium">Aucun utilisateur trouvé</p>
                             <p className="text-sm text-gray-400 mt-1">
-                              {searchTerm || roleFilter || structureFilter
+                              {Object.values(columnFilters).some((filter) => filter && filter.trim() !== "")
                                 ? "Essayez de modifier vos filtres"
                                 : "Ajoutez des utilisateurs pour les voir apparaître ici"}
                             </p>
-                            {(searchTerm || roleFilter || structureFilter) && (
+                            {Object.values(columnFilters).some((filter) => filter && filter.trim() !== "") && (
                               <button
                                 onClick={clearFilters}
                                 className="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -1217,92 +1184,32 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
                       </div>
                     </div>
 
-                    {/* Right side - Hierarchical Privileges */}
+                    {/* Right side - Privileges */}
                     <div className="col-span-12 md:col-span-7 bg-gray-50 p-3 rounded-lg border border-gray-200">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Sélection des privilèges</h4>
-                      <div className="max-h-[400px] overflow-y-auto">
-                        {/* Admin checkbox at the top */}
-                        <div className="mb-3">
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto">
+                        {privilege.map((option) => (
                           <label
-                            htmlFor="admin"
+                            key={option.id}
+                            htmlFor={option.id}
                             className={`flex items-center p-2 rounded-md border ${
-                              formValue.est_admin
+                              checkedItems.includes(option.id)
                                 ? "border-indigo-500 bg-indigo-50"
                                 : "border-gray-300 hover:bg-gray-100"
                             } transition-colors duration-200 cursor-pointer`}
                           >
                             <input
                               type="checkbox"
-                              id="admin"
-                              checked={formValue.est_admin}
-                              onChange={(e) => {
-                                setFormValue((prev) => ({ ...prev, est_admin: e.target.checked }))
-                                handleGroupChange("admin", e.target.checked)
-                              }}
-                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                              id={option.id}
+                              name="privilege"
+                              value={option.id}
+                              checked={checkedItems.includes(option.id)}
+                              onChange={handleItems}
+                              className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                             />
-                            <span className="ml-2 text-sm font-medium text-gray-700">Admin (Tous les privilèges)</span>
+                            <span className="ml-1.5 text-xs text-gray-700">{option.label}</span>
                           </label>
-                        </div>
-
-                        {/* Privilege groups */}
-                        {privilegeGroups
-                          .filter((group) => group.id !== "admin")
-                          .map((group) => (
-                            <div key={group.id} className="mb-3 border border-gray-200 rounded-md overflow-hidden">
-                              {/* Group header */}
-                              <label
-                                htmlFor={group.id}
-                                className={`flex items-center p-2 ${
-                                  isGroupChecked(group.id)
-                                    ? "bg-indigo-50 border-b border-indigo-100"
-                                    : isGroupIndeterminate(group.id)
-                                      ? "bg-gray-100 border-b border-gray-200"
-                                      : "bg-white border-b border-gray-200"
-                                } cursor-pointer`}
-                              >
-                                <div className="relative flex items-center">
-                                  <input
-                                    type="checkbox"
-                                    id={group.id}
-                                    checked={isGroupChecked(group.id)}
-                                    ref={(el) => {
-                                      if (el) {
-                                        el.indeterminate = isGroupIndeterminate(group.id)
-                                      }
-                                    }}
-                                    onChange={(e) => handleGroupChange(group.id, e.target.checked)}
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                  />
-                                  <span className="ml-2 text-sm font-medium text-gray-700">{group.label}</span>
-                                </div>
-                              </label>
-
-                              {/* Group items */}
-                              <div className="pl-6 py-1 bg-gray-50">
-                                {group.subItems.map((item) => (
-                                  <label
-                                    key={item.id}
-                                    htmlFor={item.id}
-                                    className={`flex items-center p-2 rounded-md ${
-                                      checkedItems.includes(item.id)
-                                        ? "text-indigo-700"
-                                        : "text-gray-700 hover:bg-gray-100"
-                                    } transition-colors duration-200 cursor-pointer`}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      id={item.id}
-                                      checked={checkedItems.includes(item.id)}
-                                      onChange={(e) => handleItemChange(item.id, e.target.checked)}
-                                      className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                    />
-                                    <span className="ml-2 text-xs">{item.label}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -1344,7 +1251,7 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
         </div>
       )}
 
-      {/* Add Structure Modal - Using the FormStruct component */}
+
       {struct && <FormStruct onClose={() => setStruct(false)} />}
     </div>
   )
