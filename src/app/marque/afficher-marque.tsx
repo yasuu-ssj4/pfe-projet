@@ -447,7 +447,7 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{marque.designation}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center space-x-3">
-                        {userPrivs.includes("modifier_user") && (
+                        {userPrivs.includes("modifier_marque") && (
                           <button
                             onClick={() => handleEditMarque(marque)}
                             className="inline-flex items-center text-indigo-600 hover:text-indigo-900"

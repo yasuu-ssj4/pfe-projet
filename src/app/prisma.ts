@@ -169,7 +169,7 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     } });
   }
 
- const constater_vehicule = async (code_vehicule: string) => {
+ const tester_api = async (code_vehicule: string) => {
     try {
 
     const res = await fetch("http://localhost:3000/api/model", {
@@ -191,3 +191,4 @@ export async function ajouterUtilisateur(user: Utilisateur) {
      
     }
   }
+tester_api("A0156")

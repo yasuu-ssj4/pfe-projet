@@ -20,12 +20,9 @@ export async function POST(req: NextRequest) {
       routinier_ref,
       dangereux,
       dangereux_ref,
-      nom_prenom_intervevant,
-      fonction_intervevant,
+      nom_prenom_intervenant,
+      fonction_intervenant,
       date_intervevant = new Date(),
-      nom_prenom_responsable,
-      date_responsable,
-      fonction_responsable,
       date_responsable_unm,
       fonction_responsable_unm,
       nom_prenom_responsable_unm,
@@ -35,7 +32,8 @@ export async function POST(req: NextRequest) {
     } = body
 
     console.log("Updating demande:",body)
-    console.log(typeof(date_intervevant));
+    console.log("nom" , nom_prenom_intervenant );
+    
     
     if (!id_demande_intervention) {
       return NextResponse.json({ error: "L'ID de la demande d'intervention est requis" }, { status: 400 })
@@ -55,12 +53,9 @@ export async function POST(req: NextRequest) {
         routinier_ref,
         dangereux,
         dangereux_ref,
-        nom_prenom_intervevant : nom_prenom_intervevant,
-        fonction_intervevant : fonction_intervevant,
-        date_intervevant : date_intervevant ? new Date(date_intervevant) : null,
-        nom_prenom_responsable,
-        date_responsable,
-        fonction_responsable,
+        nom_prenom_intervevant : nom_prenom_intervenant,
+        fonction_intervevant : fonction_intervenant,
+        date_intervevant ,
         date_responsable_unm,
         fonction_responsable_unm,
         nom_prenom_responsable_unm,

@@ -648,7 +648,7 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
                 onClick={() => requestSort("n_immatriculation")}
               >
                 <div className="flex items-center">
-                  Matricule
+                  N.immatr
                   {getSortDirectionIndicator("n_immatriculation")}
                 </div>
                 <div className="mt-2">

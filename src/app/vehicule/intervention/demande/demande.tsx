@@ -44,6 +44,13 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     preventive: false,
   })
 
+  // Add state for alerts and loading
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [showError, setShowError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
+
   // Form state with all fields from the interface
   const [formValues, setFormValues] = useState({
     numero_demande: "",
@@ -139,7 +146,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       fetchVehicule()
       // Reset form when modal opens
       setFormValues({
-        numero_demande: "",
+        numero_demande: "", // Don't auto-generate
         date_heure_panne: "",
         structure_maintenance_type: "",
         structure_maintenance_detail: "",
@@ -163,6 +170,9 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       })
       setSelectedItems([])
       setMaintenanceTypes({ corrective: false, preventive: false })
+      setIsSubmitting(false)
+      setShowSuccess(false)
+      setShowError(false)
     }
   }, [code_vehicule, visible])
 
@@ -213,6 +223,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setIsSubmitting(true)
 
     // Create a DemandeIntervention object from form values
     const selectedPanne = selectedItems.join("/")
@@ -222,8 +233,11 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       ? `${formValues.structure_maintenance_type}${formValues.structure_maintenance_detail ? `,${formValues.structure_maintenance_detail}` : ""}`
       : ""
 
+    // Use the provided numero_demande
+    const numeroDemande = formValues.numero_demande
+
     const demandeIntervention: DemandeIntervention = {
-      numero_demande: formValues.numero_demande || `DI-${Date.now()}`, // Generate ID if not provided
+      numero_demande: numeroDemande,
       etat_demande: "incomplet",
       date_application: new Date(),
       date_heure_panne: formValues.date_heure_panne,
@@ -233,8 +247,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       nature_travaux: formValues.nature_travaux,
       degre_urgence: formValues.degre_urgence,
       code_vehicule: code_vehicule,
-      district_id: vehiculeInfo.designation_district ,
-      centre_id: vehiculeInfo.designation_centre  ,
+      district_id: vehiculeInfo.designation_district,
+      centre_id: vehiculeInfo.designation_centre,
       constat_panne: formValues.constat_panne,
       diagnostique: formValues.diagnostique,
       description: formValues.description,
@@ -255,28 +269,38 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     console.log("Demande d'intervention à soumettre:", demandeIntervention)
 
     try {
-      
-      const response = await fetch('/api/intervention/ajouterDemande', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(demandeIntervention)
-      });
+      const response = await fetch("/api/intervention/ajouterDemande", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(demandeIntervention),
+      })
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la soumission de la demande');
+        throw new Error("Erreur lors de la soumission de la demande")
       }
 
-      const result = await response.json();
+      const result = await response.json()
+
+      // Set success message with the demande number
+      setSuccessMessage(`Demande ${numeroDemande} enregistrée avec succès!`)
+
+      // Show success alert
+      setShowSuccess(true)
+      setTimeout(() => {
+        setShowSuccess(false)
+        handleCloseModal()
+      }, 2000)
 
       // Call the success callback if provided
       if (onSubmitSuccess) {
         onSubmitSuccess(demandeIntervention)
       }
-
-      handleCloseModal()
     } catch (error) {
       console.error("Erreur:", error)
-      alert("Une erreur s'est produite lors de la soumission de la demande.")
+      setErrorMessage("Une erreur s'est produite lors de la soumission de la demande.")
+      setShowError(true)
+      setTimeout(() => setShowError(false), 5000)
+      setIsSubmitting(false)
     }
   }
 
@@ -284,6 +308,34 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto py-10">
+      {/* Success Alert */}
+      {showSuccess && (
+        <div className="fixed top-4 right-4 z-[100] bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <span>{successMessage || "Demande enregistrée avec succès!"}</span>
+        </div>
+      )}
+
+      {/* Error Alert */}
+      {showError && (
+        <div className="fixed top-4 right-4 z-[100] bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit}
         autoComplete="off"
@@ -325,6 +377,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                       name="numero_demande"
                       onChange={handleChange}
                       value={formValues.numero_demande}
+                      placeholder="XX/XXXX/XX "
                       className="w-full p-2 border border-gray-300 rounded"
                     />
                   </td>
@@ -479,8 +532,6 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                         <span>Contrôle réglementaire</span>
                       </label>
                     </div>
-                    {/* Display current nature_travaux value */}
-                   
                   </td>
                   <td className="border-2 border-gray-800 p-4">
                     <h5 className="font-bold mb-3">Degré d&apos;urgence :</h5>
@@ -695,9 +746,24 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 font-medium"
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Confirmer
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Enregistrement...
+              </>
+            ) : (
+              "Enregistrer"
+            )}
           </button>
         </div>
       </form>
@@ -708,6 +774,23 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
         code_vehicule={code_vehicule}
         onSelect={handleMaintenanceGammesSelect}
       />
+
+      <style jsx>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   )
 }

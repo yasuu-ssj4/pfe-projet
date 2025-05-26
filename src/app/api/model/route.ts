@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
       Kilometrage_Total: totalKilometrage,
     };
 
-    // ✅ Predict using your ML API
+
     const predictionResponse = await fetch("http://localhost:8000/predict", {
       method: "POST",
       headers: {
