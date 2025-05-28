@@ -15,7 +15,6 @@ type VehiculeType = {
   besoin_mise_a_jour?: boolean
 }
 
-// Define the type for the SQL count result
 type CountResult = {
   count: number
 }
@@ -25,7 +24,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { userId } = body
 
-    // Get all vehicles for this user
+   
     const vehicles: VehiculeType[] = await prisma.$queryRawUnsafe(`
       EXEC PS_GET_ALL_VEHICULE_INFOS_PAR_UTILISATEUR ${userId}
     `)
@@ -35,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     const vehicleCodesStr = vehicleCodes.length > 0 ? vehicleCodes.map((code) => `'${code}'`).join(",") : "''"
  
-    // Count demandes with "En instance" status for these vehicles
+    // initialisation d'un compteur pour les di en instance
     let count = 0
 
     if (vehicleCodes.length > 0) {
@@ -55,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ count })
   } catch (error) {
-    console.error("Error fetching demandes en instance count:", error)
-    return NextResponse.json({ error: "Failed to fetch count" }, { status: 500 })
+    console.error("Erreur fetching demandes en instance count:", error)
+    return NextResponse.json({ error: "erreur fetching demandes en instance" }, { status: 500 })
   }
 }

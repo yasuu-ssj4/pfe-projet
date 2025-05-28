@@ -11,13 +11,26 @@ export async function POST(req: NextRequest) {
   if (!id_demande_intervention) {
     return new NextResponse('Paramètre "id_demande_intervention" manquant', { status: 400 });
   }
-
+ 
   try {
     const rapport  = await prisma.rapport_intervention.findUnique({
       where: {
         id_demande_intervention: Number(id_demande_intervention),
       },
     });
+    const n_demande = await prisma.demande_intervention.findUnique({
+      select : {
+        numero_demande : true
+      } , where : {
+        id_demande_intervention : Number(id_demande_intervention)
+      }
+    })
+    const rapport_complet = {
+  ...rapport,
+  numero_demande: n_demande?.numero_demande,
+};
+console.log(rapport_complet);
+
   const id_rapport_intervention = rapport?.id_rapport_intervention;
   const TravauxExterne : TraveauxExterne[] = await prisma.traveaux_externe.findMany({
       where: {
@@ -31,7 +44,7 @@ export async function POST(req: NextRequest) {
     });
 
  
-    return NextResponse.json({rapport, TravauxExterne, TravauxInterne}, { status: 200 });
+    return NextResponse.json({rapport_complet, TravauxExterne, TravauxInterne}, { status: 200 });
   } catch (error) {
     console.error('Erreur lors de la récupération du rapport :', error);
     return new NextResponse('Erreur serveur', { status: 500 });

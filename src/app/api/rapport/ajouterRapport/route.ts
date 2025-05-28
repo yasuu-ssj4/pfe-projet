@@ -45,6 +45,9 @@ export async function DELETE(req: NextRequest) {
     const body = await req.json();
     const { id_demande_intervention } = body;
 
+console.log(id_demande_intervention);
+console.log(typeof(id_demande_intervention));
+
 
     if (!id_demande_intervention) {
       return NextResponse.json(

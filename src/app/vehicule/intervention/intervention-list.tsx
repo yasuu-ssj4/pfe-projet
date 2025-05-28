@@ -602,7 +602,7 @@ export default function InterventionList({
                             Constater Rapport
                           </DropdownMenuItem>
                         )}
-                        {userPrivs.includes("supprimer_DI") && (
+                        {userPrivs.includes("supprimer_DI") &&  demande.etat_demande.toLowerCase() !="complété" &&(
                           <DropdownMenuItem
                             onClick={() => handleDeleteConfirmation("demande", demande.id_demande_intervention)}
                           >

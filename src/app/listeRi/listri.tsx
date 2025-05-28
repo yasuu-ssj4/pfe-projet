@@ -44,7 +44,7 @@ type ColumnFilters = {
   cout_total_traveaux_externe: string
 }
 
-export default function ListRIPage({ userId , userPrivs}: {userId: number, userPrivs: string[]}) {
+export default function ListRIPage({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
   const router = useRouter()
   const [rapports, setRapports] = useState<RapportIntervention[]>([])
   const [filteredRapports, setFilteredRapports] = useState<RapportIntervention[]>([])
@@ -61,11 +61,10 @@ export default function ListRIPage({ userId , userPrivs}: {userId: number, userP
     cout_total_traveaux_externe: "",
   })
 
-  const [isDeletingRapport, setIsDeletingRapport] = useState<string | null>(null)
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<string | null>(null)
+  const [isDeletingRapport, setIsDeletingRapport] = useState<number | null>(null)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<number | null>(null)
 
   const itemsPerPage = 10
-
 
   const fetchRapports = async () => {
     setIsLoading(true)
@@ -173,14 +172,14 @@ export default function ListRIPage({ userId , userPrivs}: {userId: number, userP
     setSortConfig({ key: null, direction: "asc" })
   }
 
-  const supprimerRapport = async (id_rapport_intervention: string) => {
+  const supprimerRapport = async (id_rapport_intervention: number) => {
     try {
       setIsDeletingRapport(id_rapport_intervention)
-      // You'll need to implement this API endpoint
-      const response = await fetch("/api/rapport/deleteRapport", {
+
+      const response = await fetch("/api/rapport/ajouterRapport", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_rapport_intervention }),
+        body: JSON.stringify({ id_demande_intervention: id_rapport_intervention }),
       })
 
       if (!response.ok) {
@@ -200,12 +199,12 @@ export default function ListRIPage({ userId , userPrivs}: {userId: number, userP
     }
   }
 
-  const confirmDelete = (id_rapport_intervention: string) => {
+  const confirmDelete = (id_rapport_intervention: number) => {
     setShowDeleteConfirmation(id_rapport_intervention)
   }
 
-  const navigateToViewRapport = (id_rapport_intervention: string) => {
-    router.push(`/pages/vehicule/intervention/rapport/${id_rapport_intervention}`)
+  const navigateToViewRapport = (id_demande_intervention: number) => {
+    router.push(`/vehicule/intervention/rapport/${id_demande_intervention}`)
   }
 
   const totalPages = Math.ceil(filteredRapports.length / itemsPerPage)
@@ -555,13 +554,13 @@ export default function ListRIPage({ userId , userPrivs}: {userId: number, userP
                           className="w-[200px] bg-white border border-gray-200 shadow-lg rounded-md py-1"
                         >
                           <DropdownMenuItem
-                            onClick={() => navigateToViewRapport(rapport.id_rapport_intervention)}
+                            onClick={() => navigateToViewRapport(rapport.id_demande_intervention)}
                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Constater
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => confirmDelete(rapport.id_rapport_intervention)}
+                            onClick={() => confirmDelete(rapport.id_demande_intervention)}
                             className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer flex items-center"
                           >
                             <span className="mr-2"></span> Supprimer
