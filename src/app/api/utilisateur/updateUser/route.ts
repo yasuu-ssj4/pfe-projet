@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client"
 import type { Utilisateur } from "@/app/interfaces"
 import CryptoJS from "crypto-js"
 import { SECRET_KEY } from "@/app/prisma"
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient()
 
@@ -15,7 +16,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "L'ID de l'utilisateur est requis" }, { status: 400 })
     }
 
-    // Check if user exists
     const existingUser = await prisma.utilisateur.findUnique({
       where: { id_utilisateur: userData.id_utilisateur },
     })

@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
-
+import { sendVehicleIssueNotification } from "@/app/lib/mail";
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
@@ -93,9 +93,33 @@ export async function POST(req: NextRequest) {
       vehicle_age,
       Kilometrage_Total: totalKilometrage,
     };
-
-
-    const predictionResponse = await fetch("http://localhost:8000/predict", {
+    const code_structure_result = await prisma.affectation.findFirst({
+      where: { code_vehicule },
+      orderBy: { date: "desc" },
+      select: { code_structure: true },
+    });
+    const code_structure_value = code_structure_result?.code_structure ?? undefined;
+    console.log("FIFI  NORMALMMENT HAKA YBAN LOG AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",code_structure_value);
+     const utilisateurAEnvoyer = await prisma.utilisateur.findMany({
+      select: {
+        email: true
+      },
+      where: {
+        code_structure: code_structure_value
+      }
+    });
+    console.log(utilisateurAEnvoyer);
+      sendVehicleIssueNotification(
+      "seddadislam05@gmail.com",
+      code_vehicule,
+      0.75,
+      89600,
+      "20GD",
+      "ACERBI"
+    )
+  
+    // ✅ Predict using your ML API
+    const predictionResponse = await fetch("http://localhost:8000/predire", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -106,13 +130,47 @@ export async function POST(req: NextRequest) {
     if (!predictionResponse.ok) {
       throw new Error("Erreur lors de la prédiction");
     }
-
-    const predictionData = await predictionResponse.json();
-
+ 
+   interface preditionType {
+          text_description: string;
+      MARQUE: string;
+      TYPE: string;
+      GENRE: string;
+      DESI_GENR: string;
+      STATUT: string;
+      month: number;
+      prediction : number ;
+      probabilite_panne : number ;
+      dayofweek: number;
+      vehicle_age: number;
+      Kilometrage_Total: number;
+   }
+    const predictionData: preditionType = await predictionResponse.json();
+       sendVehicleIssueNotification(
+      "seddadislam05@gmail.com",
+      code_vehicule,
+      predictionData.probabilite_panne,
+      predictionData.Kilometrage_Total,
+      predictionData.MARQUE,
+      predictionData.TYPE
+    )
+    console.log(code_structure_value);
+    
+   await Promise.all(
+  utilisateurAEnvoyer.map(user =>
+    sendVehicleIssueNotification(
+      user.email,
+      code_vehicule,
+      predictionData.probabilite_panne,
+      predictionData.Kilometrage_Total,
+      predictionData.MARQUE,
+      predictionData.TYPE
+    )
+  )
+);
 
     return NextResponse.json({
       prediction: predictionData,
-      inputs: donnees
     });
 
   } catch (error) {

@@ -432,7 +432,7 @@ export default function TypesTable({ userId, userPrivs }: { userId: number; user
               </div>
 
               {/* Add Type Button */}
-              {userPrivs.includes("ajouter_type") && (
+              { (
                 <button
                   onClick={() => setIsAddingType(true)}
                   disabled={!selectedMarque}
@@ -573,7 +573,7 @@ export default function TypesTable({ userId, userPrivs }: { userId: number; user
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <button
-                        onClick={() => (userPrivs.includes("modifier_type") ? handleEditType(type) : undefined)}
+                        onClick={() => handleEditType(type)}
                         disabled={!userPrivs.includes("modifier_type")}
                         className={`mr-3 inline-flex items-center 
                           ${

@@ -273,7 +273,7 @@ export default function ConstaterRapport({ id_demande_intervention }: ConstaterR
             const item = externalWorks[i]
             rows.push(
               <tr key={`external-${i}`} className="border border-gray-800">
-                <td className="border border-gray-800 p-2"></td>
+                <td className="border border-gray-800 p-2">{item.description}</td>
                 <td className="border border-gray-800 p-2">{item.design_prestataire}</td>
                 <td className="border border-gray-800 p-2">{item.reference_contrat}</td>
                 <td className="border border-gray-800 p-2">{item.reference_facture}</td>
