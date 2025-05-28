@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, AlertTriangle, RefreshCw, Loader2 } from "lucide-react"
+import { X, AlertTriangle, RefreshCw, LoaderIcon } from "lucide-react"
 
 type MaintenanceAlert = {
   code_vehicule: string
@@ -23,10 +23,13 @@ export default function MaintenanceAlertsTable({ userId }: { userId: number }) {
   const [resetting, setResetting] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
+    console.log("MaintenanceAlertsTable mounted - fetching data immediately")
+    // Start loading data immediately when component mounts, regardless of visibility
     fetchAlerts()
-  }, [])
+  }, [userId])
 
   const fetchAlerts = async () => {
+    console.log("Starting to fetch maintenance alerts")
     try {
       setLoading(true)
       setError(null)
@@ -98,32 +101,34 @@ export default function MaintenanceAlertsTable({ userId }: { userId: number }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
-        <span className="ml-2 text-gray-600">Chargement des alertes de maintenance...</span>
+      <div className="px-6 py-12 text-center">
+        <LoaderIcon className="w-12 h-12 text-indigo-500 mx-auto mb-4 animate-spin" />
+        <p className="text-lg font-medium text-gray-500">Chargement des alertes de maintenance...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-        <p className="text-lg font-medium text-red-500">{error}</p>
-        <button
-          onClick={fetchAlerts}
-          className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Réessayer
-        </button>
+      <div className="px-6 py-12 text-center">
+        <div className="flex flex-col items-center">
+          <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+          <p className="text-lg font-medium text-red-500">{error}</p>
+          <button
+            onClick={fetchAlerts}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Réessayer
+          </button>
+        </div>
       </div>
     )
   }
 
   if (alerts.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
+      <div className="px-6 py-12 text-center">
         <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
           <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -206,7 +211,7 @@ export default function MaintenanceAlertsTable({ userId }: { userId: number }) {
                       className="text-red-600 hover:text-red-900 focus:outline-none disabled:opacity-50"
                       title="Réinitialiser le compteur"
                     >
-                      {isResetting ? <Loader2 className="h-5 w-5 animate-spin" /> : <X className="h-5 w-5" />}
+                      {isResetting ? <LoaderIcon className="h-5 w-5 animate-spin" /> : <X className="h-5 w-5" />}
                     </button>
                   </td>
                 </tr>

@@ -14,7 +14,6 @@ import {
   WrenchIcon,
 } from "lucide-react"
 import KilometrageUpdatePopup from "../vehicule/popups/kilometrage-update-popup"
-import NotificationCenter from "@/app/components/notification-center"
 import MaintenanceAlertsTable from "@/app/components/maintenance-alerts-table"
 
 type VehiculeAlerte = {
@@ -49,8 +48,7 @@ type MaintenanceAlerte = {
   unite_mesure: string
 }
 
-
-export default function DashboardPage({ userId , userPrivs}: {userId: number, userPrivs: string[]}) {
+export default function DashboardPage({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
   const router = useRouter()
   const documentLoadingStarted = useRef(false)
   const demandesEnInstanceLoadingStarted = useRef(false)
@@ -261,16 +259,47 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
 
   // Load data when component mounts
   useEffect(() => {
-    // Only load kilometrage alerts initially for speed
-    // Other data will load in the background after kilometrage alerts finish
+    // Load kilometrage alerts initially
     fetchKilometrageAlertes()
 
     // Trigger the midnight check API to ensure it's running
-    // This is optional and can be removed if you have a separate cron job
     fetch("/api/scheduler/midnight-check")
       .then((res) => res.json())
       .then((data) => console.log("Midnight check status:", data))
       .catch((err) => console.error("Error triggering midnight check:", err))
+  }, [userId])
+
+  // Separate useEffect to load maintenance alerts independently
+  useEffect(() => {
+    // Start loading maintenance alerts immediately
+    fetchMaintenanceAlertes()
+  }, [userId])
+
+  // Separate useEffect to load document alerts
+  useEffect(() => {
+    // Start loading document alerts immediately
+    if (!documentLoadingStarted.current) {
+      documentLoadingStarted.current = true
+      fetchDocumentAlertes()
+    }
+  }, [userId])
+
+  // Separate useEffect to load demandes en instance
+  useEffect(() => {
+    // Start loading demandes en instance immediately
+    if (!demandesEnInstanceLoadingStarted.current) {
+      demandesEnInstanceLoadingStarted.current = true
+      fetchDemandesEnInstanceCount()
+    }
+  }, [userId])
+
+  // Separate useEffect to load vehicules immobilisés
+  useEffect(() => {
+    // Start loading vehicules immobilisés immediately
+    if (!vehiculesImmobilisesLoadingStarted.current) {
+      vehiculesImmobilisesLoadingStarted.current = true
+      fetchVehiculesImmobilisesCount()
+    }
   }, [userId])
 
   // Handle tab change
@@ -402,7 +431,6 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
         <h1 className="text-2xl font-bold text-gray-800">Tableau de bord des alertes</h1>
         <div className="flex items-center space-x-4">
           {/* Notification Center */}
-          
 
           <div className="flex space-x-2">
             <button
@@ -671,12 +699,18 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <button
-                          onClick={userPrivs.includes('modifier_kilo_heure') ? () => handleUpdateKilometrage(vehicule.code_vehicule):undefined}
-                          disabled={!userPrivs.includes('modifier_kilo_heure')}
+                          onClick={
+                            userPrivs.includes("modifier_kilo_heure")
+                              ? () => handleUpdateKilometrage(vehicule.code_vehicule)
+                              : undefined
+                          }
+                          disabled={!userPrivs.includes("modifier_kilo_heure")}
                           className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white 
-                            ${userPrivs.includes('modifier_kilo_heure') 
-                              ? "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                              : "bg-gray-400 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"}`}
+                            ${
+                              userPrivs.includes("modifier_kilo_heure")
+                                ? "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                : "bg-gray-400 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            }`}
                         >
                           <ClockIcon className="h-3.5 w-3.5 mr-1" color="white" />
                           Mettre à jour
@@ -813,7 +847,7 @@ export default function DashboardPage({ userId , userPrivs}: {userId: number, us
       {/* Maintenance Alerts Tab */}
       {activeTab === "maintenance" && <MaintenanceAlertsTable userId={userId} />}
 
-      {/* Kilometrage Update Popup */}
+      
       <KilometrageUpdatePopup
         isOpen={isKilometragePopupOpen}
         onClose={() => setIsKilometragePopupOpen(false)}
