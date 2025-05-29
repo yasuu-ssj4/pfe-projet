@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   AlertTriangleIcon,
@@ -12,9 +12,9 @@ import {
   AlertCircleIcon,
   PauseCircleIcon,
   WrenchIcon,
+  X,
 } from "lucide-react"
 import KilometrageUpdatePopup from "../vehicule/popups/kilometrage-update-popup"
-import MaintenanceAlertsTable from "@/app/components/maintenance-alerts-table"
 
 type VehiculeAlerte = {
   code_vehicule: string
@@ -38,8 +38,8 @@ type DocumentAlerte = {
 type MaintenanceAlerte = {
   code_vehicule: string
   code_type: number
-  code_gamme: number
-  code_operation: number
+  code_gamme: string
+  code_operation: string
   gamme_designation: string
   operation_designation: string
   periode: number
@@ -50,10 +50,6 @@ type MaintenanceAlerte = {
 
 export default function DashboardPage({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
   const router = useRouter()
-  const documentLoadingStarted = useRef(false)
-  const demandesEnInstanceLoadingStarted = useRef(false)
-  const vehiculesImmobilisesLoadingStarted = useRef(false)
-  const maintenanceAlertsLoadingStarted = useRef(false)
 
   // Active tab state
   const [activeTab, setActiveTab] = useState("kilometrage")
@@ -65,35 +61,54 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
 
   // State for document alerts
   const [documentsAlertes, setDocumentsAlertes] = useState<DocumentAlerte[]>([])
-  const [isLoadingDocuments, setIsLoadingDocuments] = useState(false)
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true)
   const [documentError, setDocumentError] = useState<string | null>(null)
 
   // State for demandes en instance
   const [demandesEnInstanceCount, setDemandesEnInstanceCount] = useState<number>(0)
-  const [isLoadingDemandesEnInstance, setIsLoadingDemandesEnInstance] = useState(false)
+  const [isLoadingDemandesEnInstance, setIsLoadingDemandesEnInstance] = useState(true)
   const [demandesEnInstanceError, setDemandesEnInstanceError] = useState<string | null>(null)
 
   // State for vehicules immobilisés
   const [vehiculesImmobilisesCount, setVehiculesImmobilisesCount] = useState<number>(0)
-  const [isLoadingVehiculesImmobilises, setIsLoadingVehiculesImmobilises] = useState(false)
+  const [isLoadingVehiculesImmobilises, setIsLoadingVehiculesImmobilises] = useState(true)
   const [vehiculesImmobilisesError, setVehiculesImmobilisesError] = useState<string | null>(null)
 
   // State for maintenance alerts
   const [maintenanceAlertes, setMaintenanceAlertes] = useState<MaintenanceAlerte[]>([])
-  const [isLoadingMaintenance, setIsLoadingMaintenance] = useState(false)
+  const [isLoadingMaintenance, setIsLoadingMaintenance] = useState(true)
   const [maintenanceError, setMaintenanceError] = useState<string | null>(null)
+  const [resettingMaintenance, setResettingMaintenance] = useState<Record<string, boolean>>({})
 
   // Popup state
   const [isKilometragePopupOpen, setIsKilometragePopupOpen] = useState(false)
   const [selectedVehicleForPopup, setSelectedVehicleForPopup] = useState<string>("")
 
-  // Function to fetch kilometrage alerts - optimized for speed
+  // Load ALL data when component mounts
+  useEffect(() => {
+    console.log("Dashboard mounted - loading ALL data immediately")
+
+    // Load all data in parallel
+    fetchKilometrageAlertes()
+    fetchDocumentAlertes()
+    fetchDemandesEnInstanceCount()
+    fetchVehiculesImmobilisesCount()
+    fetchMaintenanceAlertes()
+
+    // Trigger the midnight check API to ensure it's running
+    fetch("/api/scheduler/midnight-check")
+      .then((res) => res.json())
+      .then((data) => console.log("Midnight check status:", data))
+      .catch((err) => console.error("Error triggering midnight check:", err))
+  }, [userId])
+
+  // Function to fetch kilometrage alerts
   const fetchKilometrageAlertes = async () => {
+    console.log("Fetching kilometrage alerts")
     setIsLoadingKilometrage(true)
     setKilometrageError(null)
 
     try {
-      // Use the optimized API that gets pre-calculated alerts
       const res = await fetch("/api/alerts/kilometrage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -112,41 +127,16 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
       setKilometrageError("Erreur lors du chargement des alertes kilométrage")
     } finally {
       setIsLoadingKilometrage(false)
-
-      // Start loading other data in the background
-      if (!documentLoadingStarted.current) {
-        documentLoadingStarted.current = true
-        fetchDocumentAlertes()
-      }
-
-      if (!demandesEnInstanceLoadingStarted.current) {
-        demandesEnInstanceLoadingStarted.current = true
-        fetchDemandesEnInstanceCount()
-      }
-
-      if (!vehiculesImmobilisesLoadingStarted.current) {
-        vehiculesImmobilisesLoadingStarted.current = true
-        fetchVehiculesImmobilisesCount()
-      }
-
-      if (!maintenanceAlertsLoadingStarted.current) {
-        maintenanceAlertsLoadingStarted.current = true
-        fetchMaintenanceAlertes()
-      }
     }
   }
 
-  // Function to fetch document alerts - runs in the background
+  // Function to fetch document alerts
   const fetchDocumentAlertes = async () => {
-    // No loading indicator for background loading unless the documents tab is active
-    if (activeTab === "documents") {
-      setIsLoadingDocuments(true)
-    }
-
+    console.log("Fetching document alerts")
+    setIsLoadingDocuments(true)
     setDocumentError(null)
 
     try {
-      // Use the optimized API that gets pre-calculated alerts
       const res = await fetch("/api/alerts/documents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,14 +154,13 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
       console.error("Error fetching document alerts:", error)
       setDocumentError("Erreur lors du chargement des alertes documents")
     } finally {
-      if (activeTab === "documents") {
-        setIsLoadingDocuments(false)
-      }
+      setIsLoadingDocuments(false)
     }
   }
 
   // Function to fetch count of vehicles with demandes in "En instance" state
   const fetchDemandesEnInstanceCount = async () => {
+    console.log("Fetching demandes en instance count")
     setIsLoadingDemandesEnInstance(true)
     setDemandesEnInstanceError(null)
 
@@ -199,6 +188,7 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
 
   // Function to fetch count of vehicles with status "IMB"
   const fetchVehiculesImmobilisesCount = async () => {
+    console.log("Fetching vehicules immobilisés count")
     setIsLoadingVehiculesImmobilises(true)
     setVehiculesImmobilisesError(null)
 
@@ -226,11 +216,8 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
 
   // Function to fetch maintenance alerts
   const fetchMaintenanceAlertes = async () => {
-    // No loading indicator for background loading unless the maintenance tab is active
-    if (activeTab === "maintenance") {
-      setIsLoadingMaintenance(true)
-    }
-
+    console.log("Fetching maintenance alerts")
+    setIsLoadingMaintenance(true)
     setMaintenanceError(null)
 
     try {
@@ -251,82 +238,57 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
       console.error("Error fetching maintenance alerts:", error)
       setMaintenanceError("Erreur lors du chargement des alertes de maintenance")
     } finally {
-      if (activeTab === "maintenance") {
-        setIsLoadingMaintenance(false)
-      }
+      setIsLoadingMaintenance(false)
     }
   }
 
-  // Load data when component mounts
-  useEffect(() => {
-    // Load kilometrage alerts initially
-    fetchKilometrageAlertes()
+  // Handle maintenance reset
+  const handleResetMaintenance = async (alert: MaintenanceAlerte) => {
+    try {
+      const key = `${alert.code_vehicule}-${alert.code_type}-${alert.code_gamme}-${alert.code_operation}`
+      setResettingMaintenance({ ...resettingMaintenance, [key]: true })
 
-    // Trigger the midnight check API to ensure it's running
-    fetch("/api/scheduler/midnight-check")
-      .then((res) => res.json())
-      .then((data) => console.log("Midnight check status:", data))
-      .catch((err) => console.error("Error triggering midnight check:", err))
-  }, [userId])
+      const response = await fetch("/api/alerts/maintenance", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code_vehicule: alert.code_vehicule,
+          code_type: alert.code_type,
+          code_gamme: alert.code_gamme,
+          code_operation: alert.code_operation,
+        }),
+      })
 
-  // Separate useEffect to load maintenance alerts independently
-  useEffect(() => {
-    // Start loading maintenance alerts immediately
-    fetchMaintenanceAlertes()
-  }, [userId])
+      if (!response.ok) {
+        throw new Error("Failed to reset maintenance counter")
+      }
 
-  // Separate useEffect to load document alerts
-  useEffect(() => {
-    // Start loading document alerts immediately
-    if (!documentLoadingStarted.current) {
-      documentLoadingStarted.current = true
-      fetchDocumentAlertes()
+      // Remove this alert from the list
+      setMaintenanceAlertes(
+        maintenanceAlertes.filter(
+          (a) =>
+            !(
+              a.code_vehicule === alert.code_vehicule &&
+              a.code_type === alert.code_type &&
+              a.code_gamme === alert.code_gamme &&
+              a.code_operation === alert.code_operation
+            ),
+        ),
+      )
+    } catch (error) {
+      console.error("Error resetting maintenance counter:", error)
+  
+    } finally {
+      const key = `${alert.code_vehicule}-${alert.code_type}-${alert.code_gamme}-${alert.code_operation}`
+      setResettingMaintenance({ ...resettingMaintenance, [key]: false })
     }
-  }, [userId])
-
-  // Separate useEffect to load demandes en instance
-  useEffect(() => {
-    // Start loading demandes en instance immediately
-    if (!demandesEnInstanceLoadingStarted.current) {
-      demandesEnInstanceLoadingStarted.current = true
-      fetchDemandesEnInstanceCount()
-    }
-  }, [userId])
-
-  // Separate useEffect to load vehicules immobilisés
-  useEffect(() => {
-    // Start loading vehicules immobilisés immediately
-    if (!vehiculesImmobilisesLoadingStarted.current) {
-      vehiculesImmobilisesLoadingStarted.current = true
-      fetchVehiculesImmobilisesCount()
-    }
-  }, [userId])
+  }
 
   // Handle tab change
   const handleTabChange = (tab: string) => {
     setActiveTab(tab)
-
-    // If switching to documents tab and we haven't loaded the data yet, show loading indicator
-    if (tab === "documents" && documentsAlertes.length === 0 && !documentError) {
-      setIsLoadingDocuments(true)
-
-      // If document loading hasn't started yet, start it
-      if (!documentLoadingStarted.current) {
-        documentLoadingStarted.current = true
-        fetchDocumentAlertes()
-      }
-    }
-
-    // If switching to maintenance tab and we haven't loaded the data yet, show loading indicator
-    if (tab === "maintenance" && maintenanceAlertes.length === 0 && !maintenanceError) {
-      setIsLoadingMaintenance(true)
-
-      // If maintenance loading hasn't started yet, start it
-      if (!maintenanceAlertsLoadingStarted.current) {
-        maintenanceAlertsLoadingStarted.current = true
-        fetchMaintenanceAlertes()
-      }
-    }
   }
 
   // Open the kilometrage update popup
@@ -380,11 +342,6 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
     router.push("/vehicule/immobilisation")
   }
 
-  // Navigate to create maintenance demande
-  const navigateToCreateMaintenanceDemande = (vehicleCode: string) => {
-    router.push(`/vehicule/intervention/demande?code_vehicule=${vehicleCode}&type=maintenance`)
-  }
-
   // Get color class based on days remaining
   const getColorClass = (days: number) => {
     if (days <= 3) return "bg-red-100 text-red-800"
@@ -393,36 +350,137 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
     return "bg-green-100 text-green-800"
   }
 
-  // Get color class based on distance remaining
-  const getDistanceColorClass = (distance: number, periode: number) => {
-    const percentRemaining = (distance / periode) * 100
-
-    if (percentRemaining <= 5) return "bg-red-100 text-red-800"
-    if (percentRemaining <= 10) return "bg-orange-100 text-orange-800"
-    if (percentRemaining <= 20) return "bg-yellow-100 text-yellow-800"
-    return "bg-green-100 text-green-800"
-  }
-
   // Handle refresh button click
   const handleRefresh = () => {
-    // Reset loading flags
-    documentLoadingStarted.current = false
-    demandesEnInstanceLoadingStarted.current = false
-    vehiculesImmobilisesLoadingStarted.current = false
-    maintenanceAlertsLoadingStarted.current = false
-
-    // Fetch kilometrage alerts first (other data will load in background after)
+    // Refresh all data
     fetchKilometrageAlertes()
+    fetchDocumentAlertes()
+    fetchDemandesEnInstanceCount()
+    fetchVehiculesImmobilisesCount()
+    fetchMaintenanceAlertes()
+  }
 
-    // If on documents tab, also show loading indicator for documents
-    if (activeTab === "documents") {
-      setIsLoadingDocuments(true)
+  // Render maintenance alerts table
+  const renderMaintenanceAlertsTable = () => {
+    if (isLoadingMaintenance) {
+      return (
+        <div className="px-6 py-12 text-center">
+          <LoaderIcon className="w-12 h-12 text-indigo-500 mx-auto mb-4 animate-spin" />
+          <p className="text-lg font-medium text-gray-500">Chargement des alertes de maintenance...</p>
+        </div>
+      )
     }
 
-    // If on maintenance tab, also show loading indicator for maintenance
-    if (activeTab === "maintenance") {
-      setIsLoadingMaintenance(true)
+    if (maintenanceError) {
+      return (
+        <div className="px-6 py-12 text-center">
+          <div className="flex flex-col items-center">
+            <AlertTriangleIcon className="w-12 h-12 text-red-500 mb-4" />
+            <p className="text-lg font-medium text-red-500">{maintenanceError}</p>
+            <button
+              onClick={fetchMaintenanceAlertes}
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <RefreshCwIcon className="h-4 w-4 mr-2" />
+              Réessayer
+            </button>
+          </div>
+        </div>
+      )
     }
+
+    if (maintenanceAlertes.length === 0) {
+      return (
+        <div className="px-6 py-12 text-center">
+          <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <p className="text-lg font-medium text-gray-900">Aucune alerte de maintenance</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Tous les véhicules sont à jour avec leur programme de maintenance.
+          </p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Véhicule
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gamme</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Opération
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Valeur accumulée
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Période
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Valeur restante
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {maintenanceAlertes.map((alert, index) => {
+              const key = `${alert.code_vehicule}-${alert.code_type}-${alert.code_gamme}-${alert.code_operation}`
+              const isResetting = resettingMaintenance[key] || false
+
+              return (
+                <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {alert.code_vehicule}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{alert.gamme_designation}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{alert.operation_designation}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {alert.valeur_accumulee.toLocaleString()} {alert.unite_mesure}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {alert.periode.toLocaleString()} {alert.unite_mesure}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        alert.valeur_restante <= 0
+                          ? "bg-red-100 text-red-800"
+                          : alert.valeur_restante <= alert.periode * 0.1
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {alert.valeur_restante <= 0
+                        ? "Dépassé"
+                        : `${alert.valeur_restante.toLocaleString()} ${alert.unite_mesure}`}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <button
+                      onClick={() => handleResetMaintenance(alert)}
+                      disabled={isResetting}
+                      className="text-red-600 hover:text-red-900 focus:outline-none disabled:opacity-50"
+                      title="Réinitialiser le compteur"
+                    >
+                      {isResetting ? <LoaderIcon className="h-5 w-5 animate-spin" /> : <X className="h-5 w-5" />}
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    )
   }
 
   return (
@@ -430,8 +488,6 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Tableau de bord des alertes</h1>
         <div className="flex items-center space-x-4">
-          {/* Notification Center */}
-
           <div className="flex space-x-2">
             <button
               onClick={navigateToVehicules}
@@ -444,14 +500,18 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
               onClick={handleRefresh}
               disabled={
                 isLoadingKilometrage ||
-                (activeTab === "documents" && isLoadingDocuments) ||
-                (activeTab === "maintenance" && isLoadingMaintenance)
+                isLoadingDocuments ||
+                isLoadingMaintenance ||
+                isLoadingDemandesEnInstance ||
+                isLoadingVehiculesImmobilises
               }
               className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {isLoadingKilometrage ||
-              (activeTab === "documents" && isLoadingDocuments) ||
-              (activeTab === "maintenance" && isLoadingMaintenance) ? (
+              isLoadingDocuments ||
+              isLoadingMaintenance ||
+              isLoadingDemandesEnInstance ||
+              isLoadingVehiculesImmobilises ? (
                 <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <RefreshCwIcon className="h-4 w-4 mr-2" />
@@ -487,7 +547,7 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
             <div>
               <p className="text-sm font-medium text-gray-600">Documents de bords à renouveler</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {isLoadingDocuments && !documentsAlertes.length ? "..." : documentsAlertes.length}
+                {isLoadingDocuments ? "..." : documentsAlertes.length}
               </p>
             </div>
           </div>
@@ -502,7 +562,7 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
             <div>
               <p className="text-sm font-medium text-gray-600">Maintenances preventives proches</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {isLoadingMaintenance && !maintenanceAlertes.length ? "..." : maintenanceAlertes.length}
+                {isLoadingMaintenance ? "..." : maintenanceAlertes.length}
               </p>
             </div>
           </div>
@@ -845,9 +905,16 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
       )}
 
       {/* Maintenance Alerts Tab */}
-      {activeTab === "maintenance" && <MaintenanceAlertsTable userId={userId} />}
+      {activeTab === "maintenance" && (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-800">Alertes de maintenance basées sur le kilométrage</h2>
+          </div>
+          {renderMaintenanceAlertsTable()}
+        </div>
+      )}
 
-      
+      {/* Kilometrage Update Popup */}
       <KilometrageUpdatePopup
         isOpen={isKilometragePopupOpen}
         onClose={() => setIsKilometragePopupOpen(false)}

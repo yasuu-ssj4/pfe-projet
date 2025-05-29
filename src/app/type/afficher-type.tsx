@@ -77,7 +77,6 @@ export default function TypesTable({ userId, userPrivs }: { userId: number; user
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Filter marques based on search
   useEffect(() => {
     if (!marqueSearchTerm.trim()) {
       setFilteredMarques(marques)

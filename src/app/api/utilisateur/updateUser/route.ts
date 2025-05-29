@@ -39,7 +39,10 @@ export async function PUT(req: NextRequest) {
 
     // Only update password if provided
     if (userData.mot_de_passe && userData.mot_de_passe.trim() !== "") {
-      updateData.mot_de_passe = CryptoJS.AES.encrypt(userData.mot_de_passe, SECRET_KEY).toString()
+      const saltRounds = 10;
+      
+      const hashedmdp = await bcrypt.hash(updateData.mot_de_passe, saltRounds);
+      updateData.mot_de_passe = hashedmdp
     }
 
     // Update user
