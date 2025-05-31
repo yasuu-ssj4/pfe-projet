@@ -136,8 +136,8 @@ type DemandeIntervention = {
   nom_prenom_responsable: string | null
   fonction_responsable: string | null
   date_responsable: string
-  nom_prenom_intervenant: string | null
-  fonction_intervenant: string | null
+  nom_prenom_intervevant: string | null
+  fonction_intervevant: string | null
   date_intervevant: string | null
   nom_prenom_responsable_unm: string | null
   fonction_responsable_unm: string | null
@@ -884,11 +884,11 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
                     <div className="space-y-1">
                       <div>
                         <span className="font-bold text-sm">Nom & Prénom :</span>
-                        <span className="pl-2 text-sm">{demande.nom_prenom_intervenant}</span>
+                        <span className="pl-2 text-sm">{demande.nom_prenom_intervevant}</span>
                       </div>
                       <div>
                         <span className="font-bold text-sm">Fonction :</span>
-                        <span className="pl-2 text-sm">{demande.fonction_intervenant}</span>
+                        <span className="pl-2 text-sm">{demande.fonction_intervevant}</span>
                       </div>
                       <div>
                         <span className="font-bold text-sm">Date :</span>

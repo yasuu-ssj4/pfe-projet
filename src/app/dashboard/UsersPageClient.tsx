@@ -334,7 +334,7 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
 
   // Navigate to demandes en instance
   const navigateToDemandesEnInstance = () => {
-    router.push("/vehicule/intervention/demande")
+    router.push("/listeDI")
   }
 
   // Navigate to vehicules immobilisés

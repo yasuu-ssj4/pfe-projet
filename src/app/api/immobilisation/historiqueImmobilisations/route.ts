@@ -7,7 +7,7 @@ const prisma = new PrismaClient()
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId } = body
+    const { userId  , date} = body
     interface ImmobilisationH {
       code_district: string
       designation_district: string
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const immobilizedVehicles = await prisma.$queryRawUnsafe<ImmobilisationH[]>(`
-     PS_GET_IMMOBILISATIONS_HISTORIQUE @id_utilisateur = ${userId}
+     PS_GET_IMMOBILISATIONS_HISTORIQUE @id_utilisateur = ${userId} , @week_mois_annee = '${date}';
     `)
 
 
