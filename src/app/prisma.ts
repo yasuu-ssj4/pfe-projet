@@ -1,5 +1,6 @@
 import { PrismaClient, utilisateur } from "@prisma/client";
 import CryptoJS from "crypto-js";
+import bcrypt from 'bcrypt';
 
 import {
     Vehicule,
@@ -74,7 +75,10 @@ export async function ajouterMarque(data: Marque) {
   
   
 export async function ajouterUtilisateur(user: Utilisateur) {
-    const encryptedMdp = CryptoJS.AES.encrypt(user.mot_de_passe, SECRET_KEY).toString();
+const plainPassword = user.mot_de_passe;
+const saltRounds = 10;
+
+const hashedmdp = await bcrypt.hash(plainPassword, saltRounds);
 
     await prisma.utilisateur.create({
         data: {
@@ -83,7 +87,7 @@ export async function ajouterUtilisateur(user: Utilisateur) {
             username: user.username,
             email: user.email,
             numero_telephone: user.numero_telephone,
-            mot_de_passe: encryptedMdp,
+            mot_de_passe: hashedmdp,
             code_structure: user.code_structure,
             methode_authent: user.methode_authent,
             est_admin: user.est_admin,
@@ -169,13 +173,13 @@ export async function ajouterUtilisateur(user: Utilisateur) {
     } });
   }
 
- const constater_vehicule = async (id_utilisateur: number) => {
+ const tester_api = async (code_vehicule: string) => {
     try {
 
-    const res = await fetch("http://localhost:3000/api/vehicule/kilometrage-heure/getMoyenKilometrage", {
+    const res = await fetch("http://localhost:3000/api/model", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ id_utilisateur }),
+  body: JSON.stringify({ code_vehicule }),
 });
 
       if (!res.ok) {
@@ -191,4 +195,4 @@ export async function ajouterUtilisateur(user: Utilisateur) {
      
     }
   }
-
+tester_api("A0156")

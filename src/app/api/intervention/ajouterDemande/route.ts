@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     })
       UtilisateurAEnvoyer.forEach((user) => {
         if (user.droit_utilisateur || user.droit_utilisateur.includes("ajouter_rapport")|| user.droit_utilisateur.includes("ajouter_QI")) {
-          sendInterventionNotification(user.email, demandeData.id_demande_intervention, demandeData.code_vehicule)
+          sendInterventionNotification(user.email, Number(demandeData.id_demande_intervention), demandeData.code_vehicule)
         }
       })
     // Create the demande
@@ -80,7 +80,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
    await prisma.demande_intervention.delete({
-      where: { id_demande_intervention },
+      where: { id_demande_intervention: Number(id_demande_intervention) },
 
    });
 

@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChevronLeft, Plus, Edit, Trash2, Search, Eye } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Edit, Trash2, Search, Eye } from 'lucide-react'
 import { useRouter } from "next/navigation"
+import { LoaderIcon } from 'lucide-react'
 
 type Type = {
   id_type: number
@@ -49,9 +50,10 @@ export default function EntretienPage({ userPrivs }: {userPrivs: string[]}) {
       type.FK_type_REF_marque.designation.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const paginatedTypes = filteredTypes.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-
   const totalPages = Math.ceil(filteredTypes.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedTypes = filteredTypes.slice(startIndex, endIndex)
 
   const handleAddProgramme = (typeId: number) => {
     setSelectedTypeId(typeId)
@@ -98,20 +100,67 @@ export default function EntretienPage({ userPrivs }: {userPrivs: string[]}) {
     }
   }
 
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber)
+  }
+
+  // Generate page numbers to display (same logic as afficherVehicule)
+  const getPageNumbers = () => {
+    const pageNumbers = []
+    const maxPagesToShow = 5
+
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if there are less than maxPagesToShow
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i)
+      }
+    } else {
+      // Always show first page
+      pageNumbers.push(1)
+
+      // Calculate start and end of middle pages
+      let startPage = Math.max(2, currentPage - 1)
+      let endPage = Math.min(totalPages - 1, currentPage + 1)
+
+      // Adjust if we're near the beginning
+      if (currentPage <= 3) {
+        endPage = Math.min(totalPages - 1, 4)
+      }
+
+      // Adjust if we're near the end
+      if (currentPage >= totalPages - 2) {
+        startPage = Math.max(2, totalPages - 3)
+      }
+
+      // Add ellipsis after first page if needed
+      if (startPage > 2) {
+        pageNumbers.push("...")
+      }
+
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i)
+      }
+
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        pageNumbers.push("...")
+      }
+
+      // Always show last page
+      pageNumbers.push(totalPages)
+    }
+
+    return pageNumbers
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-[#e6b800] text-[#0a2d5e] p-4">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => router.push("/documents")}
-              className="flex items-center text-[#0a2d5e] hover:underline"
-            >
-              <ChevronLeft className="mr-1" />
-              Retour
-            </button>
-            <h1 className="text-2xl font-bold text-center">PROGRAMME D&apos;ENTRETIEN</h1>
+          <div className="flex items-center justify-center">
+            <h1 className="text-2xl font-bold text-center">PROGRAMME D'ENTRETIEN</h1>
             <div className="w-24"></div> {/* Spacer for alignment */}
           </div>
 
@@ -137,7 +186,6 @@ export default function EntretienPage({ userPrivs }: {userPrivs: string[]}) {
         <table className="min-w-full bg-white border border-gray-300">
           <thead>
             <tr className="bg-gray-100">
-              <th className="px-4 py-3 border text-left font-semibold">ID Type</th>
               <th className="px-4 py-3 border text-left font-semibold">Type</th>
               <th className="px-4 py-3 border text-left font-semibold">Marque</th>
               <th className="px-4 py-3 border text-center font-semibold">Actions</th>
@@ -146,20 +194,22 @@ export default function EntretienPage({ userPrivs }: {userPrivs: string[]}) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={4} className="px-4 py-3 text-center border">
-                  Chargement...
+                <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
+                  <div className="flex flex-col items-center">
+                    <LoaderIcon className="w-12 h-12 text-indigo-500 mb-4 animate-spin" />
+                    <p className="text-lg font-medium">Chargement des programmes d'entretien...</p>
+                  </div>
                 </td>
               </tr>
             ) : paginatedTypes.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-3 text-center border">
+                <td colSpan={3} className="px-4 py-3 text-center border">
                   Aucun type trouvé
                 </td>
               </tr>
             ) : (
               paginatedTypes.map((type) => (
                 <tr key={type.id_type} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 border">{type.id_type}</td>
                   <td className="px-4 py-3 border">{type.designation}</td>
                   <td className="px-4 py-3 border">{type.FK_type_REF_marque.designation}</td>
                   <td className="px-4 py-3 border text-center">
@@ -231,39 +281,56 @@ export default function EntretienPage({ userPrivs }: {userPrivs: string[]}) {
         </table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="container mx-auto my-6 flex justify-center">
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="p-2 rounded-md border border-gray-300 disabled:opacity-50"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-
-            <div className="flex space-x-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === page ? "bg-[#0a2d5e] text-white" : "border border-gray-300"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
+      {/* Advanced Pagination (like afficherVehicule) */}
+      {!loading && filteredTypes.length > 0 && totalPages > 1 && (
+        <div className="container mx-auto px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-500">
+              Affichage de {startIndex + 1}-{Math.min(endIndex, filteredTypes.length)} sur{" "}
+              {filteredTypes.length} programmes d'entretien
             </div>
 
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-md border border-gray-300 disabled:opacity-50"
-            >
-              <ChevronLeft className="h-5 w-5 transform rotate-180" />
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Précédent
+              </button>
+
+              <div className="hidden md:flex space-x-2">
+                {getPageNumbers().map((pageNumber, index) =>
+                  pageNumber === "..." ? (
+                    <span key={`ellipsis-${index}`} className="inline-flex items-center px-3 py-2 text-sm">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={`page-${pageNumber}`}
+                      onClick={() => handlePageChange(pageNumber as number)}
+                      className={`inline-flex items-center px-3 py-2 border text-sm leading-4 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                        currentPage === pageNumber
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-600"
+                          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  ),
+                )}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                Suivant
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </button>
+            </div>
           </div>
         </div>
       )}

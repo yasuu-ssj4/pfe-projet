@@ -114,6 +114,7 @@ type ConstaterDemandeProps = {
 
 type DemandeIntervention = {
   id_demande_intervention: string
+  numero_demande : string
   etat_demande: string
   date_application: string
   date_heure_panne: string
@@ -128,15 +129,15 @@ type DemandeIntervention = {
   constat_panne: string | null
   diagnostique: string | null
   description: string | null
-  niveaux_prio: string | null
+  niveaux_prio: number | null
   nom_prenom_demandeur: string | null
   fonction_demandeur: string | null
   date_demandeur: string | null
   nom_prenom_responsable: string | null
   fonction_responsable: string | null
   date_responsable: string
-  nom_prenom_intervenant: string | null
-  fonction_intervenant: string | null
+  nom_prenom_intervevant: string | null
+  fonction_intervevant: string | null
   date_intervevant: string | null
   nom_prenom_responsable_unm: string | null
   fonction_responsable_unm: string | null
@@ -147,9 +148,9 @@ type DemandeIntervention = {
   routinier_ref: string | null
   dangereux: boolean
   dangereux_ref: string | null
-  nom_prenom_HSE: string | null
-  fonction_HSE: string | null
-  date_HSE: string | null
+  nom_prenom_hse: string | null
+  fonction_hse: string | null
+  date_hse: string | null
 }
 
 type VehiculeInfo = {
@@ -298,7 +299,7 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
     structure_type = parts[0] || ""
     structure_detail = parts[1] || ""
   }
-
+ console.log(demande)
   return (
     <>
       <style jsx global>
@@ -358,7 +359,7 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
                 <tr>
                   <td className="border-2 border-gray-800  w-1/3">
                     <span className="font-bold mb-1 px-1">N° :</span>
-                    <span className="pl-2">{demande.id_demande_intervention}</span>
+                    <span className="pl-2">{demande.numero_demande}</span>
                   </td>
                   <td className="border-2 border-gray-800 ">
                     <span className="font-bold mb-1 px-1">District/Autre :</span>
@@ -773,7 +774,7 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            checked={demande.niveaux_prio === "1"}
+                            checked={demande.niveaux_prio === 1}
                             readOnly
                             className="form-checkbox h-3 w-3 mr-2"
                           />
@@ -782,7 +783,7 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            checked={demande.niveaux_prio === "2"}
+                            checked={demande.niveaux_prio === 2}
                             readOnly
                             className="form-checkbox h-3 w-3 mr-2"
                           />
@@ -791,7 +792,7 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            checked={demande.niveaux_prio === "3"}
+                            checked={demande.niveaux_prio === 3}
                             readOnly
                             className="form-checkbox h-3 w-3 mr-2"
                           />
@@ -848,14 +849,14 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
 
                     <div className="mt-1">
                       <span className="font-bold text-sm">Nom & Prénom :</span>
-                      <span className="text-sm">{demande.nom_prenom_HSE || "Non renseigné"}</span>
+                      <span className="text-sm">{demande.nom_prenom_hse || ""}</span>
                       <br />
                       <span className="font-bold text-sm mt-1">Fonction :</span>
-                      <span className="text-sm">{demande.fonction_HSE || "Non renseigné"}</span>
+                      <span className="text-sm">{demande.fonction_hse || ""}</span>
                       <br />
                       <span className="font-bold text-sm mt-1">Date :</span>
                       <span className="text-sm">
-                        {demande.date_HSE ? new Date(demande.date_HSE).toLocaleDateString("fr-FR") : "Non renseigné"}
+                        {demande.date_hse ? new Date(demande.date_hse).toLocaleDateString("fr-FR") : ""}
                       </span>
                       <div className="font-bold text-sm mt-1">Visa HSE :</div>
                     </div>
@@ -883,18 +884,18 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
                     <div className="space-y-1">
                       <div>
                         <span className="font-bold text-sm">Nom & Prénom :</span>
-                        <span className="pl-2 text-sm">{demande.nom_prenom_intervenant}</span>
+                        <span className="pl-2 text-sm">{demande.nom_prenom_intervevant}</span>
                       </div>
                       <div>
                         <span className="font-bold text-sm">Fonction :</span>
-                        <span className="pl-2 text-sm">{demande.fonction_intervenant}</span>
+                        <span className="pl-2 text-sm">{demande.fonction_intervevant}</span>
                       </div>
                       <div>
                         <span className="font-bold text-sm">Date :</span>
                         <span className="pl-2 text-sm">
                           {demande.date_intervevant
                             ? new Date(demande.date_intervevant).toLocaleDateString("fr-FR")
-                            : "Non renseigné"}
+                            : ""}
                         </span>
                       </div>
                       <div>
@@ -917,7 +918,7 @@ export default function ConstaterDemande({ id_demande_intervention }: ConstaterD
                         <span className="pl-2 text-sm">
                           {demande.date_responsable_unm
                             ? new Date(demande.date_responsable_unm).toLocaleDateString("fr-FR")
-                            : "Non renseigné"}
+                            : ""}
                         </span>
                       </div>
                       <div>

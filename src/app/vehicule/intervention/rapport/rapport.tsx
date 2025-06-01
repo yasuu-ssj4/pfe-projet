@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import type { RapportIntervention } from "@/app/interfaces"
 import { Plus, Trash2, X, Loader2 } from "lucide-react"
+import {useRouter} from "next/navigation"
 
 export default function FormRapport({
   id_demande_intervention,
@@ -13,6 +14,7 @@ export default function FormRapport({
   type infos = {
     structure_maintenance: string
     date_heure_panne: Date
+    numero_demande: string
     district_id: string
     centre_id: string
   }
@@ -40,6 +42,7 @@ export default function FormRapport({
 
   const [Data, setData] = useState<infos>({
     structure_maintenance: "",
+    numero_demande: "",
     date_heure_panne: new Date(),
     district_id: "",
     centre_id: "",
@@ -51,9 +54,10 @@ export default function FormRapport({
   const [disabled, setDisabled] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [FormValue, SetFormValue] = useState<RapportIntervention>({
-    id_demande_intervention: id_demande_intervention || "2",
+    id_demande_intervention: Number(id_demande_intervention) ,
+    
     id_rapport_intervention: "",
     structure_maintenance_charge: "",
     date_application: new Date(),
@@ -79,7 +83,7 @@ export default function FormRapport({
     nom_prenom_responsable: "",
     date_responsable: "",
   })
-
+    const router = useRouter()
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     SetFormValue((prev) => ({
@@ -179,9 +183,24 @@ export default function FormRapport({
     setIsLoading(true)
     setError(null)
     setSuccessMessage(null)
-
+    const newErrors: { [key: string]: string } = {};
     if (FormValue.essais === "oui") FormValue.reservation = ""
 
+    if (!FormValue.id_rapport_intervention.trim()) newErrors.id_rapport_intervention = "Ce champ est obligatoire"
+    if (!FormValue.date_debut_travaux) newErrors.date_debut_travaux = "Veuillez choisir une date"
+    if (!FormValue.date_fin_travaux) newErrors.date_fin_travaux = "Veuillez choisir une date"
+    if (!FormValue.date_prise_charge) newErrors.date_prise_charge = "Veuillez choisir une date"
+    if (!FormValue.duree_travaux) newErrors.duree_travaux = "Veuillez choisir des dates correcte"
+    if (!FormValue.nom_utilisateur.trim()) newErrors.nom_utilisateur = "Ce champ est obligatoire"
+    if (!FormValue.nom_prenom_responsable.trim()) newErrors.nom_prenom_responsable = "Ce champ est obligatoire"
+    if (!FormValue.date_responsable) newErrors.date_responsable = "Ce champ est obligatoire"
+    if (!FormValue.nom_prenom_demandeur.trim()) newErrors.nom_prenom_demandeur = "Ce champ est obligatoire"
+    if (!FormValue.date_demandeur) newErrors.date_demandeur = "Ce champ est obligatoire"
+    if (FormValue.essais === "non") {
+      if(!FormValue.reservation?.trim()) newErrors.reservation = "Ce champ est obligatoire"
+    }
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length === 0){
     try {
       // Calculate totals before submitting
       const internalTotal = internalWorkItems.reduce((sum, item) => sum + (Number(item.cout) || 0), 0)
@@ -236,6 +255,7 @@ export default function FormRapport({
     } finally {
       setIsLoading(false)
     }
+  } else setIsLoading(false)
   }
 
   function formatHeureToInputValue(date: Date | string | null) {
@@ -267,7 +287,7 @@ export default function FormRapport({
           const hours = Math.floor(totalMinutes / 60)
           const minutes = totalMinutes % 60
 
-          const formatted = `${hours}h ${minutes}min`
+          const formatted = `${hours}h`
 
           SetFormValue((prev) => ({
             ...prev,
@@ -382,7 +402,7 @@ export default function FormRapport({
             </div>
             <p className="text-lg font-medium text-red-600">Erreur</p>
             <p className="text-gray-500 text-center mt-2">{error}</p>
-            <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <button onClick={()=> router.back()} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
               Fermer
             </button>
           </div>
@@ -395,6 +415,9 @@ export default function FormRapport({
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md">
+          <button onClick={() => router.back()} className="p-1 rounded-full hover:bg-gray-200" aria-label="Fermer">
+            <X className="h-6 w-6" />
+          </button>
           <div className="flex flex-col items-center">
             <div className="rounded-full h-12 w-12 bg-green-100 flex items-center justify-center mb-4">
               <svg
@@ -420,7 +443,7 @@ export default function FormRapport({
       <div className="bg-white w-full max-w-5xl rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 z-10 bg-gray-100 p-4 flex justify-between items-center border-b">
           <h2 className="text-xl font-bold text-gray-800">Rapport d'Intervention</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200" aria-label="Fermer">
+          <button onClick={() => router.back()} className="p-1 rounded-full hover:bg-gray-200" aria-label="Fermer">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -435,12 +458,12 @@ export default function FormRapport({
                     <img src="/logo-naftal.png" alt="NAFTAL Logo" className="w-full h-full object-contain p-2" />
                   </th>
                   <th className="border-2 border-gray-800 px-7 py-5 w-140 text-2xl font-bold">
-                    <h2>RAPPORT D&apos;INTERVENTION</h2>
+                    <h2>RAPPORT D'INTERVENTION</h2>
                   </th>
                   <th className="border-2 border-gray-800 py-3 px-4 w-60">
                     <div className="border-b-2 border-gray-800 pb-2 text-center font-semibold">ER.NAF.MNT.20.V1</div>
                     <div className="pt-2">
-                      <div className="font-semibold">Date d&apos;application :</div>
+                      <div className="font-semibold">Date d'application :</div>
                       <div className="text-center mt-1">{FormValue.date_application.toLocaleDateString("fr-FR")}</div>
                     </div>
                   </th>
@@ -465,9 +488,10 @@ export default function FormRapport({
                           name="id_rapport_intervention"
                           onChange={handleChange}
                           value={FormValue.id_rapport_intervention}
-                          className="px-2 py-1 border border-gray-300 rounded flex-1"
+                          className={`px-2 py-1 border border-gray-300 rounded flex-1 ${errors.id_rapport_intervention ? 'border-red-500' : 'border-gray-300'}`}
                         />
                       </div>
+                       {errors.id_rapport_intervention && <p className="text-red-500 text-sm mt-1">{errors.id_rapport_intervention}</p>}
                       <div>
                         <div className="font-semibold mb-1">Structure Maintenance en charge des travaux :</div>
                         <div className="px-2 py-1 bg-gray-100 rounded">
@@ -478,7 +502,7 @@ export default function FormRapport({
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-semibold mb-1">DI N° :</div>
-                    <div className="px-2 py-1 bg-gray-100 rounded">{FormValue.id_demande_intervention}</div>
+                    <div className="px-2 py-1 bg-gray-100 rounded">{Data.numero_demande}</div>
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-semibold text-center">Appartenance du Bien</div>
@@ -493,8 +517,9 @@ export default function FormRapport({
                       name="date_debut_travaux"
                       onChange={handleChange}
                       value={FormValue.date_debut_travaux}
-                      className="w-full px-2 py-1 border border-gray-300 rounded"
+                      className={`w-full px-2 py-1 border border-gray-300 rounded ${errors.date_debut_travaux ? 'border-red-500' : 'border-gray-300'}`}
                     />
+                     {errors.date_debut_travaux && <p className="text-red-500 text-sm mt-1">{errors.date_debut_travaux}</p>}
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-semibold mb-1">Date et Heure de la panne ou de l'avarie :</div>
@@ -529,22 +554,21 @@ export default function FormRapport({
                       name="date_fin_travaux"
                       onChange={handleChange}
                       value={FormValue.date_fin_travaux}
-                      className="w-full px-2 py-1 border border-gray-300 rounded"
+                      className={`w-full px-2 py-1 border border-gray-300 rounded ${errors.date_fin_travaux ? 'border-red-500' : 'border-gray-300'}`}
                     />
+                    {errors.date_fin_travaux && <p className="text-red-500 text-sm mt-1">{errors.date_fin_travaux}</p>}
                   </td>
-                  <td className="border-2 border-gray-800 p-3">
-                    <div className="flex items-center">
-                      <label htmlFor="numero_OR" className="font-semibold w-16">
-                        OR N° :
-                      </label>
-                      <input
-                        id="numero_OR"
-                        name="numero_OR"
-                        onChange={handleChange}
-                        value={FormValue.numero_OR}
-                        className="px-2 py-1 border border-gray-300 rounded flex-1"
-                      />
-                    </div>
+                  <td rowSpan={2} className="border-2 border-gray-800 p-3">
+                    <div className="font-semibold mb-1">Date et heure de prise en charge des travaux :</div>
+                    <input
+                      type="datetime-local"
+                      id="date_prise_charge"
+                      name="date_prise_charge"
+                      onChange={handleChange}
+                      value={FormValue.date_prise_charge}
+                       className={`w-full px-2 py-1 border border-gray-300 rounded ${errors.date_prise_charge ? 'border-red-500' : 'border-gray-300'}`}
+                    />
+                    {errors.date_prise_charge && <p className="text-red-500 text-sm mt-1">{errors.date_prise_charge}</p>}
                   </td>
                   <td rowSpan={2} className="border-2 border-gray-800 p-3">
                     <div className="font-semibold mb-1">Centre / Autre:</div>
@@ -556,21 +580,12 @@ export default function FormRapport({
                 <tr className="border-2 border-gray-800">
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-semibold mb-1">Durée des travaux :</div>
-                    <div className="px-2 py-1 bg-gray-100 rounded">
+                    <div className={`px-2 py-1  rounded ${errors.duree_travaux ? " bg-red-100" : "bg-gray-100"}`}>
                       {FormValue.duree_travaux || "Calculé automatiquement"}
                     </div>
+                    {errors.duree_travaux && <p className="text-red-500 text-sm mt-1">{errors.duree_travaux}</p>}
                   </td>
-                  <td className="border-2 border-gray-800 p-3">
-                    <div className="font-semibold mb-1">Date et heure de prise en charge des travaux :</div>
-                    <input
-                      type="datetime-local"
-                      id="date_prise_charge"
-                      name="date_prise_charge"
-                      onChange={handleChange}
-                      value={FormValue.date_prise_charge}
-                      className="w-full px-2 py-1 border border-gray-300 rounded"
-                    />
-                  </td>
+                  
                 </tr>
               </tbody>
             </table>
@@ -849,8 +864,8 @@ export default function FormRapport({
                     onChange={handleChange}
                     value={FormValue.reservation || ""}
                     disabled={disabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded"
-                    placeholder="Précisez les réserves..."
+                    className={`w-full px-3 py-2 border ${errors.reservation ? "border-red-500" : "border-gray-300"} rounded`}
+                    placeholder={`${errors.reservation ? "Ce champ est obligatoire" : "Précisez les réserves..."}`}
                   />
                 </div>
               </div>
@@ -917,8 +932,9 @@ export default function FormRapport({
                           name="nom_utilisateur"
                           onChange={handleChange}
                           value={FormValue.nom_utilisateur}
-                          className="w-full px-3 py-2 border border-gray-300 rounded"
+                          className={`w-full px-3 py-2 border rounded ${errors.nom_utilisateur ? "border-red-500" : "border-gray-300"}`}
                         />
+                        {errors.nom_utilisateur && <p className="text-red-500 text-sm mt-1">{errors.nom_utilisateur}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Date :</label>
@@ -945,8 +961,9 @@ export default function FormRapport({
                           name="nom_prenom_responsable"
                           onChange={handleChange}
                           value={FormValue.nom_prenom_responsable}
-                          className="w-full px-3 py-2 border border-gray-300 rounded"
+                          className={`w-full px-3 py-2 border rounded ${errors.nom_prenom_responsable ? "border-red-500" : "border-gray-300"}`}
                         />
+                        {errors.nom_prenom_responsable && <p className="text-red-500 text-sm mt-1">{errors.date_prise_charge}</p>}
                       </div>
                       <div>
                         <label htmlFor="date_responsable" className="block text-sm font-medium mb-1">
@@ -958,8 +975,9 @@ export default function FormRapport({
                           name="date_responsable"
                           onChange={handleChange}
                           value={FormValue.date_responsable}
-                          className="w-full px-3 py-2 border border-gray-300 rounded"
+                          className={`w-full px-3 py-2 border rounded ${errors.date_responsable ? "border-red-500" : "border-gray-300"}`}
                         />
+                        {errors.date_responsable && <p className="text-red-500 text-sm mt-1">{errors.date_responsable}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Visa :</label>
@@ -980,8 +998,9 @@ export default function FormRapport({
                           name="nom_prenom_demandeur"
                           onChange={handleChange}
                           value={FormValue.nom_prenom_demandeur}
-                          className="w-full px-3 py-2 border border-gray-300 rounded"
+                          className={`w-full px-3 py-2 border rounded ${errors.nom_prenom_demandeur ? "border-red-500" : "border-gray-300"}`}
                         />
+                        {errors.nom_prenom_demandeur && <p className="text-red-500 text-sm mt-1">{errors.date_prise_charge}</p>}
                       </div>
                       <div>
                         <label htmlFor="date_demandeur" className="block text-sm font-medium mb-1">
@@ -993,8 +1012,9 @@ export default function FormRapport({
                           name="date_demandeur"
                           onChange={handleChange}
                           value={FormValue.date_demandeur}
-                          className="w-full px-3 py-2 border border-gray-300 rounded"
+                          className={`w-full px-3 py-2 border rounded ${errors.date_demandeur ? "border-red-500" : "border-gray-300"}`}
                         />
+                        {errors.date_demandeur && <p className="text-red-500 text-sm mt-1">{errors.date_demandeur}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Visa :</label>
@@ -1011,7 +1031,7 @@ export default function FormRapport({
           <div className="flex justify-end space-x-4 mt-6">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => router.back()}
               className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition duration-300"
             >
               Annuler

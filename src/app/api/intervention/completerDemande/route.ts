@@ -60,11 +60,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Send notifications to users with ajouter_rapport privilege
-    await sendNotificationsToMaintenanceUsers(
-      demande.structure_maintenance,
-      id_demande_intervention,
-      demande.code_vehicule,
-    )
+   
 
     return NextResponse.json(updatedDemande, { status: 200 })
   } catch (error) {

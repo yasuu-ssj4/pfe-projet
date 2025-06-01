@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   AlertCircleIcon,
+  ArrowLeftIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -12,6 +13,8 @@ import {
   RefreshCwIcon,
   SearchIcon,
   XIcon,
+  CheckCircle2Icon,
+  XCircleIcon,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -19,6 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu"
+import { createPortal } from "react-dom"
 
 type DemandeIntervention = {
   id_demande_intervention: string
@@ -38,10 +42,93 @@ type DemandeIntervention = {
   description: string | null
 }
 
+
+type ToastProps = {
+  title: string
+  description: string
+  variant: "default" | "destructive"
+  onClose: () => void
+}
+
+function Toast({ title, description, variant, onClose }: ToastProps) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose()
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [onClose])
+
+  return (
+    <div
+      className={`fixed bottom-4 right-4 z-50 flex w-full max-w-md items-center rounded-lg shadow-lg p-4 transition-all ${
+        variant === "destructive" ? "bg-red-50 border border-red-200" : "bg-white border border-gray-200"
+      }`}
+    >
+      <div className="mr-3">
+        {variant === "destructive" ? (
+          <XCircleIcon className="h-6 w-6 text-red-500" />
+        ) : (
+          <CheckCircle2Icon className="h-6 w-6 text-green-500" />
+        )}
+      </div>
+      <div className="flex-1">
+        <h3 className={`text-sm font-medium ${variant === "destructive" ? "text-red-800" : "text-gray-900"}`}>
+          {title}
+        </h3>
+        <p className={`mt-1 text-sm ${variant === "destructive" ? "text-red-700" : "text-gray-500"}`}>{description}</p>
+      </div>
+      <button
+        onClick={onClose}
+        className="ml-4 inline-flex flex-shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400"
+      >
+        <XIcon className="h-4 w-4" />
+      </button>
+    </div>
+  )
+}
+
+// Custom Confirmation Dialog Component
+type ConfirmationDialogProps = {
+  open: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  description: string
+}
+
+function ConfirmationDialog({ open, onClose, onConfirm, title, description }: ConfirmationDialogProps) {
+  if (!open) return null
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative bg-white rounded-lg shadow-lg max-w-md w-full mx-4 p-6 z-10">
+        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <p className="mt-2 text-sm text-gray-500">{description}</p>
+        <div className="mt-6 flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            Supprimer
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
 export default function InterventionList({
   code_vehicule,
   userId,
-  userPrivs
+  userPrivs,
 }: {
   code_vehicule: string
   userId: number
@@ -56,6 +143,24 @@ export default function InterventionList({
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const itemsPerPage = 10
+
+  // Toast state
+  const [toast, setToast] = useState<{
+    visible: boolean
+    title: string
+    description: string
+    variant: "default" | "destructive"
+  }>({
+    visible: false,
+    title: "",
+    description: "",
+    variant: "default",
+  })
+
+  // Confirmation dialog state
+  const [confirmationOpen, setConfirmationOpen] = useState(false)
+  const [deleteType, setDeleteType] = useState<"rapport" | "demande" | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const fetchDemandes = async () => {
     setIsLoading(true)
@@ -128,44 +233,72 @@ export default function InterventionList({
     setSearchTerm("")
     setStatusFilter("")
   }
- const supprimerRapport = async (id_demande_intervention: string) => {
+
+  // Navigate back to vehicule page
+  const navigateBack = () => {
+    router.push("/vehicule")
+  }
+
+  // Show toast notification
+  const showToast = (title: string, description: string, variant: "default" | "destructive") => {
+    setToast({
+      visible: true,
+      title,
+      description,
+      variant,
+    })
+  }
+
+  // Close toast
+  const closeToast = () => {
+    setToast((prev) => ({ ...prev, visible: false }))
+  }
+
+  const handleDeleteConfirmation = (type: "rapport" | "demande", id: string) => {
+    setDeleteType(type)
+    setDeleteId(id)
+    setConfirmationOpen(true)
+  }
+
+  const handleConfirmedDelete = async () => {
+    if (!deleteType || !deleteId) return
+
     try {
+      if (deleteType === "rapport") {
+        const res = await fetch("/api/rapport/ajouterRapport", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id_demande_intervention: deleteId }),
+        })
 
-    const res = await fetch("/api/rapport/ajouterRapport", {
-  method: "DELETE",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ id_demande_intervention }),
-});
+        if (!res.ok) {
+          throw new Error("Erreur lors de la suppression du rapport")
+        }
 
-      if (!res.ok) {
-        throw new Error("Erreur lors de la suppression du rapport")
+        showToast("Succès", "Le rapport a été supprimé avec succès", "default")
+      } else {
+        const res = await fetch("/api/intervention/ajouterDemande", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id_demande_intervention: deleteId }),
+        })
+
+        if (!res.ok) {
+          throw new Error("Erreur lors de la suppression de la demande")
+        }
+
+        showToast("Succès", "La demande a été supprimée avec succès", "default")
       }
 
       // Refresh the demandes after deletion
-     fetchDemandes()
+      fetchDemandes()
     } catch (error) {
-      console.error("Error in supprimerRapport:", error)
-     
-    }
-  }
-const supprimerDemande = async (id_demande_intervention: string) => {
-    try {
-
-    const res = await fetch("/api/intervention/ajouterDemande", {
-  method: "DELETE",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ id_demande_intervention }),
-});
-
-      if (!res.ok) {
-        throw new Error("Erreur lors de la suppression du demande")
-      }
-
-      // Refresh 
-     fetchDemandes()
-    } catch (error) {
-      console.error("Error in supprimer demande:", error)
-     
+      console.error(`Error in supprimer ${deleteType}:`, error)
+      showToast("Erreur", error instanceof Error ? error.message : "Une erreur est survenue", "destructive")
+    } finally {
+      setConfirmationOpen(false)
+      setDeleteType(null)
+      setDeleteId(null)
     }
   }
 
@@ -242,7 +375,19 @@ const supprimerDemande = async (id_demande_intervention: string) => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h2 className="text-lg font-semibold text-gray-800">Liste des Demandes d'Intervention</h2>
+          <div className="flex items-center gap-4">
+            {/* Back Button */}
+            <button
+              onClick={navigateBack}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+              title="Retour à la liste des véhicules"
+            >
+              <ArrowLeftIcon className="h-4 w-4 mr-2" />
+              Retour
+            </button>
+
+            <h2 className="text-lg font-semibold text-gray-800">Liste des Demandes d'Intervention</h2>
+          </div>
 
           {/* Search and Filter Controls */}
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
@@ -433,42 +578,50 @@ const supprimerDemande = async (id_demande_intervention: string) => {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
+                          <MoreVertical className="h-4 w-4" color="black" />
                           <span className="sr-only">Options</span>
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[200px]">
-                        {userPrivs.includes('ajouter_QI') && 
-                        (demande.etat_demande === "incomplet" && 
-                          (<DropdownMenuItem onClick={() => navigateToCompleterForm(demande.id_demande_intervention)}>
+                      <DropdownMenuContent align="end" className="w-[200px] bg-white border border-gray-200 shadow-lg rounded-md py-1">
+                        {userPrivs.includes("ajouter_QI") && demande.etat_demande === "incomplet" && (
+                          <DropdownMenuItem 
+                          onClick={() => navigateToCompleterForm(demande.id_demande_intervention)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center">
                             Compléter Demande
                           </DropdownMenuItem>
-                        ))}
-                        <DropdownMenuItem onClick={() => navigateToConstaterDemande(demande.id_demande_intervention)}>
+                        )}
+                        <DropdownMenuItem onClick={() => navigateToConstaterDemande(demande.id_demande_intervention)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center">
                           Constater Demande
                         </DropdownMenuItem>
-                        {userPrivs.includes('ajouter_rapport') && 
-                        (demande.etat_demande.toLowerCase() === "en instance" && 
-                        (<DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}>
-                            Ajouter Rapport
-                          </DropdownMenuItem>
-                        ))}
+                        {userPrivs.includes("ajouter_rapport") &&
+                          demande.etat_demande.toLowerCase() === "en instance" && (
+                            <DropdownMenuItem onClick={() => navigateToRapport(demande.id_demande_intervention)}
+                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center">
+                              Ajouter Rapport
+                            </DropdownMenuItem>
+                          )}
                         {demande.etat_demande.toLowerCase() === "complété" && (
-                          <DropdownMenuItem onClick={() => navigateToConstaterRapport(demande.id_demande_intervention)}>
+                          <DropdownMenuItem onClick={() => navigateToConstaterRapport(demande.id_demande_intervention)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center">
                             Constater Rapport
                           </DropdownMenuItem>
                         )}
-                        {userPrivs.includes('supprimer_DI') &&  
-                          (<DropdownMenuItem onClick={() => supprimerDemande(demande.id_demande_intervention)}>
+                        {userPrivs.includes("supprimer_DI") &&  demande.etat_demande.toLowerCase() !="complété" &&(
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteConfirmation("demande", demande.id_demande_intervention)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center">
                             Supprimer Demande
                           </DropdownMenuItem>
                         )}
-                        {userPrivs.includes('supprimer_rapport') &&
-                        (demande.etat_demande.toLowerCase() === "complété" &&
-                          (<DropdownMenuItem onClick={() => supprimerRapport(demande.id_demande_intervention)}>
-                            Supprimer Rapport
-                          </DropdownMenuItem>
-                        ))}
+                        {userPrivs.includes("supprimer_rapport") &&
+                          demande.etat_demande.toLowerCase() === "complété" && (
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteConfirmation("rapport", demande.id_demande_intervention)}
+                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center">
+                              Supprimer Rapport
+                            </DropdownMenuItem>
+                          )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
@@ -567,6 +720,24 @@ const supprimerDemande = async (id_demande_intervention: string) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Custom Confirmation Dialog */}
+      <ConfirmationDialog
+        open={confirmationOpen}
+        onClose={() => setConfirmationOpen(false)}
+        onConfirm={handleConfirmedDelete}
+        title="Confirmation de suppression"
+        description={
+          deleteType === "rapport"
+            ? "Êtes-vous sûr de vouloir supprimer ce rapport ? Cette action ne peut pas être annulée."
+            : "Êtes-vous sûr de vouloir supprimer cette demande d'intervention ? Cette action ne peut pas être annulée."
+        }
+      />
+
+      {/* Custom Toast */}
+      {toast.visible && (
+        <Toast title={toast.title} description={toast.description} variant={toast.variant} onClose={closeToast} />
       )}
     </div>
   )

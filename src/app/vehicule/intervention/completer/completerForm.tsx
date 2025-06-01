@@ -17,18 +17,24 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [vehiculeInfo, setVehiculeInfo] = useState({
+    numero_demande: "",
     marque_designation: "",
     type_designation: "",
-    genre: "",
+    genre_designation: "",
     designation_centre: "",
     designation_district: "",
-    kilometrage: "",
+    totalKilo: "",
+    id_district: "",
+    id_centre: ""
+
   })
   console.log("id_demande in component:", id_demande)
 
   const [formValues, setFormValues] = useState({
-    id_demande_intervention: id_demande, // Initialize with the passed ID
+    id_demande_intervention: id_demande, 
+    numero_demande: "",
     etat_demande: "En instance",
     date_application: new Date(),
     date_heure_panne: "",
@@ -88,7 +94,7 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
       setIsLoading(true)
       setError(null)
       try {
-        // Fetch demande data
+        
         const response = await fetch(`/api/intervention/getDemandeById`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -121,6 +127,7 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
         setFormValues((prev) => ({
           ...prev,
           id_demande_intervention: data.id_demande_intervention || id_demande,
+          numero_demande: data.numero_demande || "",
           etat_demande: "En instance", 
           date_application: data.date_application ? new Date(data.date_application) : new Date(),
           date_heure_panne: data.date_heure_panne || "",
@@ -239,7 +246,7 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
       }))
     }
   }
-   // Create updated demande object
+  
    const selectedPanne = selectedItems.join("/")
 
    // Combine structure_maintenance_type and structure_maintenance_detail
@@ -249,33 +256,57 @@ export default function CompleterForm({ id_demande, onClose }: CompleterFormProp
   const nvValeur = {
     id_demande_intervention: id_demande,
     diagnostique : formValues.diagnostique ,
-description : formValues.description,
-niveaux_prio : formValues.niveaux_prio,
-necess_permis : formValues.necess_permis,
-etat_demande : formValues.etat_demande ,
-constat_panne : formValues.constat_panne,
-routinier : formValues.routinier,
-routinier_ref : formValues.routinier_ref,
-dangereux : formValues.dangereux,
-dangereux_ref : formValues.dangereux_ref  ,
-id_intervevant : 5,
-date_intervevant: new Date(),
-nom_prenom_responsable : formValues.nom_prenom_responsable,
-date_responsable : formValues.date_responsable,
-fonction_responsable : formValues.fonction_responsable,
-date_responsable_unm : formValues.date_responsable_QI ,
-fonction_responsable_unm  : formValues.fonction_responsable_QI,
-nom_prenom_responsable_unm : formValues.nom_prenom_responsable_QI,
-date_hse : formValues.date_HSE , 
-fonction_hse : formValues.fonction_HSE ,
-nom_prenom_hse : formValues.nom_prenom_HSE
+    description : formValues.description,
+    niveaux_prio : formValues.niveaux_prio,
+    necess_permis : formValues.necess_permis,
+    etat_demande : formValues.etat_demande ,
+    constat_panne : formValues.constat_panne,
+    routinier : formValues.routinier,
+    routinier_ref : formValues.routinier_ref,
+    dangereux : formValues.dangereux,
+    dangereux_ref : formValues.dangereux_ref  ,
+    nom_prenom_intervenant : formValues.nom_prenom_intervenant,
+    fonction_intervenant : formValues.fonction_intervenant,
+    date_intervevant: new Date(),
+    nom_prenom_responsable : formValues.nom_prenom_responsable,
+    date_responsable : formValues.date_responsable,
+    fonction_responsable : formValues.fonction_responsable,
+    date_responsable_unm : formValues.date_responsable_QI ,
+    fonction_responsable_unm  : formValues.fonction_responsable_QI,
+    nom_prenom_responsable_unm : formValues.nom_prenom_responsable_QI,
+    date_hse : formValues.date_HSE , 
+    fonction_hse : formValues.fonction_HSE ,
+    nom_prenom_hse : formValues.nom_prenom_HSE
   }
   console.log("values" ,nvValeur);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSaving(true)
     setError(null)
-
+    const newErrors: { [key: string]: string } = {};
+    if (!formValues.diagnostique.trim()) newErrors.diagnostique = "Ce champ est obligatoire";
+    if (!formValues.niveaux_prio) newErrors.niveaux_prio = "Veuillez cocher une case";
+    if (!formValues.nom_prenom_HSE.trim()) newErrors.nom_prenom_HSE = "Ce champ est obligatoire"
+    if (!formValues.fonction_HSE.trim()) newErrors.fonction_HSE = "Ce champ est obligatoire"
+    if (!formValues.date_HSE) newErrors.date_HSE = "Ce champ est obligatoire"
+    if (!formValues.nom_prenom_intervenant.trim()) newErrors.nom_prenom_intervenant = "Ce champ est obligatoire"
+    if (!formValues.fonction_intervenant.trim()) newErrors.fonction_intervenant = "Ce champ est obligatoire"
+    if (!formValues.nom_prenom_responsable_QI.trim()) newErrors.nom_prenom_responsable_QI = "Ce champ est obligatoire"
+    if (!formValues.fonction_responsable_QI.trim()) newErrors.fonction_responsable_QI = "Ce champ est obligatoire"
+    if (!formValues.date_responsable_QI) newErrors.date_responsable_QI = "Ce champ est obligatoire"
+    if (formValues.necess_permis) {
+      if (formValues.routinier) {
+        if (!formValues.routinier_ref.trim()) 
+          newErrors.routinier_ref = "Ce champ est obligatoire"
+      }
+      if (formValues.dangereux) {
+        if (!formValues.dangereux_ref.trim())
+            newErrors.dangereux_ref = "Ce champ est obligatoire"
+         }
+      else if (!formValues.routinier && !formValues.dangereux) newErrors.type_permis = "Veuillez cocher sur une case"
+    }
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length === 0){
     try { 
       const response = await fetch("/api/intervention/updateDemande", {
         method: "POST",
@@ -293,7 +324,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
       if (onClose) {
         onClose()
       } else {
-        router.push("/vehicule")
+        router.back()
       }
     } catch (error) {
       console.error("Erreur:", error)
@@ -303,6 +334,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
     } finally {
       setIsSaving(false)
     }
+  } else setIsSaving(false)
   }
 
   if (isLoading) {
@@ -357,12 +389,12 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                     <img src="/logo-naftal.png" alt="NAFTAL Logo" className="w-full h-full object-contain p-2" />
                   </th>
                   <th className="border-2 border-gray-800 px-7 py-5 w-140 text-2xl font-bold">
-                    <h2>COMPLÉTER DEMANDE D&apos;INTERVENTION</h2>
+                    <h2>COMPLÉTER DEMANDE D'INTERVENTION</h2>
                   </th>
                   <th className="border-2 border-gray-800 py-3 px-4 w-60">
                     <div className="border-b-2 border-gray-800 pb-2 text-center font-semibold">ER.NAF.MNT.20.V1</div>
                     <div className="pt-2">
-                      <div className="font-semibold">Date d&apos;application :</div>
+                      <div className="font-semibold">Date d'application :</div>
                       <div className="text-center mt-1">{new Date().toLocaleDateString("fr-FR")}</div>
                     </div>
                   </th>
@@ -378,7 +410,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                 <tr>
                   <td className="border-2 border-gray-800 p-3 w-1/3">
                     <div className="font-bold mb-1">N° :</div>
-                    <div className="p-2 bg-gray-100 rounded">{formValues.id_demande_intervention}</div>
+                    <div className="p-2 bg-gray-100 rounded">{formValues.numero_demande}</div>
                   </td>
                   <td className="border-2 border-gray-800 p-3 w-1/3">
                     <div className="font-bold mb-1">District/Autre :</div>
@@ -397,7 +429,6 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                               name="structure_maintenance_type"
                               value={option.value}
                               checked={formValues.structure_maintenance_type === option.value}
-                              onChange={() => handleSelect(option.value)}
                               disabled={option.disabled}
                               className="form-radio h-4 w-4 text-blue-600"
                             />
@@ -409,7 +440,6 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                               type="text"
                               name="structure_maintenance_detail"
                               placeholder={`Détail pour ${option.label}`}
-                              onChange={handleChange}
                               value={formValues.structure_maintenance_detail}
                               className="mt-1 px-3 py-2 border border-gray-300 rounded w-full"
                             />
@@ -422,13 +452,12 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                 <tr>
                   <td className="border-2 border-gray-800 p-3">
                     <label htmlFor="date_heure_panne" className="font-bold block mb-1">
-                      Date Heure de la panne ou de l&apos;avarie :
+                      Date Heure de la panne ou de l'avarie :
                     </label>
                     <input
                       type="datetime-local"
                       id="date_heure_panne"
                       name="date_heure_panne"
-                      onChange={handleChange}
                       value={formValues.date_heure_panne}
                       className="w-full p-2 border border-gray-300 rounded"
                     />
@@ -455,7 +484,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                         <span>Maintenance Installation fixe</span>
                       </label>
                       <label className="flex items-center">
-                        <input type="checkbox" checked readOnly className="form-checkbox h-4 w-4 mr-2 text-blue-600" />
+                        <input type="checkbox" checked className="form-checkbox h-4 w-4 mr-2 text-blue-600" />
                         <span>Matériel Roulant</span>
                       </label>
                       <label className="flex items-center">
@@ -479,7 +508,6 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                             name="nature_panne"
                             value={option.id}
                             checked={selectedItems.includes(option.id)}
-                            onChange={handleItems}
                             className="form-checkbox h-4 w-4 text-blue-600"
                           />
                           <span>{option.label}</span>
@@ -494,23 +522,21 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                     <div className="space-y-2 pl-2">
                       <label className="flex items-center">
                         <input
-                          type="radio"
+                          type="checkbox"
                           name="nature_travaux"
-                          value="Maintenance Corrective"
-                          onChange={handleChange}
                           checked={formValues.nature_travaux === "Maintenance Corrective"}
-                          className="form-radio h-4 w-4 mr-2 text-blue-600"
+                          className="form-checkbox h-4 w-4 mr-2"
+                          readOnly
                         />
                         <span>Maintenance Corrective</span>
                       </label>
                       <label className="flex items-center">
                         <input
-                          type="radio"
+                          type="checkbox"
                           name="nature_travaux"
-                          value="Maintenance Preventive"
-                          onChange={handleChange}
                           checked={formValues.nature_travaux === "Maintenance Preventive"}
-                          className="form-radio h-4 w-4 mr-2 text-blue-600"
+                          className="form-checkbox h-4 w-4 mr-2"
+                          readOnly
                         />
                         <span>Maintenance Préventive</span>
                       </label>
@@ -537,14 +563,13 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                     </div>
                   </td>
                   <td className="border-2 border-gray-800 p-4">
-                    <h5 className="font-bold mb-3">Degré d&apos;urgence :</h5>
+                    <h5 className="font-bold mb-3">Degré d'urgence :</h5>
                     <div className="space-y-2 pl-2">
                       <label className="flex items-center">
                         <input
                           type="radio"
                           name="degre_urgence"
                           value="1"
-                          onChange={handleChange}
                           checked={formValues.degre_urgence === "1"}
                           className="form-radio h-4 w-4 mr-2 text-blue-600"
                         />
@@ -555,7 +580,6 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                           type="radio"
                           name="degre_urgence"
                           value="2"
-                          onChange={handleChange}
                           checked={formValues.degre_urgence === "2"}
                           className="form-radio h-4 w-4 mr-2 text-blue-600"
                         />
@@ -566,7 +590,6 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                           type="radio"
                           name="degre_urgence"
                           value="3"
-                          onChange={handleChange}
                           checked={formValues.degre_urgence === "3"}
                           className="form-radio h-4 w-4 mr-2 text-blue-600"
                         />
@@ -593,7 +616,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-bold">Genre:</div>
-                    <div className="pl-2 mt-1">{vehiculeInfo.genre || "Non spécifié"}</div>
+                    <div className="pl-2 mt-1">{vehiculeInfo.genre_designation || "Non spécifié"}</div>
                   </td>
                 </tr>
                 <tr>
@@ -603,7 +626,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-bold">Km et/ou Heures de fonctionnement:</div>
-                    <div className="pl-2 mt-1">{vehiculeInfo.kilometrage || "Non spécifié"}</div>
+                    <div className="pl-2 mt-1">{vehiculeInfo.totalKilo || "Non spécifié"}</div>
                   </td>
                 </tr>
                 <tr>
@@ -627,8 +650,6 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                 id="constat_panne"
                 name="constat_panne"
                 className="w-full h-40 p-3 border border-gray-300 rounded"
-                placeholder="Décrivez le constat de la panne..."
-                onChange={handleChange}
                 value={formValues.constat_panne}
               />
             </div>
@@ -648,11 +669,12 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                   <textarea
                     id="diagnostique"
                     name="diagnostique"
-                    className="w-full p-3 border border-gray-300 rounded h-32"
+                    className={`w-full p-3 border ${errors.diagnostique ? 'border-red-500' : 'border-gray-300'} rounded h-32`}
                     placeholder="Saisir le diagnostique préliminaire..."
                     onChange={handleChange}
                     value={formValues.diagnostique}
                   />
+                  {errors.diagnostique && <p className="text-red-500 text-sm mt-1">{errors.diagnostique}</p>}
                 </div>
 
                 <div>
@@ -674,6 +696,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                 <div>
                   <h5 className="font-semibold mb-3">Niveaux de priorisation :</h5>
                   <div className="space-y-2 pl-2">
+                    {errors.niveaux_prio && <p className="text-red-500 text-sm mt-1">{errors.niveaux_prio}</p>}
                     <label className="flex items-center">
                       <input
                         type="radio"
@@ -748,7 +771,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                   {formValues.necess_permis && (
                     <div className="mt-4 pl-2">
                       <h5 className="font-semibold mb-2">Si oui, s'agit-t-il d'un permis de travail ?</h5>
-
+                      {errors.type_permis && <p className="text-red-500 text-sm mt-1">{errors.type_permis}</p>}
                       {/* Routinier */}
                       <div className="mb-3 flex items-center gap-2">
                         <input
@@ -764,8 +787,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                           name="routinier_ref"
                           value={formValues.routinier_ref}
                           onChange={handleChange}
+                          placeholder={`${errors.routinier_ref ? "Ce champ est requis" : "La reference"}`}
                           disabled={formValues.type_permis !== "Routinier"}
-                          className="border px-2 py-1 rounded flex-1"
+                          className={`border px-2 py-1 rounded flex-1 ${errors.routinier_ref ? "border-red-500" : "border-gray-300"}`}
                         />
                       </div>
 
@@ -784,8 +808,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                           name="dangereux_ref"
                           value={formValues.dangereux_ref}
                           onChange={handleChange}
+                          placeholder={`${errors.dangereux_ref ? "Ce champ est requis" : "La reference"}`}
                           disabled={formValues.type_permis !== "Dangereux"}
-                          className="border px-2 py-1 rounded flex-1"
+                          className={`border px-2 py-1 rounded flex-1 ${errors.dangereux_ref ? "border-red-500" : "border-gray-300"}`}
                         />
                       </div>
                     </div>
@@ -805,8 +830,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                       name="nom_prenom_HSE"
                       value={formValues.nom_prenom_HSE}
                       onChange={handleChange}
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className={`w-full p-2 border ${errors.nom_prenom_HSE ? 'border-red-500' : 'border-gray-300'} rounded`}
                     />
+                    {errors.nom_prenom_HSE && <p className="text-red-500 text-sm mt-1">{errors.nom_prenom_HSE}</p>}
                   </div>
                   <div>
                     <label htmlFor="fonction_HSE" className="block text-sm font-medium mb-1">
@@ -817,8 +843,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                       name="fonction_HSE"
                       value={formValues.fonction_HSE}
                       onChange={handleChange}
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className={`w-full p-2 border ${errors.fonction_HSE ? 'border-red-500' : 'border-gray-300'} rounded`}
                     />
+                    {errors.fonction_HSE && <p className="text-red-500 text-sm mt-1">{errors.fonction_HSE}</p>}
                   </div>
                   <div>
                     <label htmlFor="date_HSE" className="block text-sm font-medium mb-1">
@@ -830,8 +857,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                       name="date_HSE"
                       value={formValues.date_HSE}
                       onChange={handleChange}
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className={`w-full p-2 border ${errors.date_HSE ? 'border-red-500' : 'border-gray-300'} rounded`}
                     />
+                    {errors.date_HSE && <p className="text-red-500 text-sm mt-1">{errors.date_HSE}</p>}
                   </div>
                 </div>
                 <div className="mt-2">
@@ -851,7 +879,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                     <h4 className="font-bold">Intervenant</h4>
                   </th>
                   <th className="border-2 border-gray-800 p-3 bg-gray-100">
-                    <h4 className="font-bold">Responsable Qualification</h4>
+                    <h4 className="font-bold">Responsable CDS/UNM/Autre</h4>
                   </th>
                 </tr>
               </thead>
@@ -869,8 +897,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                           placeholder="Entrez le nom et prénom"
                           onChange={handleChange}
                           value={formValues.nom_prenom_intervenant}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.nom_prenom_intervenant ? 'border-red-500' : 'border-gray-300'} rounded`}
                         />
+                        {errors.nom_prenom_intervenant && <p className="text-red-500 text-sm mt-1">{errors.nom_prenom_intervenant}</p>}
                       </div>
                       <div>
                         <label htmlFor="fonction_intervenant" className="font-semibold block mb-1">
@@ -882,8 +911,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                           placeholder="Entrez la fonction"
                           onChange={handleChange}
                           value={formValues.fonction_intervenant}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.fonction_intervenant ? 'border-red-500' : 'border-gray-300'} rounded`}
                         />
+                        {errors.fonction_intervenant && <p className="text-red-500 text-sm mt-1">{errors.fonction_intervenant}</p>}
                       </div>
                       <div>
                         <div className="font-semibold">Date :</div>
@@ -907,8 +937,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                           placeholder="Entrez le nom et prénom"
                           onChange={handleChange}
                           value={formValues.nom_prenom_responsable_QI}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.nom_prenom_responsable_QI ? 'border-red-500' : 'border-gray-300'} rounded`}
                         />
+                        {errors.nom_prenom_responsable_QI && <p className="text-red-500 text-sm mt-1">{errors.nom_prenom_responsable_QI}</p>}
                       </div>
                       <div>
                         <label htmlFor="fonction_responsable_QI" className="font-semibold block mb-1">
@@ -920,8 +951,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                           placeholder="Entrez la fonction"
                           onChange={handleChange}
                           value={formValues.fonction_responsable_QI}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.fonction_responsable_QI ? 'border-red-500' : 'border-gray-300'} rounded`}
                         />
+                        {errors.fonction_responsable_QI && <p className="text-red-500 text-sm mt-1">{errors.fonction_responsable_QI}</p>}
                       </div>
                       <div>
                         <label htmlFor="date_responsable_QI" className="font-semibold block mb-1">
@@ -932,8 +964,9 @@ nom_prenom_hse : formValues.nom_prenom_HSE
                           name="date_responsable_QI"
                           onChange={handleChange}
                           value={formValues.date_responsable_QI}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.date_responsable_QI ? 'border-red-500' : 'border-gray-300'} rounded`}
                         />
+                        {errors.date_responsable_QI && <p className="text-red-500 text-sm mt-1">{errors.date_responsable_QI}</p>}
                       </div>
                       <div>
                         <div className="font-semibold">Visa :</div>
@@ -951,7 +984,7 @@ nom_prenom_hse : formValues.nom_prenom_HSE
         <div className="bg-gray-100 px-6 py-4 flex justify-end space-x-4 border-t border-gray-300">
           <button
             type="button"
-            onClick={onClose || (() => router.push("/vehicule"))}
+            onClick={onClose || (() => router.back())}
             className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300 font-medium"
             disabled={isSaving}
           >

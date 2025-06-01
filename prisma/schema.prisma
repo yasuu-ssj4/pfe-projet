@@ -157,12 +157,13 @@ model programme_entretien {
 }
 
 model demande_intervention {
-  id_demande_intervention    String                @id
+  id_demande_intervention    Int       @id @default(autoincrement())
+  numero_demande             String    @default("")
   etat_demande               String
   date_application           DateTime
   date_heure_panne           String
   structure_maintenance      String
-  activite                   String                @default("material roulant")
+  activite                   String    @default("material roulant")
   nature_panne               String
   nature_travaux             String
   degre_urgence              String
@@ -178,9 +179,11 @@ model demande_intervention {
   routinier_ref              String?
   dangereux                  Boolean?
   dangereux_ref              String?
-  id_demandeur               Int
+  nom_prenom_demandeur       String?
+  fonction_demandeur         String?
   date_demandeur             DateTime
-  id_intervevant             Int?
+  nom_prenom_intervevant     String?
+  fonction_intervevant       String?
   date_intervevant           DateTime?
   nom_prenom_responsable     String?
   date_responsable           String?
@@ -191,13 +194,12 @@ model demande_intervention {
   date_hse                   String?
   fonction_hse               String?
   nom_prenom_hse             String?
-  vehicule                   vehicule?             @relation(fields: [code_vehicule], references: [code_vehicule])
-  rapport_intervention       rapport_intervention?
+  vehicule                   vehicule? @relation(fields: [code_vehicule], references: [code_vehicule])
 }
 
 model rapport_intervention {
-  id_rapport_intervention                     String               @id
-  id_demande_intervention                     String               @unique
+  id_rapport_intervention                     String             @id
+  id_demande_intervention                     Int                @unique
   structure_maintenance_en_charge_des_travaux String
   district_id                                 String
   centre_id                                   String
@@ -221,7 +223,6 @@ model rapport_intervention {
   nom_prenom_responsable                      String
   date_responsable                            String
   nom_prenom_utilisateur                      String
-  demande_intervention                        demande_intervention @relation(fields: [id_demande_intervention], references: [id_demande_intervention])
   traveaux_externe                            traveaux_externe[]
   traveaux_interne                            traveaux_interne[]
 }

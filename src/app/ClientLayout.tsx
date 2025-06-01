@@ -8,7 +8,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const showSidebar = pathname !== '/login';
 
   return (
-    <div className="flex min-h-screen bg-gray-50 layout print:block">
+    <div className="flex min-h-screen bg-gray-50 text-black layout print:block">
       {showSidebar && (
         <div className="sidebar w-64 print:hidden">
           <Sidebar />

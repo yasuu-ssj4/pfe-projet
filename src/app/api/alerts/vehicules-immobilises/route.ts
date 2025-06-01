@@ -24,7 +24,7 @@ export async function POST(request : NextRequest) {
     `)
 
      
-    const immobilisedCount = vehicles.filter((v) => v.status_designation === "Immobilisé").length
+    const immobilisedCount = vehicles.filter((v) => v.status_designation === "IMB").length
      
     return NextResponse.json({ count: immobilisedCount })
   } catch (error) {

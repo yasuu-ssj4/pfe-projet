@@ -20,11 +20,9 @@ export async function POST(req: NextRequest) {
       routinier_ref,
       dangereux,
       dangereux_ref,
-      id_intervevant,
+      nom_prenom_intervenant,
+      fonction_intervenant,
       date_intervevant = new Date(),
-      nom_prenom_responsable,
-      date_responsable,
-      fonction_responsable,
       date_responsable_unm,
       fonction_responsable_unm,
       nom_prenom_responsable_unm,
@@ -34,7 +32,8 @@ export async function POST(req: NextRequest) {
     } = body
 
     console.log("Updating demande:",body)
-    console.log(typeof(date_intervevant));
+    console.log("nom" , nom_prenom_intervenant );
+    
     
     if (!id_demande_intervention) {
       return NextResponse.json({ error: "L'ID de la demande d'intervention est requis" }, { status: 400 })
@@ -42,7 +41,7 @@ export async function POST(req: NextRequest) {
 
 
      await prisma.demande_intervention.update({
-      where: { id_demande_intervention : id_demande_intervention },
+      where: { id_demande_intervention : Number(id_demande_intervention) },
       data: {
         etat_demande, 
         constat_panne,
@@ -54,11 +53,9 @@ export async function POST(req: NextRequest) {
         routinier_ref,
         dangereux,
         dangereux_ref,
-        id_intervevant,
-        date_intervevant : date_intervevant ? new Date(date_intervevant) : null,
-        nom_prenom_responsable,
-        date_responsable,
-        fonction_responsable,
+        nom_prenom_intervevant : nom_prenom_intervenant,
+        fonction_intervevant : fonction_intervenant,
+        date_intervevant ,
         date_responsable_unm,
         fonction_responsable_unm,
         nom_prenom_responsable_unm,
@@ -70,12 +67,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Demande mise à jour avec succès",  }, { status: 200 })
   } catch (error) {
-    console.error("❌ Error in updateDemande:", {
-      message: (error as any).message,
-      stack: (error as any).stack,
-      code: (error as any).code,
-      meta: (error as any).meta,
-    })
+    
     
     return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
   }

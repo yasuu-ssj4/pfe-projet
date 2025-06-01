@@ -1,13 +1,31 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
-import { AlertCircle, ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw, Search, X, Edit } from "lucide-react"
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Search,
+  X,
+  Edit,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  FileType,
+} from "lucide-react"
 
 interface Marque {
   id_marque: number
   designation: string
+}
+
+type SortConfig = {
+  key: keyof Marque | null
+  direction: "asc" | "desc"
 }
 
 export default function MarquesTable({ userId, userPrivs }: { userId: number; userPrivs: string[] }) {
@@ -28,6 +46,15 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
   const [editMarqueId, setEditMarqueId] = useState<number | null>(null)
   const [editMarqueDesignation, setEditMarqueDesignation] = useState("")
   const [editingError, setEditingError] = useState<string | null>(null)
+
+  // Add type states
+  const [isAddingType, setIsAddingType] = useState(false)
+  const [selectedMarqueForType, setSelectedMarqueForType] = useState<Marque | null>(null)
+  const [newTypeDesignation, setNewTypeDesignation] = useState("")
+  const [addingTypeError, setAddingTypeError] = useState<string | null>(null)
+
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: "asc" })
 
   // Fetch marques from API
   const fetchMarques = async () => {
@@ -58,21 +85,63 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
     fetchMarques()
   }, [])
 
-  // Filter marques when search term changes
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredMarques(marques)
-      return
+  // Handle sorting
+  const requestSort = (key: keyof Marque) => {
+    let direction: "asc" | "desc" = "asc"
+
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc"
     }
 
-    const term = searchTerm.toLowerCase()
-    const filtered = marques.filter(
-      (marque) => marque.designation.toLowerCase().includes(term) || marque.id_marque.toString().includes(term),
-    )
+    setSortConfig({ key, direction })
+  }
 
-    setFilteredMarques(filtered)
-    setCurrentPage(1) // Reset to first page when filtering
-  }, [searchTerm, marques])
+  // Get sort direction indicator
+  const getSortDirectionIndicator = (key: keyof Marque) => {
+    if (sortConfig.key !== key) {
+      return <ArrowUpDown className="h-4 w-4 ml-1 text-gray-400" />
+    }
+    return sortConfig.direction === "asc" ? (
+      <ArrowUp className="h-4 w-4 ml-1 text-gray-600" />
+    ) : (
+      <ArrowDown className="h-4 w-4 ml-1 text-gray-600" />
+    )
+  }
+
+  // Filter and sort marques when search term or sort config changes
+  useEffect(() => {
+    let results = [...marques]
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase()
+      results = results.filter(
+        (marque) => marque.designation.toLowerCase().includes(term) || marque.id_marque.toString().includes(term),
+      )
+    }
+
+    // Apply sorting
+    if (sortConfig.key) {
+      results.sort((a, b) => {
+        const aValue = a[sortConfig.key as keyof Marque]
+        const bValue = b[sortConfig.key as keyof Marque]
+
+        if (aValue === null || aValue === undefined) return sortConfig.direction === "asc" ? -1 : 1
+        if (bValue === null || bValue === undefined) return sortConfig.direction === "asc" ? 1 : -1
+
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue
+        } else if (typeof aValue === "string" && typeof bValue === "string") {
+          return sortConfig.direction === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
+        }
+
+        return 0
+      })
+    }
+
+    setFilteredMarques(results)
+    setCurrentPage(1) // Reset to first page when filtering/sorting
+  }, [searchTerm, marques, sortConfig])
 
   // Handle adding a new marque
   const handleAddMarque = async (e: React.FormEvent) => {
@@ -162,6 +231,62 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
     }
   }
 
+  // Handle opening add type modal
+  const handleOpenAddType = (marque: Marque) => {
+    setSelectedMarqueForType(marque)
+    setNewTypeDesignation("")
+    setAddingTypeError(null)
+    setIsAddingType(true)
+  }
+
+  // Handle adding a new type
+  const handleAddType = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!newTypeDesignation.trim()) {
+      setAddingTypeError("Veuillez entrer une désignation pour le type")
+      return
+    }
+
+    if (!selectedMarqueForType) {
+      setAddingTypeError("Aucune marque sélectionnée")
+      return
+    }
+
+    setIsSubmitting(true)
+    setAddingTypeError(null)
+
+    try {
+      const response = await fetch("/api/vehicule/type", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          designation: newTypeDesignation,
+          id_marque: selectedMarqueForType.id_marque,
+          type: "ajouter",
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Erreur lors de l'ajout du type")
+      }
+
+      // Success - close modal and show success message
+      alert(`Type "${newTypeDesignation}" ajouté avec succès pour la marque "${selectedMarqueForType.designation}"`)
+      setNewTypeDesignation("")
+      setIsAddingType(false)
+      setSelectedMarqueForType(null)
+    } catch (err) {
+      console.error("Erreur lors de l'ajout du type:", err)
+      setAddingTypeError(err instanceof Error ? err.message : "Erreur lors de l'ajout du type")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
@@ -176,7 +301,7 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
     <div className="">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Header with search and add button */}
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <h2 className="text-lg font-semibold text-gray-800">Liste des Marques</h2>
 
@@ -232,12 +357,31 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                
-                <th scope="col" className="px-6 py-3 text-left font-medium text-bold uppercase tracking-wider">
-                  Désignation
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => requestSort("id_marque")}
+                >
+                  <div className="flex items-center">
+                    ID
+                    {getSortDirectionIndicator("id_marque")}
+                  </div>
                 </th>
-                <th scope="col" className="px-6 py-3 text-left font-medium text-bold uppercase tracking-wider">
-                  Action
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => requestSort("designation")}
+                >
+                  <div className="flex items-center">
+                    Désignation
+                    {getSortDirectionIndicator("designation")}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -297,22 +441,31 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
               ) : (
                 currentItems.map((marque) => (
                   <tr key={marque.id_marque} className="hover:bg-gray-50">
-                    
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {marque.id_marque}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{marque.designation}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button
-                        onClick={() => (userPrivs.includes("modifier_user") ? handleEditMarque(marque) : undefined)}
-                        disabled={!userPrivs.includes("modifier_user")}
-                        className={`mr-3 inline-flex items-center 
-                          ${
-                            userPrivs.includes("modifier_user")
-                              ? "text-indigo-600 hover:text-indigo-900"
-                              : "text-gray-400 cursor-not-allowed"
-                          }`}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Modifier
-                      </button>
+                      <div className="flex items-center space-x-3">
+                        {userPrivs.includes("modifier_marque") && (
+                          <button
+                            onClick={() => handleEditMarque(marque)}
+                            className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Modifier
+                          </button>
+                        )}
+                        {userPrivs.includes("ajouter_type") && (
+                          <button
+                            onClick={() => handleOpenAddType(marque)}
+                            className="inline-flex items-center text-green-600 hover:text-green-900"
+                          >
+                            <FileType className="h-4 w-4 mr-1" />
+                            Ajouter Type
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -547,6 +700,101 @@ export default function MarquesTable({ userId, userPrivs }: { userId: number; us
                     <button
                       type="button"
                       onClick={() => setIsEditingMarque(false)}
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Type Modal */}
+        {isAddingType && selectedMarqueForType && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              </div>
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+                &#8203;
+              </span>
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form onSubmit={handleAddType}>
+                  <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div className="flex justify-between items-center pb-3 mb-3 border-b border-gray-200">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Ajouter un type pour {selectedMarqueForType.designation}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAddingType(false)
+                          setSelectedMarqueForType(null)
+                        }}
+                        className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+
+                    {/* Error message */}
+                    {addingTypeError && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            <AlertCircle className="h-4 w-4 text-red-400" aria-hidden="true" />
+                          </div>
+                          <div className="ml-2">
+                            <h3 className="text-xs font-medium text-red-800">Erreur</h3>
+                            <div className="mt-1 text-xs text-red-700">
+                              <p>{addingTypeError}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label htmlFor="type-designation" className="block text-sm font-medium text-gray-700 mb-1">
+                        Désignation du type
+                      </label>
+                      <input
+                        id="type-designation"
+                        name="type-designation"
+                        value={newTypeDesignation}
+                        onChange={(e) => setNewTypeDesignation(e.target.value)}
+                        type="text"
+                        placeholder="Entrez le nom du type"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || !newTypeDesignation.trim()}
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Ajout en cours...
+                        </>
+                      ) : (
+                        "Ajouter le type"
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingType(false)
+                        setSelectedMarqueForType(null)
+                      }}
                       className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                     >
                       Annuler

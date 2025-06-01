@@ -389,7 +389,7 @@ export default function FormStruct({ onClose }: { onClose?: () => void }) {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 {getStructureIcon()}
-                <h3 className="text-lg font-medium text-gray-900">Ajouter une {selectedStructure.toLowerCase()}</h3>
+                <h3 className="text-lg font-medium text-gray-900">Ajouter un {selectedStructure.toLowerCase()}</h3>
               </div>
               <button
                 type="button"

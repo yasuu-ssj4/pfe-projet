@@ -3,6 +3,7 @@
 import type React from "react"
 import type { DemandeIntervention } from "@/app/interfaces"
 import { useEffect, useState } from "react"
+import MaintenanceGammesSelector from "@/app/components/maintenance-gammes-selector"
 
 type DemandeProps = {
   visible: boolean
@@ -33,6 +34,24 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     designation_district: "",
   })
 
+  // Add this to the existing state variables
+  const [showGammesSelector, setShowGammesSelector] = useState(false)
+  const [selectedMaintenanceGammes, setSelectedMaintenanceGammes] = useState<any[]>([])
+
+  // Add state for maintenance work types
+  const [maintenanceTypes, setMaintenanceTypes] = useState({
+    corrective: false,
+    preventive: false,
+  })
+
+  // Add state for alerts and loading
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [showError, setShowError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   // Form state with all fields from the interface
   const [formValues, setFormValues] = useState({
     numero_demande: "",
@@ -40,7 +59,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     structure_maintenance_type: "", // cds, garage, unm, etc.
     structure_maintenance_detail: "", // The specific detail
     activite: "Materiel roulant",
-    nature_travaux: "Maintenance Corrective", // Default value
+    nature_travaux: "", 
     degre_urgence: "3", // Default to Normal
     constat_panne: "",
     nom_prenom_demandeur: "",
@@ -72,6 +91,42 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     { id: "Autre", label: "Autre" },
   ]
 
+  // Function to determine nature_travaux based on checkbox selections
+  const updateNatureTravaux = (corrective: boolean, preventive: boolean) => {
+    let natureTravaux = ""
+
+    if (corrective && preventive) {
+      // Both selected - corrective takes priority
+      natureTravaux = "Maintenance Corrective"
+    } else if (corrective) {
+      // Only corrective selected
+      natureTravaux = "Maintenance Corrective"
+    } else if (preventive) {
+      // Only preventive selected
+      natureTravaux = "Maintenance Preventive"
+    }
+
+    setFormValues((prev) => ({
+      ...prev,
+      nature_travaux: natureTravaux,
+    }))
+  }
+
+  // Handle maintenance type checkbox changes
+  const handleMaintenanceTypeChange = (type: "corrective" | "preventive", checked: boolean) => {
+    const newMaintenanceTypes = {
+      ...maintenanceTypes,
+      [type]: checked,
+    }
+
+    setMaintenanceTypes(newMaintenanceTypes)
+    updateNatureTravaux(newMaintenanceTypes.corrective, newMaintenanceTypes.preventive)
+
+    if (type === "preventive" && checked) {
+      setShowGammesSelector(true)
+    }
+  }
+
   useEffect(() => {
     const fetchVehicule = async () => {
       try {
@@ -92,12 +147,12 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       fetchVehicule()
       // Reset form when modal opens
       setFormValues({
-        numero_demande: "",
+        numero_demande: "", // Don't auto-generate
         date_heure_panne: "",
         structure_maintenance_type: "",
         structure_maintenance_detail: "",
         activite: "Materiel roulant",
-        nature_travaux: "Maintenance Corrective", // Default value
+        nature_travaux: "",
         degre_urgence: "3", // Default to Normal
         constat_panne: "",
         nom_prenom_demandeur: "",
@@ -115,6 +170,10 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
         dangereux_ref: "",
       })
       setSelectedItems([])
+      setMaintenanceTypes({ corrective: false, preventive: false })
+      setIsSubmitting(false)
+      setShowSuccess(false)
+      setShowError(false)
     }
   }, [code_vehicule, visible])
 
@@ -147,8 +206,25 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     }))
   }
 
+  const handleMaintenanceGammesSelect = (selectedGammes: any[]) => {
+    setSelectedMaintenanceGammes(selectedGammes)
+
+    // Format the selected gammes for the constat_panne field
+    if (selectedGammes.length > 0) {
+      const formattedGammes = selectedGammes
+        .map((gamme) => `${gamme.operation_designation}.${gamme.gamme_designation}`)
+        .join(", ")
+
+      setFormValues((prev) => ({
+        ...prev,
+        constat_panne: ` ${formattedGammes}`,
+      }))
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setIsSubmitting(true)
 
     // Create a DemandeIntervention object from form values
     const selectedPanne = selectedItems.join("/")
@@ -158,8 +234,11 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       ? `${formValues.structure_maintenance_type}${formValues.structure_maintenance_detail ? `,${formValues.structure_maintenance_detail}` : ""}`
       : ""
 
+    // Use the provided numero_demande
+    const numeroDemande = formValues.numero_demande
+
     const demandeIntervention: DemandeIntervention = {
-      id_demande_intervention: formValues.numero_demande || `DI-${Date.now()}`, // Generate ID if not provided
+      numero_demande: numeroDemande,
       etat_demande: "incomplet",
       date_application: new Date(),
       date_heure_panne: formValues.date_heure_panne,
@@ -169,8 +248,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       nature_travaux: formValues.nature_travaux,
       degre_urgence: formValues.degre_urgence,
       code_vehicule: code_vehicule,
-      district_id: vehiculeInfo.designation_district ,
-      centre_id: vehiculeInfo.designation_centre ,
+      district_id: vehiculeInfo.designation_district,
+      centre_id: vehiculeInfo.designation_centre,
       constat_panne: formValues.constat_panne,
       diagnostique: formValues.diagnostique,
       description: formValues.description,
@@ -180,7 +259,8 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
       routinier_ref: formValues.routinier_ref,
       dangereux: formValues.dangereux,
       dangereux_ref: formValues.dangereux_ref,
-      id_demandeur: 1,
+      nom_prenom_demandeur: formValues.nom_prenom_demandeur,
+      fonction_demandeur: formValues.fonction_demandeur,
       date_demandeur: new Date(),
       nom_prenom_responsable: formValues.nom_prenom_responsable,
       date_responsable: formValues.date_responsable,
@@ -188,38 +268,93 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
     }
 
     console.log("Demande d'intervention à soumettre:", demandeIntervention)
+    const newErrors: { [key: string]: string } = {};
 
+  // Required fields
+  if (!formValues.numero_demande.trim()) newErrors.numero_demande = "Ce champ est requis";
+  if (!formValues.date_heure_panne) newErrors.date_heure_panne = "Veuillez choisir une date";
+  if (!formValues.structure_maintenance_type) newErrors.structure_maintenance_type = "Veuillez cocher sur une case";
+  if (!formValues.structure_maintenance_detail.trim()) newErrors.structure_maintenance_detail = "Ce champ est requis";
+  if (!selectedPanne) newErrors.selectedPanne = "Veuillez cocher sur une case";
+  if (!formValues.nature_travaux) newErrors.nature_travaux = "Veuillez cocher sur une case";
+  if (!formValues.constat_panne.trim()) newErrors.constat_panne = "Ce champ est requis";
+  if (!formValues.nom_prenom_demandeur.trim()) newErrors.nom_prenom_demandeur = "Ce champ est requis";
+  if (!formValues.fonction_demandeur.trim()) newErrors.fonction_demandeur = "Ce champ est requis";
+  if (!formValues.nom_prenom_responsable.trim()) newErrors.nom_prenom_responsable = "Ce champ est requis";
+  if (!formValues.fonction_responsable.trim()) newErrors.fonction_responsable = "Ce champ est requis";
+  if (!formValues.date_responsable) newErrors.date_responsable = "Veuillez choisir une date";
+
+  setErrors(newErrors);
+  if (Object.keys(newErrors).length === 0){
     try {
-
-      const response = await fetch('/api/intervention/ajouterDemande', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(demandeIntervention)
-      });
+      const response = await fetch("/api/intervention/ajouterDemande", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(demandeIntervention),
+      })
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la soumission de la demande');
+        throw new Error("Erreur lors de la soumission de la demande")
       }
 
-      const result = await response.json();
-   console.log(result);
-   
-   
+      const result = await response.json()
+
+      // Set success message with the demande number
+      setSuccessMessage(`Demande ${numeroDemande} enregistrée avec succès!`)
+
+      // Show success alert
+      setShowSuccess(true)
+      setTimeout(() => {
+        setShowSuccess(false)
+        handleCloseModal()
+      }, 1000)
+
+      // Call the success callback if provided
       if (onSubmitSuccess) {
         onSubmitSuccess(demandeIntervention)
       }
-
-      handleCloseModal()
     } catch (error) {
       console.error("Erreur:", error)
-      alert("Une erreur s'est produite lors de la soumission de la demande.")
-    }
+      setErrorMessage("Une erreur s'est produite lors de la soumission de la demande.")
+      setShowError(true)
+      setTimeout(() => setShowError(false), 5000)
+      setIsSubmitting(false)
+    }}
+    else setIsSubmitting(false)
   }
 
   if (!visible) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto py-10">
+      {/* Success Alert */}
+      {showSuccess && (
+        <div className="fixed top-4 right-4 z-[100] bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <span>{successMessage || "Demande enregistrée avec succès!"}</span>
+        </div>
+      )}
+
+      {/* Error Alert */}
+      {showError && (
+        <div className="fixed top-4 right-4 z-[100] bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit}
         autoComplete="off"
@@ -235,12 +370,12 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                     <img src="/logo-naftal.png" alt="NAFTAL Logo" className="w-full h-full object-contain p-2" />
                   </th>
                   <th className="border-2 border-gray-800 px-7 py-5 w-140 text-2xl font-bold">
-                    <h2>DEMANDE D&apos;INTERVENTION</h2>
+                    <h2>DEMANDE D'INTERVENTION</h2>
                   </th>
                   <th className="border-2 border-gray-800 py-3 px-4 w-60">
                     <div className="border-b-2 border-gray-800 pb-2 text-center font-semibold">ER.NAF.MNT.20.V1</div>
                     <div className="pt-2">
-                      <div className="font-semibold">Date d&apos;application :</div>
+                      <div className="font-semibold">Date d'application :</div>
                       <div className="text-center mt-1">{new Date().toLocaleDateString("fr-FR")}</div>
                     </div>
                   </th>
@@ -261,18 +396,19 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                       name="numero_demande"
                       onChange={handleChange}
                       value={formValues.numero_demande}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
+                      className={`w-full p-2 border rounded ${errors.numero_demande ? 'border-red-500' : 'border-gray-300'}`}
+                    /> {errors.numero_demande && <p className="text-red-500 text-sm mt-1">{errors.numero_demande}</p>}
                   </td>
                   <td className="border-2 border-gray-800 p-3 w-1/3">
                     <div className="font-bold mb-1">District/Autre :</div>
-                    <div className="pl-2">{vehiculeInfo.designation_district || "Non spécifié"}</div>
+                    <div className="pl-2">{vehiculeInfo.designation_district || "Attendez le chargement..."}</div>
                   </td>
                   <td className="border-2 border-gray-800 p-3" rowSpan={2}>
                     <h5 className="font-bold text-center border-b border-gray-400 pb-2 mb-3">
                       Structure Maintenance Destinataire
                     </h5>
                     <div className="space-y-3 pl-2">
+                      {errors.structure_maintenance_type && <p className="text-red-500 text-sm mt-1">{errors.structure_maintenance_type}</p>}
                       {options.map((option) => (
                         <div key={option.value} className="mb-2">
                           <label className="flex items-center gap-2">
@@ -292,10 +428,12 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                             <input
                               type="text"
                               name="structure_maintenance_detail"
-                              placeholder={`Détail pour ${option.label}`}
+                              placeholder={`${errors.structure_maintenance_detail 
+                                ? "Ce champ est requis"
+                                : `Détail pour ${option.label}`}`}
                               onChange={handleChange}
                               value={formValues.structure_maintenance_detail}
-                              className="mt-1 px-3 py-2 border border-gray-300 rounded w-full"
+                              className={`mt-1 px-3 py-2 border ${errors.structure_maintenance_detail ? 'border-red-500' : 'border-gray-300'} rounded w-full`}
                             />
                           )}
                         </div>
@@ -306,7 +444,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                 <tr>
                   <td className="border-2 border-gray-800 p-3">
                     <label htmlFor="date_heure_panne" className="font-bold block mb-1">
-                      Date Heure de la panne ou de l&apos;avarie :
+                      Date Heure de la panne ou de l'avarie :
                     </label>
                     <input
                       type="datetime-local"
@@ -316,10 +454,11 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                       value={formValues.date_heure_panne}
                       className="w-full p-2 border border-gray-300 rounded"
                     />
+                    {errors.date_heure_panne && <p className="text-red-500 text-sm mt-1">{errors.date_heure_panne}</p>}
                   </td>
                   <td className="border-2 border-gray-800 p-3">
                     <div className="font-bold mb-1">CDS/Autre :</div>
-                    <div className="pl-2">{vehiculeInfo.designation_centre || "Non spécifié"}</div>
+                    <div className="pl-2">{vehiculeInfo.designation_centre || "Attendez le chargement"}</div>
                   </td>
                 </tr>
               </tbody>
@@ -355,6 +494,7 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                   <td className="border-2 border-gray-800 p-4">
                     <h5 className="font-bold mb-3">Nature de la Panne :</h5>
                     <div className="space-y-2 pl-2">
+                      {errors.selectedPanne && (<p className="text-red-500 text-sm mt-1">{errors.selectedPanne}</p>)}
                       {panne.map((option) => (
                         <label key={option.id} htmlFor={option.id} className="flex items-center space-x-2">
                           <input
@@ -376,25 +516,22 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                   <td className="border-2 border-gray-800 p-4">
                     <h5 className="font-bold mb-3">Nature des travaux :</h5>
                     <div className="space-y-2 pl-2">
+                      {errors.nature_travaux && (<p className="text-red-500 text-sm mt-1">{errors.nature_travaux}</p>)}
                       <label className="flex items-center">
                         <input
-                          type="radio"
-                          name="nature_travaux"
-                          value="Maintenance Corrective"
-                          onChange={handleChange}
-                          checked={formValues.nature_travaux === "Maintenance Corrective"}
-                          className="form-radio h-4 w-4 mr-2 text-blue-600"
+                          type="checkbox"
+                          checked={maintenanceTypes.corrective}
+                          onChange={(e) => handleMaintenanceTypeChange("corrective", e.target.checked)}
+                          className="form-checkbox h-4 w-4 mr-2 text-blue-600"
                         />
                         <span>Maintenance Corrective</span>
                       </label>
                       <label className="flex items-center">
                         <input
-                          type="radio"
-                          name="nature_travaux"
-                          value="Maintenance Preventive"
-                          onChange={handleChange}
-                          checked={formValues.nature_travaux === "Maintenance Preventive"}
-                          className="form-radio h-4 w-4 mr-2 text-blue-600"
+                          type="checkbox"
+                          checked={maintenanceTypes.preventive}
+                          onChange={(e) => handleMaintenanceTypeChange("preventive", e.target.checked)}
+                          className="form-checkbox h-4 w-4 mr-2 text-blue-600"
                         />
                         <span>Maintenance Préventive</span>
                       </label>
@@ -510,15 +647,14 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
               <textarea
                 id="constat_panne"
                 name="constat_panne"
-                className="w-full h-40 p-3 border border-gray-300 rounded"
+                className={`w-full h-40 p-3 border ${errors.constat_panne ? "border-red-500" : "border-gray-300"} rounded`}
                 placeholder="Décrivez le constat de la panne..."
                 onChange={handleChange}
                 value={formValues.constat_panne}
               />
+              {errors.constat_panne && (<p className="text-red-500 text-sm mt-1">{errors.constat_panne}</p>)}
             </div>
           </div>
-
-      
 
           <div className="border-2 border-gray-800">
             <table className="w-full border-collapse">
@@ -546,8 +682,9 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                           placeholder="Entrez le nom et prénom"
                           onChange={handleChange}
                           value={formValues.nom_prenom_demandeur}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.nom_prenom_demandeur ? "border-red-500" : "border-gray-300"} rounded`}
                         />
+                        {errors.nom_prenom_demandeur && (<p className="text-red-500 text-sm mt-1">{errors.nom_prenom_demandeur}</p>)}
                       </div>
                       <div>
                         <label htmlFor="fonction_demandeur" className="font-semibold block mb-1">
@@ -559,8 +696,9 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                           placeholder="Entrez la fonction"
                           onChange={handleChange}
                           value={formValues.fonction_demandeur}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.fonction_demandeur ? "border-red-500" : "border-gray-300"} rounded`}
                         />
+                        {errors.fonction_demandeur && (<p className="text-red-500 text-sm mt-1">{errors.fonction_demandeur}</p>)}
                       </div>
                       <div>
                         <div className="font-semibold">Date :</div>
@@ -584,8 +722,9 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                           placeholder="Entrez le nom et prénom"
                           onChange={handleChange}
                           value={formValues.nom_prenom_responsable}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.nom_prenom_responsable ? "border-red-500" : "border-gray-300"} rounded`}
                         />
+                        {errors.nom_prenom_responsable && (<p className="text-red-500 text-sm mt-1">{errors.nom_prenom_responsable}</p>)}
                       </div>
                       <div>
                         <label htmlFor="fonction_responsable" className="font-semibold block mb-1">
@@ -597,8 +736,9 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                           placeholder="Entrez la fonction"
                           onChange={handleChange}
                           value={formValues.fonction_responsable}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.fonction_responsable ? "border-red-500" : "border-gray-300"} rounded`}
                         />
+                        {errors.fonction_responsable && (<p className="text-red-500 text-sm mt-1">{errors.fonction_responsable}</p>)}
                       </div>
                       <div>
                         <label htmlFor="date_responsable" className="font-semibold block mb-1">
@@ -609,8 +749,9 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
                           name="date_responsable"
                           onChange={handleChange}
                           value={formValues.date_responsable}
-                          className="w-full p-2 border border-gray-300 rounded"
+                          className={`w-full p-2 border ${errors.date_responsable ? "border-red-500" : "border-gray-300"} rounded`}
                         />
+                        {errors.date_responsable && (<p className="text-red-500 text-sm mt-1">{errors.date_responsable}</p>)}
                       </div>
                       <div>
                         <div className="font-semibold">Visa :</div>
@@ -635,12 +776,51 @@ const Demande: React.FC<DemandeProps> = ({ visible, handleCloseModal, code_vehic
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 font-medium"
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Confirmer
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Enregistrement...
+              </>
+            ) : (
+              "Enregistrer"
+            )}
           </button>
         </div>
       </form>
+      {/* Maintenance Gammes Selector Modal */}
+      <MaintenanceGammesSelector
+        visible={showGammesSelector}
+        onClose={() => setShowGammesSelector(false)}
+        code_vehicule={code_vehicule}
+        onSelect={handleMaintenanceGammesSelect}
+      />
+
+      <style jsx>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   )
 }

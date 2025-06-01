@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       },
       select: {
         code_vehicule: true,
+        
         FK_vehicule_REF_genre : {
           select: { 
             designation: true,
