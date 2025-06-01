@@ -198,7 +198,6 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
         throw new Error("Erreur lors de la mise à jour du kilométrage")
       }
 
-      alert("Kilométrage mis à jour avec succès")
       fetchVehicules()
       return Promise.resolve()
     } catch (error) {

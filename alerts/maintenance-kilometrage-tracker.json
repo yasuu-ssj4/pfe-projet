@@ -1,56 +1,21 @@
 {
-  "xxxxxx": {
-    "1-NaN-NaN": {
-      "code_type": 1,
-      "code_gamme": null,
-      "code_operation": null,
-      "valeur_accumulee": 0,
-      "periode": 10,
-      "derniere_mise_a_jour": "2025-05-15T17:13:23.142Z"
-    },
-    "1-0ad4b27e-18fd-424a-a40b-7ca6e9274c82-6edc87a0-5e33-48d9-a612-14cce9dff5ae": {
-      "code_type": 1,
-      "code_gamme": "0ad4b27e-18fd-424a-a40b-7ca6e9274c82",
-      "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
-      "valeur_accumulee": 0,
-      "periode": 10,
-      "derniere_mise_a_jour": "2025-05-15T18:16:14.340Z"
-    },
-    "1-37cc4e6b-c224-4303-bb0a-356b99231657-8f4a1242-18d7-477e-9782-7a2063401825": {
-      "code_type": 1,
-      "code_gamme": "37cc4e6b-c224-4303-bb0a-356b99231657",
-      "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
-      "valeur_accumulee": 0,
-      "periode": 15,
-      "derniere_mise_a_jour": "2025-05-15T18:16:14.340Z"
-    },
-    "1-6ffc58ed-9aa4-43e4-84b2-a43778c3eded-6edc87a0-5e33-48d9-a612-14cce9dff5ae": {
-      "code_type": 1,
-      "code_gamme": "6ffc58ed-9aa4-43e4-84b2-a43778c3eded",
-      "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
-      "valeur_accumulee": 0,
-      "periode": 30,
-      "derniere_mise_a_jour": "2025-05-15T18:16:14.340Z"
-    }
-  },
-  "F0101": {},
   "A0422": {},
   "A0156": {
     "75-1a66a291-c386-431a-9d08-de10c1fb950f-6edc87a0-5e33-48d9-a612-14cce9dff5ae": {
       "code_type": 75,
       "code_gamme": "1a66a291-c386-431a-9d08-de10c1fb950f",
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
-      "valeur_accumulee": 34900,
+      "valeur_accumulee": 0,
       "periode": 35,
-      "derniere_mise_a_jour": "2025-05-17T04:42:21.097Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:13.601Z"
     },
     "75-559f1cef-c42e-4b5a-bba8-965e6a9340de-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
       "code_gamme": "559f1cef-c42e-4b5a-bba8-965e6a9340de",
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 29900,
       "periode": 30,
-      "derniere_mise_a_jour": "2025-05-15T18:16:15.654Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:13.601Z"
     },
     "75-cee60ac9-671a-41d6-985a-473eebb8d757-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
@@ -58,7 +23,7 @@
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
       "valeur_accumulee": 0,
       "periode": 20,
-      "derniere_mise_a_jour": "2025-05-15T18:16:15.654Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:13.601Z"
     },
     "75-eb9e46c0-dec6-4704-88bf-d7b225cfe959-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
@@ -66,7 +31,7 @@
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
       "valeur_accumulee": 0,
       "periode": 50,
-      "derniere_mise_a_jour": "2025-05-15T18:16:15.654Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:13.601Z"
     },
     "75-f5e7fa15-b729-4104-889c-a3ca7e2e0fe3-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
@@ -74,7 +39,7 @@
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
       "valeur_accumulee": 0,
       "periode": 15,
-      "derniere_mise_a_jour": "2025-05-15T18:16:15.654Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:13.601Z"
     }
   },
   "A0246": {
@@ -82,41 +47,41 @@
       "code_type": 75,
       "code_gamme": "1a66a291-c386-431a-9d08-de10c1fb950f",
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
-      "valeur_accumulee": 500,
+      "valeur_accumulee": 69,
       "periode": 35,
-      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
+      "derniere_mise_a_jour": "2025-06-01T08:02:19.005Z"
     },
     "75-559f1cef-c42e-4b5a-bba8-965e6a9340de-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
       "code_gamme": "559f1cef-c42e-4b5a-bba8-965e6a9340de",
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
-      "valeur_accumulee": 29950,
+      "valeur_accumulee": 69,
       "periode": 30,
-      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
+      "derniere_mise_a_jour": "2025-06-01T08:02:19.005Z"
     },
     "75-cee60ac9-671a-41d6-985a-473eebb8d757-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
       "code_gamme": "cee60ac9-671a-41d6-985a-473eebb8d757",
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
-      "valeur_accumulee": 500,
+      "valeur_accumulee": 69,
       "periode": 20,
-      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
+      "derniere_mise_a_jour": "2025-06-01T08:02:19.005Z"
     },
     "75-eb9e46c0-dec6-4704-88bf-d7b225cfe959-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
       "code_gamme": "eb9e46c0-dec6-4704-88bf-d7b225cfe959",
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
-      "valeur_accumulee": 500,
+      "valeur_accumulee": 69,
       "periode": 50,
-      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
+      "derniere_mise_a_jour": "2025-06-01T08:02:19.005Z"
     },
     "75-f5e7fa15-b729-4104-889c-a3ca7e2e0fe3-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
       "code_gamme": "f5e7fa15-b729-4104-889c-a3ca7e2e0fe3",
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
-      "valeur_accumulee": 500,
+      "valeur_accumulee": 69,
       "periode": 15,
-      "derniere_mise_a_jour": "2025-05-16T16:50:35.835Z"
+      "derniere_mise_a_jour": "2025-06-01T08:02:19.005Z"
     }
   },
   "A0166": {
@@ -126,7 +91,7 @@
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
       "valeur_accumulee": 0,
       "periode": 35,
-      "derniere_mise_a_jour": "2025-05-15T18:16:17.205Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:16.084Z"
     },
     "75-559f1cef-c42e-4b5a-bba8-965e6a9340de-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
@@ -134,7 +99,7 @@
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
       "valeur_accumulee": 0,
       "periode": 30,
-      "derniere_mise_a_jour": "2025-05-15T18:16:17.206Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:16.084Z"
     },
     "75-cee60ac9-671a-41d6-985a-473eebb8d757-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
@@ -142,7 +107,7 @@
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
       "valeur_accumulee": 0,
       "periode": 20,
-      "derniere_mise_a_jour": "2025-05-15T18:16:17.206Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:16.084Z"
     },
     "75-eb9e46c0-dec6-4704-88bf-d7b225cfe959-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
@@ -150,7 +115,7 @@
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
       "valeur_accumulee": 0,
       "periode": 50,
-      "derniere_mise_a_jour": "2025-05-15T18:16:17.206Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:16.084Z"
     },
     "75-f5e7fa15-b729-4104-889c-a3ca7e2e0fe3-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
@@ -158,7 +123,7 @@
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
       "valeur_accumulee": 0,
       "periode": 15,
-      "derniere_mise_a_jour": "2025-05-15T18:16:17.206Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:16.084Z"
     }
   },
   "A0343": {},
@@ -167,41 +132,41 @@
       "code_type": 75,
       "code_gamme": "1a66a291-c386-431a-9d08-de10c1fb950f",
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
-      "valeur_accumulee": 34900,
+      "valeur_accumulee": 966,
       "periode": 35,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.146Z"
+      "derniere_mise_a_jour": "2025-06-01T08:09:30.687Z"
     },
     "75-559f1cef-c42e-4b5a-bba8-965e6a9340de-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
       "code_gamme": "559f1cef-c42e-4b5a-bba8-965e6a9340de",
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 966,
       "periode": 30,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.146Z"
+      "derniere_mise_a_jour": "2025-06-01T08:09:30.688Z"
     },
     "75-cee60ac9-671a-41d6-985a-473eebb8d757-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
       "code_gamme": "cee60ac9-671a-41d6-985a-473eebb8d757",
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 966,
       "periode": 20,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.146Z"
+      "derniere_mise_a_jour": "2025-06-01T08:09:30.688Z"
     },
     "75-eb9e46c0-dec6-4704-88bf-d7b225cfe959-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
       "code_gamme": "eb9e46c0-dec6-4704-88bf-d7b225cfe959",
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 966,
       "periode": 50,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.146Z"
+      "derniere_mise_a_jour": "2025-06-01T08:09:30.688Z"
     },
     "75-f5e7fa15-b729-4104-889c-a3ca7e2e0fe3-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
       "code_gamme": "f5e7fa15-b729-4104-889c-a3ca7e2e0fe3",
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 966,
       "periode": 15,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.146Z"
+      "derniere_mise_a_jour": "2025-06-01T08:09:30.688Z"
     }
   },
   "A0403": {
@@ -209,60 +174,52 @@
       "code_type": 75,
       "code_gamme": "1a66a291-c386-431a-9d08-de10c1fb950f",
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 7000,
       "periode": 35,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.767Z"
+      "derniere_mise_a_jour": "2025-06-01T08:27:16.627Z"
     },
     "75-559f1cef-c42e-4b5a-bba8-965e6a9340de-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
       "code_gamme": "559f1cef-c42e-4b5a-bba8-965e6a9340de",
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 7000,
       "periode": 30,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.767Z"
+      "derniere_mise_a_jour": "2025-06-01T08:27:16.627Z"
     },
     "75-cee60ac9-671a-41d6-985a-473eebb8d757-e89d9494-3341-4146-a50d-018e10cc8dcd": {
       "code_type": 75,
       "code_gamme": "cee60ac9-671a-41d6-985a-473eebb8d757",
       "code_operation": "e89d9494-3341-4146-a50d-018e10cc8dcd",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 7000,
       "periode": 20,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.767Z"
+      "derniere_mise_a_jour": "2025-06-01T08:27:16.627Z"
     },
     "75-eb9e46c0-dec6-4704-88bf-d7b225cfe959-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
       "code_gamme": "eb9e46c0-dec6-4704-88bf-d7b225cfe959",
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 7000,
       "periode": 50,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.767Z"
+      "derniere_mise_a_jour": "2025-06-01T08:27:16.627Z"
     },
     "75-f5e7fa15-b729-4104-889c-a3ca7e2e0fe3-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 75,
       "code_gamme": "f5e7fa15-b729-4104-889c-a3ca7e2e0fe3",
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
-      "valeur_accumulee": 0,
+      "valeur_accumulee": 7000,
       "periode": 15,
-      "derniere_mise_a_jour": "2025-05-15T18:16:18.767Z"
+      "derniere_mise_a_jour": "2025-06-01T08:27:16.627Z"
     }
   },
   "A0421": {},
   "lastchristmas": {
-    "1-NaN-NaN": {
-      "code_type": 1,
-      "code_gamme": null,
-      "code_operation": null,
-      "valeur_accumulee": 0,
-      "periode": 10,
-      "derniere_mise_a_jour": "2025-05-15T17:13:43.112Z"
-    },
     "1-0ad4b27e-18fd-424a-a40b-7ca6e9274c82-6edc87a0-5e33-48d9-a612-14cce9dff5ae": {
       "code_type": 1,
       "code_gamme": "0ad4b27e-18fd-424a-a40b-7ca6e9274c82",
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
       "valeur_accumulee": 0,
       "periode": 10,
-      "derniere_mise_a_jour": "2025-05-15T18:16:19.699Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:19.711Z"
     },
     "1-37cc4e6b-c224-4303-bb0a-356b99231657-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 1,
@@ -270,7 +227,7 @@
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
       "valeur_accumulee": 0,
       "periode": 15,
-      "derniere_mise_a_jour": "2025-05-15T18:16:19.699Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:19.711Z"
     },
     "1-6ffc58ed-9aa4-43e4-84b2-a43778c3eded-6edc87a0-5e33-48d9-a612-14cce9dff5ae": {
       "code_type": 1,
@@ -278,25 +235,17 @@
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
       "valeur_accumulee": 0,
       "periode": 30,
-      "derniere_mise_a_jour": "2025-05-15T18:16:19.699Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:19.711Z"
     }
   },
   "work": {
-    "1-NaN-NaN": {
-      "code_type": 1,
-      "code_gamme": null,
-      "code_operation": null,
-      "valeur_accumulee": 500,
-      "periode": 10,
-      "derniere_mise_a_jour": "2025-05-15T17:24:44.998Z"
-    },
     "1-0ad4b27e-18fd-424a-a40b-7ca6e9274c82-6edc87a0-5e33-48d9-a612-14cce9dff5ae": {
       "code_type": 1,
       "code_gamme": "0ad4b27e-18fd-424a-a40b-7ca6e9274c82",
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
       "valeur_accumulee": 0,
       "periode": 10,
-      "derniere_mise_a_jour": "2025-05-15T18:16:20.323Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:20.676Z"
     },
     "1-37cc4e6b-c224-4303-bb0a-356b99231657-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 1,
@@ -304,7 +253,7 @@
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
       "valeur_accumulee": 0,
       "periode": 15,
-      "derniere_mise_a_jour": "2025-05-15T18:16:20.323Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:20.676Z"
     },
     "1-6ffc58ed-9aa4-43e4-84b2-a43778c3eded-6edc87a0-5e33-48d9-a612-14cce9dff5ae": {
       "code_type": 1,
@@ -312,25 +261,17 @@
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
       "valeur_accumulee": 0,
       "periode": 30,
-      "derniere_mise_a_jour": "2025-05-15T18:16:20.323Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:20.676Z"
     }
   },
   "L3400": {
-    "1-NaN-NaN": {
-      "code_type": 1,
-      "code_gamme": null,
-      "code_operation": null,
-      "valeur_accumulee": 0,
-      "periode": 10,
-      "derniere_mise_a_jour": "2025-05-15T17:13:48.417Z"
-    },
     "1-0ad4b27e-18fd-424a-a40b-7ca6e9274c82-6edc87a0-5e33-48d9-a612-14cce9dff5ae": {
       "code_type": 1,
       "code_gamme": "0ad4b27e-18fd-424a-a40b-7ca6e9274c82",
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
       "valeur_accumulee": 0,
       "periode": 10,
-      "derniere_mise_a_jour": "2025-05-15T18:16:21.257Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:21.449Z"
     },
     "1-37cc4e6b-c224-4303-bb0a-356b99231657-8f4a1242-18d7-477e-9782-7a2063401825": {
       "code_type": 1,
@@ -338,7 +279,7 @@
       "code_operation": "8f4a1242-18d7-477e-9782-7a2063401825",
       "valeur_accumulee": 0,
       "periode": 15,
-      "derniere_mise_a_jour": "2025-05-15T18:16:21.257Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:21.449Z"
     },
     "1-6ffc58ed-9aa4-43e4-84b2-a43778c3eded-6edc87a0-5e33-48d9-a612-14cce9dff5ae": {
       "code_type": 1,
@@ -346,9 +287,8 @@
       "code_operation": "6edc87a0-5e33-48d9-a612-14cce9dff5ae",
       "valeur_accumulee": 0,
       "periode": 30,
-      "derniere_mise_a_jour": "2025-05-15T18:16:21.257Z"
+      "derniere_mise_a_jour": "2025-06-01T07:56:21.449Z"
     }
   },
-  "A0001": {},
   "B0001": {}
 }

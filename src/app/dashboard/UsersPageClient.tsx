@@ -314,14 +314,17 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
           kilo_parcouru_heure_fonctionnement,
         }),
       })
+        fetchKilometrageAlertes()
 
       if (!response.ok) {
         throw new Error("Erreur lors de la mise à jour du kilométrage")
       }
 
-      // Refresh the alerts list after successful update
+      
       fetchKilometrageAlertes()
+      
       return Promise.resolve()
+      
     } catch (error) {
       console.error("Error updating kilometrage:", error)
       return Promise.reject(error)
@@ -334,7 +337,7 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
 
   // Navigate to demandes en instance
   const navigateToDemandesEnInstance = () => {
-    router.push("/vehicule/intervention/demande")
+    router.push("/listeDI")
   }
 
   // Navigate to vehicules immobilisés
@@ -517,6 +520,7 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
                 <RefreshCwIcon className="h-4 w-4 mr-2" />
               )}
               Actualiser
+            
             </button>
           </div>
         </div>
@@ -719,12 +723,7 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
                     >
                       Jours écoulés
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Actions
-                    </th>
+                    
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -757,25 +756,7 @@ export default function DashboardPage({ userId, userPrivs }: { userId: number; u
                           {vehicule.jours_depuis_maj === 999 ? "Jamais" : `${vehicule.jours_depuis_maj} jours`}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button
-                          onClick={
-                            userPrivs.includes("modifier_kilo_heure")
-                              ? () => handleUpdateKilometrage(vehicule.code_vehicule)
-                              : undefined
-                          }
-                          disabled={!userPrivs.includes("modifier_kilo_heure")}
-                          className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white 
-                            ${
-                              userPrivs.includes("modifier_kilo_heure")
-                                ? "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                : "bg-gray-400 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            }`}
-                        >
-                          <ClockIcon className="h-3.5 w-3.5 mr-1" color="white" />
-                          Mettre à jour
-                        </button>
-                      </td>
+                      
                     </tr>
                   ))}
                 </tbody>

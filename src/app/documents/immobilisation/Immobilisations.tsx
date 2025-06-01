@@ -197,13 +197,6 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
       <div className="bg-[#0a2d5e] text-white p-4">
         <div className="container mx-auto">
          <div className="flex items-center justify-between">
-            <button
-              onClick={() => router.push("/documents")}
-              className="flex items-center text-yellow-400 hover:underline"
-            >
-              <ChevronLeft className="mr-1" />
-              Retour
-            </button>
             <h1 className="text-2xl font-bold text-center">AJOUTER IMMOBILISATION</h1>
             <button
               onClick={() => router.push("/documents/immobilisation/consultation")}
