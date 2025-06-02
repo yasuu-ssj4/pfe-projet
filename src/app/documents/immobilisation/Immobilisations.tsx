@@ -33,7 +33,7 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
     const fetchImmobilisedVehicles = async () => {
       try {
         setLoading(true)
-     
+
         const response = await fetch("/api/immobilisation/vehicules-imb", {
           method: "POST",
           headers: {
@@ -93,7 +93,7 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
   const formatDateForDisplay = (dateString: string) => {
     try {
       const date = new Date(dateString)
-     
+
       return format(date, "dd/MM/yyyy", { locale: fr })
     } catch (error) {
       console.error("Error formatting date for display:", error, dateString)
@@ -101,7 +101,6 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
     }
   }
   console.log(formatDateForDisplay("2023-10-01T00:00:00Z"))
-
 
   const handleSaveRow = async (vehicle: VehicleImb) => {
     try {
@@ -157,23 +156,44 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
         [vehicle.code_vehicule]: true,
       })
 
-      
+      // Show success state for 2 seconds, then remove the vehicle from the list
       setTimeout(() => {
-        setSavedRows({
-          ...savedRows,
-          [vehicle.code_vehicule]: false,
+        // Remove the saved vehicle from the vehicles list
+        setVehicles((prevVehicles) => prevVehicles.filter((v) => v.code_vehicule !== vehicle.code_vehicule))
+
+        // Clean up the state for this vehicle
+        setSavedRows((prevSaved) => {
+          const newSaved = { ...prevSaved }
+          delete newSaved[vehicle.code_vehicule]
+          return newSaved
+        })
+
+        setSavingRows((prevSaving) => {
+          const newSaving = { ...prevSaving }
+          delete newSaving[vehicle.code_vehicule]
+          return newSaving
+        })
+
+        // Clean up editable values for this vehicle
+        setEditableValues((prevValues) => {
+          const newValues = { ...prevValues }
+          Object.keys(newValues).forEach((key) => {
+            if (key.startsWith(`${vehicle.code_vehicule}-`)) {
+              delete newValues[key]
+            }
+          })
+          return newValues
         })
       }, 2000)
     } catch (error) {
       console.error("Error saving immobilisation:", error)
       alert("Une erreur s'est produite lors de l'enregistrement de l'immobilisation")
-    } finally {
-      // Mark row as not saving
+
+      // Reset saving state on error
       setSavingRows({
         ...savingRows,
         [vehicle.code_vehicule]: false,
       })
-      
     }
   }
 
@@ -196,7 +216,7 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
       {/* Header */}
       <div className="bg-[#0a2d5e] text-white p-4">
         <div className="container mx-auto">
-         <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-center">AJOUTER IMMOBILISATION</h1>
             <button
               onClick={() => router.push("/documents/immobilisation/consultation")}
@@ -258,7 +278,7 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
                 <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                   <td className="px-4 py-3 border">{vehicle.code_vehicule}</td>
                   <td className="px-4 py-3 border">{vehicle.code_structure}</td>
-                  <td className="px-4 py-3 border">{new Date(vehicle.status_date).toLocaleDateString('fr-FR')}</td>
+                  <td className="px-4 py-3 border">{new Date(vehicle.status_date).toLocaleDateString("fr-FR")}</td>
                   <td
                     className="px-4 py-3 border cursor-text"
                     onClick={() => handleCellClick(vehicle.code_vehicule, "lieu")}
@@ -334,13 +354,13 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
                   <td className="px-4 py-3 border text-center">
                     <button
                       onClick={() => handleSaveRow(vehicle)}
-                      disabled={savingRows[vehicle.code_vehicule]}
+                      disabled={savingRows[vehicle.code_vehicule] || savedRows[vehicle.code_vehicule]}
                       className={`p-2 rounded ${
                         savedRows[vehicle.code_vehicule]
-                          ? "bg-green-500 text-white"
+                          ? "bg-green-500 text-white cursor-not-allowed"
                           : savingRows[vehicle.code_vehicule]
-                            ? "bg-gray-400 text-white"
-                            : "bg-[#0a2d5e] text-white"
+                            ? "bg-gray-400 text-white cursor-not-allowed"
+                            : "bg-[#0a2d5e] text-white hover:bg-[#0a2d5e]/90"
                       }`}
                     >
                       {savedRows[vehicle.code_vehicule] ? (

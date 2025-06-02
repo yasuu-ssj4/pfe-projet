@@ -155,7 +155,7 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
 
   const handleStatusUpdate = async ({ code_vehicule, code_status }: { code_vehicule: string; code_status: string }) => {
     try {
-      // Replace with your actual API endpoint
+     
       const response = await fetch("/api/vehicule/status/affecterStatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -166,7 +166,6 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
         throw new Error("Erreur lors de la mise à jour du statut")
       }
 
-      alert("Statut mis à jour avec succès")
       fetchVehicules()
       return Promise.resolve()
     } catch (error) {
@@ -202,7 +201,7 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
       return Promise.resolve()
     } catch (error) {
       console.error("Error updating kilometrage:", error)
-      alert("Erreur lors de la mise à jour du kilométrage")
+   
       return Promise.reject(error)
     }
   }
@@ -220,7 +219,7 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
         throw new Error("Erreur lors de la mise à jour de l'affectation")
       }
 
-      alert("Affectation mise à jour avec succès")
+    
       // Refresh the vehicle list after successful update
       fetchVehicules()
       return Promise.resolve()
@@ -943,7 +942,7 @@ export default function AfficheVehicule({ userId, userPrivs }: { userId: number;
                               onClick={() => openAffectationPopup(vehicule.code_vehicule)}
                               className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
                             >
-                              <span className="mr-2"></span> Changer l'affectation
+                              <span className="mr-2"></span> Affecter
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>

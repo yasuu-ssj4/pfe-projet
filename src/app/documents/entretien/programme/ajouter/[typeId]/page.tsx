@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChevronLeft, Plus, Save, X } from "lucide-react"
+import { ChevronLeft, Plus, Save, X, Loader2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { v4 as uuidv4 } from "uuid"
 
@@ -43,14 +43,19 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
 
   const [showNewGammeModal, setShowNewGammeModal] = useState(false)
   const [newGamme, setNewGamme] = useState({ code_gamme: "", designation: "", unite_mesure: uniteMesure })
+  const [isAddingGamme, setIsAddingGamme] = useState(false)
 
   const [showNewOperationModal, setShowNewOperationModal] = useState(false)
   const [newOperation, setNewOperation] = useState({ code_operation: "", designation: "" })
+  const [isAddingOperation, setIsAddingOperation] = useState(false)
 
   const [programmeEntries, setProgrammeEntries] = useState<ProgrammeEntry[]>([])
   const [selectedGamme, setSelectedGamme] = useState("")
   const [selectedOperation, setSelectedOperation] = useState("")
   const [selectedPeriode, setSelectedPeriode] = useState(uniteMesure === "kilometrage" ? 5 : 250)
+
+  // State to track if the program is being saved
+  const [isSavingProgramme, setIsSavingProgramme] = useState(false)
 
   // Define periods based on unite_mesure
   const periodes =
@@ -61,30 +66,30 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch type details
-        const typeResponse = await fetch(`/api/types`)
+        setLoading(true)
+
+        // Fetch all data in parallel
+        const [typeResponse, gammesResponse, operationsResponse] = await Promise.all([
+          fetch(`/api/types`),
+          fetch(`/api/gammes?unite_mesure=${uniteMesure}`),
+          fetch("/api/operations"),
+        ])
+
         if (!typeResponse.ok) throw new Error("Failed to fetch type")
+        if (!gammesResponse.ok) throw new Error("Failed to fetch gammes")
+        if (!operationsResponse.ok) throw new Error("Failed to fetch operations")
+
         const typesData = await typeResponse.json()
+        const gammesData = await gammesResponse.json()
+        const operationsData = await operationsResponse.json()
+
         const typeData = typesData.find((t: Type) => t.id_type === typeId)
         setType(typeData)
-
-        // Fetch gammes
-        const gammesResponse = await fetch("/api/gammes")
-        if (!gammesResponse.ok) throw new Error("Failed to fetch gammes")
-        const gammesData = await gammesResponse.json()
-
-        // Filter gammes by unite_mesure
-        const filteredGammes = gammesData.filter((gamme: Gamme) => gamme.unite_mesure === uniteMesure)
-
-        setGammes(filteredGammes)
-
-        // Fetch operations
-        const operationsResponse = await fetch("/api/operations")
-        if (!operationsResponse.ok) throw new Error("Failed to fetch operations")
-        const operationsData = await operationsResponse.json()
+        setGammes(gammesData)
         setOperations(operationsData)
       } catch (error) {
         console.error("Error:", error)
+        alert("Une erreur s'est produite lors du chargement des données.")
       } finally {
         setLoading(false)
       }
@@ -95,6 +100,8 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
 
   const handleAddGamme = async () => {
     try {
+      setIsAddingGamme(true)
+
       // Generate UUID if not provided
       if (!newGamme.code_gamme) {
         newGamme.code_gamme = uuidv4()
@@ -123,11 +130,15 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
     } catch (error) {
       console.error("Error:", error)
       alert("Une erreur s'est produite lors de l'ajout de la gamme.")
+    } finally {
+      setIsAddingGamme(false)
     }
   }
 
   const handleAddOperation = async () => {
     try {
+      setIsAddingOperation(true)
+
       // Generate UUID if not provided
       if (!newOperation.code_operation) {
         newOperation.code_operation = uuidv4()
@@ -150,6 +161,8 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
     } catch (error) {
       console.error("Error:", error)
       alert("Une erreur s'est produite lors de l'ajout de l'opération.")
+    } finally {
+      setIsAddingOperation(false)
     }
   }
 
@@ -200,6 +213,9 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
     }
 
     try {
+      // Set saving state to true to disable the button
+      setIsSavingProgramme(true)
+
       // Group entries by gamme and operation
       const groupedEntries: Record<string, Record<string, number>> = {}
 
@@ -238,6 +254,8 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
     } catch (error) {
       console.error("Error:", error)
       alert("Une erreur s'est produite lors de la création du programme.")
+      // Re-enable the button if there's an error
+      setIsSavingProgramme(false)
     }
   }
 
@@ -428,10 +446,20 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
         <div className="mt-6 flex justify-end">
           <button
             onClick={handleSaveProgramme}
-            className="px-4 py-2 bg-[#0a2d5e] text-white rounded-md hover:bg-blue-700 flex items-center"
+            disabled={programmeEntries.length === 0 || isSavingProgramme}
+            className="px-4 py-2 bg-[#0a2d5e] text-white rounded-md hover:bg-blue-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save className="mr-2 h-5 w-5" />
-            Enregistrer le programme
+            {isSavingProgramme ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Enregistrement en cours...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-5 w-5" />
+                Enregistrer le programme
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -485,10 +513,36 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
               </button>
               <button
                 onClick={handleAddGamme}
-                className="px-4 py-2 bg-[#0a2d5e] text-white rounded-md hover:bg-blue-700"
-                disabled={!newGamme.designation}
+                className="px-4 py-2 bg-[#0a2d5e] text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!newGamme.designation || isAddingGamme}
               >
-                Ajouter
+                {isAddingGamme ? (
+                  <span className="flex items-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Ajout en cours...
+                  </span>
+                ) : (
+                  "Ajouter"
+                )}
               </button>
             </div>
           </div>
@@ -538,10 +592,36 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
               </button>
               <button
                 onClick={handleAddOperation}
-                className="px-4 py-2 bg-[#0a2d5e] text-white rounded-md hover:bg-blue-700"
-                disabled={!newOperation.designation}
+                className="px-4 py-2 bg-[#0a2d5e] text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!newOperation.designation || isAddingOperation}
               >
-                Ajouter
+                {isAddingOperation ? (
+                  <span className="flex items-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Ajout en cours...
+                  </span>
+                ) : (
+                  "Ajouter"
+                )}
               </button>
             </div>
           </div>
