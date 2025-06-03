@@ -285,6 +285,7 @@ export default function AjouterProgrammePage({ params }: { params: { typeId: str
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
         <p>Chargement...</p>
       </div>
     )

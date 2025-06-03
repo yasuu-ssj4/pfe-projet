@@ -3,7 +3,7 @@
 import { useState, useEffect, JSX } from "react"
 import { ChevronLeft, Clock, Gauge } from "lucide-react"
 import { useRouter } from "next/navigation"
-
+import { Loader2 } from "lucide-react"
 type Type = {
   id_type: number
   designation: string
@@ -227,6 +227,7 @@ export default function VisualiserProgrammePage({ params }: { params: { typeId: 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
         <p>Chargement...</p>
       </div>
     )
@@ -260,7 +261,7 @@ export default function VisualiserProgrammePage({ params }: { params: { typeId: 
           </div>
         </div>
         <div className="container mx-auto my-6 p-4 text-center">
-          <p>Aucun programme d&apos;entretien trouvé pour ce type.</p>
+          <p>Aucun programme d'entretien trouvé pour ce type.</p>
         </div>
       </div>
     )

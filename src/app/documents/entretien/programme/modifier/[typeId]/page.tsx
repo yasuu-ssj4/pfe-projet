@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { ChevronLeft, Plus, Save, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { v4 as uuidv4 } from "uuid"
+import { Loader2 } from "lucide-react"
 
 type Type = {
   id_type: number
@@ -275,7 +276,8 @@ export default function ModifierProgrammePage({ params }: { params: { typeId: st
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Chargement...</p>
+       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+       <p>Chargement...</p>
       </div>
     )
   }

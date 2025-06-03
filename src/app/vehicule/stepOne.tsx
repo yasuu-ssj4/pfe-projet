@@ -331,6 +331,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
                     placeholder="Rechercher par désignation de structure"
                     onFocus={() => setShowOptions(true)}
                     onChange={handleChange}
+                    maxLength={4}
                     value={FormValue.code_structure}
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
@@ -375,7 +376,7 @@ const StepOne: React.FC<StepOneProps> = ({ FormValue, handleChange, SetStep, Set
           type="button"
           onClick={() => {SetStep(2), console.log(FormValue.code_type)}}
           disabled={
-            !FormValue.code_structure || isLoading.genres || isLoading.marques || isLoading.types || isLoading.centres
+            !FormValue.code_structure || isLoading.genres || isLoading.marques || isLoading.types || isLoading.centres || (FormValue.code_structure.length < 4)
           }
           className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed"
         >
