@@ -195,4 +195,3 @@ const hashedmdp = await bcrypt.hash(plainPassword, saltRounds);
      
     }
   }
-tester_api("A0156")

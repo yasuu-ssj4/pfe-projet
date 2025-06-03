@@ -160,7 +160,7 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
       label: "Rapports",
       subItems: [
         { id: "ajouter_situation_immobilisation", label: "Ajouter Une Situation d'immobilisation hebdomadaire" },
-        { id: "ajouter_rapport_activite", label: "Ajouter Un Rapport d'activité mensuel" },
+        { id: "ajouter_rapport_activite", label: "Generer Un Rapport d'activité mensuel" },
       ]
     }
   ]
@@ -755,15 +755,7 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-8">
               <div className="flex space-x-4 mt-8">
-                {userPrivs.includes("ajouter_structure") && (
-                  <button
-                    onClick={() => setStruct(true)}
-                    className="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200"
-                  >
-                    <Plus className="w-5 h-5" />
-                    <span>Ajouter une structure</span>
-                  </button>
-                )}
+                
                 {userPrivs.includes("ajouter_user") && (
                   <button
                     onClick={handlePopup}
@@ -1244,9 +1236,10 @@ export default function Compte({ userId, userPrivs }: { userId: number; userPriv
                           value={formValue.password}
                           onChange={handleForm}
                           type="password"
+                          minLength={8}
                           placeholder={isEditMode ? "Nouveau mot de passe" : "Mot de passe"}
                           className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black"
-                          required
+                          required={!isEditMode}
                           />
                       </div>
 

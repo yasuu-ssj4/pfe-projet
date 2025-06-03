@@ -7,7 +7,7 @@ import { ChevronLeft, Search, Save, Check, ChevronRight, FileText } from "lucide
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-
+import NoRapport from "@/app/Rapport_activites/components/no_droit"
 // Helper function to get current user ID (placeholder)
 
 type VehicleImb = {
@@ -16,7 +16,7 @@ type VehicleImb = {
   status_date: Date
 }
 
-export default function AjouterImmobilisationPage({ userId }: { userId: number }) {
+export default function AjouterImmobilisationPage({ userId, userPrivs }: { userId: number,userPrivs: string[] }) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -210,7 +210,7 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
       setEditingCell(null)
     }
   }
-
+  
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -248,10 +248,10 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
           </div>
         </div>
       </div>
-
       {/* Table */}
       <div className="container mx-auto my-6 overflow-x-auto">
-        {loading ? (
+        {userPrivs.includes('ajouter_situation_immobilisation') 
+        ? ( loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0a2d5e]"></div>
           </div>
@@ -376,7 +376,10 @@ export default function AjouterImmobilisationPage({ userId }: { userId: number }
               ))}
             </tbody>
           </table>
-        )}
+        )): 
+        <div className="flex items-center justify-center py-24">
+        <NoRapport /> 
+        </div>}
       </div>
 
       {/* Pagination */}

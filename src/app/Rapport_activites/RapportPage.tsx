@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import DateSelectionPopup from "./components/date-selection-popup"
 import ActivityReport from "./components/activity-report"
+import NoRapport from "./components/no_droit"
 import { Loader2, Search, Calendar, X } from "lucide-react"
 
 export default function RapportActivitePage({ userId , userPrivs}: {userId: number, userPrivs: string[]}) {
@@ -119,7 +120,10 @@ export default function RapportActivitePage({ userId , userPrivs}: {userId: numb
     ]
     return months[Number.parseInt(monthNumber) - 1]
   }
-
+  if (!userPrivs.includes('ajouter_rapport_activite')) 
+    return(
+      <NoRapport />
+    )
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       {showDatePopup && <DateSelectionPopup onSelect={handleDateSelection} onCancel={() => router.back()} />}

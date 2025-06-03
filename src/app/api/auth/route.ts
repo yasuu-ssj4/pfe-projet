@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       const isPasswordValid = await bcrypt.compare(password, user.mot_de_passe);
     
       if (!isPasswordValid) {
-        return NextResponse.json({ error: "Mot de passe incorrect." }, { status: 401 });
+        return NextResponse.json({ error: "Mot de passe ou utilisateur incorrecte." }, { status: 401 });
       }
     
   
